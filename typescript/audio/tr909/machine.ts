@@ -69,7 +69,7 @@ export class Machine implements Terminable {
             const message = event.data as ToMainMessage
             if (message.type === 'update-step') {
                 const index = message.stepIndex
-                const time = Date.now() + context.outputLatency
+                const time = Date.now() + context.outputLatency * 1000.0
                 this.scheduleUpdates.push({time, exec: () => this.processorStepIndex.set(index)})
             }
         }

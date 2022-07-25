@@ -1,6 +1,6 @@
 import {ChannelIndex, Pattern, Step} from "../audio/tr909/pattern.js"
 import {elseIfUndefined} from "../lib/common.js"
-import {MainKeyIndex, KeyState} from "./keys.js"
+import {FunctionKeyIndex, KeyState, MainKeyIndex} from "./keys.js"
 
 interface StepModifier {
     weakFull(step: Step): Step
@@ -256,6 +256,18 @@ export class Utils {
             } else {
                 throw new Error(`Unknown instrumentMode(${instrumentMode})`)
             }
+        }
+    }
+
+    static maySwitchToMode<T>(keyIndex: FunctionKeyIndex,
+                              zeroBasedIndices: FunctionKeyIndex[],
+                              switchMode: (index: number) => void): boolean {
+        const index: T | number = zeroBasedIndices.indexOf(keyIndex)
+        if (index === -1) {
+            return false
+        } else {
+            switchMode(index)
+            return true
         }
     }
 }

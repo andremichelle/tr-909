@@ -58,9 +58,9 @@ const showProgress = (() => {
 
     window.addEventListener("resize", resize)
     resize()
-    const body = HTML.query("body")
+    const body: HTMLBodyElement = HTML.query("body")
     HTML.queryAll("svg.preloader", body).forEach(element => element.remove())
-    await Waiting.forFrames(10)
+    await Waiting.forFrames(20)
     HTML.queryAll("main", body).forEach(element => element.classList.remove("invisible"))
     console.debug("boot complete.")
 
@@ -76,7 +76,7 @@ const showProgress = (() => {
 
     // debugging
     const run = () => {
-        debugMode.textContent = gui.machineContext.stateName()
+        debugMode.textContent = gui.machineContext.modeName()
         debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
         debugInstrument.textContent = gui.machineContext.instrumentMode.get().name
         requestAnimationFrame(run)

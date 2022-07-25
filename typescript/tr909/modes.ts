@@ -6,7 +6,7 @@ import {MachineContext} from "./context.js"
 import {FunctionKeyIndex, Key, KeyState, MainKeyIndex} from "./keys.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
-export abstract class MachineState implements Terminable {
+export abstract class MachineMode implements Terminable {
     private readonly terminator: Terminator = new Terminator()
 
     protected constructor(readonly context: MachineContext) {
@@ -30,11 +30,11 @@ export abstract class MachineState implements Terminable {
     readonly terminate = (): void => this.terminator.terminate()
 }
 
-export class StepModeState extends MachineState {
+export class StepModeState extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.with(this.context.activatePatternStepsButtons())
+        this.with(this.context.activatePatternStepsKeys())
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
@@ -49,11 +49,11 @@ export class StepModeState extends MachineState {
     }
 }
 
-export class ClearStepsState extends MachineState {
+export class ClearStepsState extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.with(this.context.activatePatternStepsButtons())
+        this.with(this.context.activatePatternStepsKeys())
         this.with(this.context.machine.processorStepIndex.addObserver(stepIndex => {
             const instrumentMode = this.context.instrumentMode.get()
             const pattern = this.context.machine.state.activePattern()
@@ -66,11 +66,11 @@ export class ClearStepsState extends MachineState {
     }
 }
 
-export class TapModeState extends MachineState {
+export class TapModeState extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.with(this.context.activateRunningAnimation())
+        this.with(this.context.activateStepsRunningAnimation())
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
@@ -91,11 +91,11 @@ export class TapModeState extends MachineState {
     }
 }
 
-export class ClearTapState extends MachineState {
+export class ClearTapState extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.with(this.context.activateRunningAnimation())
+        this.with(this.context.activateStepsRunningAnimation())
         this.with(this.context.machine.processorStepIndex.addObserver(stepIndex => {
             const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.pressedMainKeys)
             if (instrumentMode === InstrumentMode.None || instrumentMode === InstrumentMode.TotalAccent) {
@@ -111,7 +111,7 @@ export class ClearTapState extends MachineState {
     }
 }
 
-export class InstrumentSelectState extends MachineState {
+export class InstrumentSelectState extends MachineMode {
     private readonly update = (instrumentMode: InstrumentMode) => {
         const toButtonStates = Utils.instrumentModeToButtonStates(instrumentMode)
         this.context.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => key.setState(toButtonStates(keyIndex)))
@@ -132,7 +132,7 @@ export class InstrumentSelectState extends MachineState {
     }
 }
 
-export class ShuffleFlamState extends MachineState {
+export class ShuffleFlamState extends MachineMode {
     private static GrooveExp: number[] = ArrayUtils.fill(7, index => 1.0 + index * 0.2)
 
     private readonly subscriptions = this.with(new Terminator())
@@ -171,7 +171,7 @@ export class ShuffleFlamState extends MachineState {
     }
 
     private update(): void {
-        this.context.resetMainKeys()
+        this.context.mainKeys.deactivate()
         const pattern = this.context.machine.state.activePattern()
         const groove = pattern.groove.get()
         if (groove === GrooveIdentity) {
@@ -192,7 +192,7 @@ export class ShuffleFlamState extends MachineState {
     }
 }
 
-export class LastStepSelectState extends MachineState {
+export class LastStepSelectState extends MachineMode {
     private readonly subscriptions = this.with(new Terminator())
 
     constructor(context: MachineContext) {
@@ -213,7 +213,7 @@ export class LastStepSelectState extends MachineState {
 
     update(): void {
         const pattern = this.context.machine.state.activePattern()
-        this.context.resetMainKeys()
+        this.context.mainKeys.deactivate()
         this.context.mainKeys[pattern.lastStep.get() - 1].setState(KeyState.On)
     }
 

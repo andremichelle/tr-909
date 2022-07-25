@@ -1,7 +1,7 @@
+import {Machine} from "../audio/tr909/machine.js"
 import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
-import {Machine} from "../audio/tr909/machine.js"
-import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
+import {Events, ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Digits} from "./digits.js"
 import {
@@ -14,9 +14,11 @@ import {
     PatternGroupKeyIndices,
     TrackKeyIndices
 } from "./keys.js"
-import {MachineState} from "./states.js"
-import PatternPlayState from "./states/pattern-play.js"
-import TrackPlayState from "./states/track-play.js"
+import PatternPlayMode from "./modes/pattern-play.js"
+import PatternWriteMode from "./modes/pattern-write.js"
+import TrackPlayMode from "./modes/track-play.js"
+import TrackWriteMode from "./modes/track-write.js"
+import {MachineMode} from "./modes.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 export class MachineContext implements Terminable {
@@ -39,7 +41,7 @@ export class MachineContext implements Terminable {
     readonly pressedMainKeys: Set<MainKeyIndex> = new Set<MainKeyIndex>()
     readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
 
-    private state: NonNullable<MachineState> = new TrackPlayState(this)
+    private mode: NonNullable<MachineMode> = new TrackPlayMode(this)
 
     constructor(readonly machine: Machine,
                 readonly mainKeys: KeyGroup<MainKeyIndex>,
@@ -50,19 +52,19 @@ export class MachineContext implements Terminable {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 this.pressedMainKeys.add(keyIndex)
                 key.setPointerCapture(event.pointerId)
-                this.state.onMainKeyPress(keyIndex)
+                this.mode.onMainKeyPress(keyIndex)
             }))
             this.terminator.with(key.bind('pointerup', () => {
                 this.pressedMainKeys.delete(keyIndex)
-                this.state.onMainKeyRelease(keyIndex)
+                this.mode.onMainKeyRelease(keyIndex)
             }))
         })
         this.functionKeys.forEach((key: Key, keyId: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
-                this.state.onFunctionKeyPress(keyId)
+                this.mode.onFunctionKeyPress(keyId)
             }))
-            this.terminator.with(key.bind('pointerup', () => this.state.onFunctionKeyRelease(keyId)))
+            this.terminator.with(key.bind('pointerup', () => this.mode.onFunctionKeyRelease(keyId)))
         })
         this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
             this.shiftKey.setPointerCapture(event.pointerId)
@@ -83,79 +85,114 @@ export class MachineContext implements Terminable {
                 this.shiftMode.set(false)
             }
         }))
-        console.log(`state: ${this.stateName()}`)
+        console.log(`mode: ${this.modeName()}`)
     }
 
-    stateName(): string {
-        return this.state.constructor.name
+    modeName(): string {
+        return this.mode.name()
     }
 
-    switchToTrackPlayState(trackIndex: TrackIndex = TrackIndex.I): void {
+    switchToTrackPlayMode(trackIndex: TrackIndex): void {
         this.resetKeys()
-        this.state.terminate()
+        this.mode.terminate()
         this.machine.state.trackIndex.set(trackIndex)
-        this.state = new TrackPlayState(this)
-        console.log(`state: ${this.stateName()}`)
+        this.mode = new TrackPlayMode(this)
+        console.log(`mode: ${this.modeName()}`)
     }
 
-    switchToPatternPlayState(patternGroupIndex: PatternGroupIndex = PatternGroupIndex.I): void {
+    switchToTrackWriteMode(trackIndex: TrackIndex) {
         this.resetKeys()
-        this.state.terminate()
+        this.mode.terminate()
+        this.machine.state.trackIndex.set(trackIndex)
+        this.mode = new TrackWriteMode(this)
+        console.log(`mode: ${this.modeName()}`)
+    }
+
+    switchToPatternPlayMode(patternGroupIndex: PatternGroupIndex): void {
+        this.resetKeys()
+        this.mode.terminate()
         this.machine.state.patternGroupIndex.set(patternGroupIndex)
-        this.state = new PatternPlayState(this)
-        console.log(`state: ${this.stateName()}`)
+        this.mode = new PatternPlayMode(this)
+        console.log(`mode: ${this.modeName()}`)
+    }
+
+    switchToPatternWriteMode(patternGroupIndex: PatternGroupIndex): void {
+        this.resetKeys()
+        this.mode.terminate()
+        this.machine.state.patternGroupIndex.set(patternGroupIndex)
+        this.mode = new PatternWriteMode(this)
+        console.log(`mode: ${this.modeName()}`)
+    }
+
+    maySwitchToTrackPlayMode(keyIndex: FunctionKeyIndex): boolean {
+        return Utils.maySwitchToMode(keyIndex, TrackKeyIndices, index => this.switchToTrackPlayMode(index))
+    }
+
+    maySwitchToTrackWriteMode(keyIndex: FunctionKeyIndex): boolean {
+        return Utils.maySwitchToMode(keyIndex, TrackKeyIndices, index => this.switchToTrackWriteMode(index))
+    }
+
+    maySwitchToPatternPlayMode(keyIndex: FunctionKeyIndex): boolean {
+        return Utils.maySwitchToMode(keyIndex, PatternGroupKeyIndices, index => this.switchToPatternPlayMode(index))
+    }
+
+    maySwitchToPatternWriteMode(keyIndex: FunctionKeyIndex): boolean {
+        return Utils.maySwitchToMode(keyIndex, PatternGroupKeyIndices, index => this.switchToPatternWriteMode(index))
+    }
+
+    maySwitchIndex<T extends number>(keyIndex: FunctionKeyIndex, indices: FunctionKeyIndex[], value: ObservableValue<T>): boolean {
+        const index: number = indices.indexOf(keyIndex)
+        if (index === -1) {
+            return false
+        }
+        value.set(index as T)
+        return true
     }
 
     resetKeys(): void {
-        this.functionKeys.deactivate(TrackKeyIndices)
-        this.functionKeys.deactivate(BankGroupKeyIndices)
-        this.functionKeys.deactivate(PatternGroupKeyIndices)
-        this.resetMainKeys()
+        this.mainKeys.deactivate()
+        this.functionKeys.deactivate()
     }
 
-    resetMainKeys(): void {
-        console.debug('resetMainKeys')
-        this.mainKeys.forEach(button => button.setState(KeyState.Off))
-    }
-
-    activatePatternLocationButtons(arrayIndex: number): void {
-        console.debug(`activatePatternLocationButtons(arrayIndex: ${arrayIndex})`)
+    activatePatternLocationKeys(arrayIndex: number): void {
+        console.debug(`activatePatternLocationKeys(arrayIndex: ${arrayIndex})`)
         const location = this.machine.state.activeBank().toLocation(arrayIndex)
-        this.activatePatternGroupButton(location.patternGroupIndex)
+        this.activatePatternGroupKeys(location.patternGroupIndex, false)
         this.mainKeys.byIndex(location.patternIndex as number).setState(KeyState.Blink)
     }
 
-    activateTrackButton(trackIndex: TrackIndex, writeMode: boolean): void {
-        console.debug(`showTrackIndex(index: ${trackIndex}, writeMode: ${writeMode})`)
+    activateTrackKeys(trackIndex: TrackIndex, writeMode: boolean): void {
+        console.debug(`activateTrackKeys(index: ${trackIndex}, writeMode: ${writeMode})`)
         this.functionKeys.activate(index => index === trackIndex
-            ? writeMode ? KeyState.Blink :
-                KeyState.On : KeyState.Off, TrackKeyIndices)
+            ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, TrackKeyIndices)
     }
 
-    activatePatternGroupButton(patternGroupIndex: PatternGroupIndex): void {
-        console.debug(`activatePatternGroupButton(index: ${patternGroupIndex})`)
-        this.functionKeys.activate(index => patternGroupIndex === index ? KeyState.On : KeyState.Off, PatternGroupKeyIndices)
+    activatePatternGroupKeys(patternGroupIndex: PatternGroupIndex, writeMode: boolean): void {
+        console.debug(`activatePatternGroupKeys(index: ${patternGroupIndex}, writeMode: ${writeMode})`)
+        this.functionKeys.activate(index => patternGroupIndex === index
+            ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, PatternGroupKeyIndices)
     }
 
-    activateBankGroupButton(bankGroupIndex: BankGroupIndex): void {
-        console.debug(`activateBankGroupButton(index: ${bankGroupIndex})`)
-        this.functionKeys.activate(index => bankGroupIndex === index ? KeyState.On : KeyState.Off, BankGroupKeyIndices)
+    activateBankGroupKeys(bankGroupIndex: BankGroupIndex): void {
+        console.debug(`activateBankGroupKeys(index: ${bankGroupIndex})`)
+        this.functionKeys.activate(index => bankGroupIndex === index
+            ? KeyState.On : KeyState.Off, BankGroupKeyIndices)
     }
 
-    activatePatternStepsButtons(): Terminable {
+    activatePatternStepsKeys(): Terminable {
         const terminator = new Terminator()
         let patternSubscription = TerminableVoid
         terminator.with({terminate: () => patternSubscription.terminate()})
         terminator.with(this.machine.state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             patternSubscription.terminate()
-            patternSubscription = pattern.addObserver(() => this.updatePatternSteps(), true)
+            patternSubscription = pattern.addObserver(() => this.updatePatternStepsKeys(), true)
         }))
-        terminator.with(this.activateRunningAnimation())
-        this.updatePatternSteps()
+        terminator.with(this.activateStepsRunningAnimation())
+        this.updatePatternStepsKeys()
         return terminator
     }
 
-    activateRunningAnimation(): Terminable {
+    activateStepsRunningAnimation(): Terminable {
         const terminator = new Terminator()
         let flashing: Key = null
         terminator.with({
@@ -188,7 +225,7 @@ export class MachineContext implements Terminable {
         this.terminator.terminate()
     }
 
-    private updatePatternSteps() {
+    private updatePatternStepsKeys() {
         const pattern: Pattern = this.machine.state.activePattern()
         const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) =>
