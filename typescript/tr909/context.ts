@@ -11,7 +11,7 @@ import {
     Key,
     KeyGroup,
     KeyState,
-    MainKeyIndex,
+    MainKeyIndex, PatternEditModeIndices,
     PatternGroupKeyIndices,
     TrackKeyIndices
 } from "./keys.js"
@@ -21,6 +21,10 @@ import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
 import {InstrumentMode, Utils} from "./utils.js"
+
+export enum PatternEditMode {
+    Step, Tap
+}
 
 export class MachineContext implements Terminable {
     static create(machine: Machine, parentNode: ParentNode): MachineContext {
@@ -39,6 +43,7 @@ export class MachineContext implements Terminable {
     private readonly terminator = new Terminator()
 
     readonly instrumentMode: ObservableValueImpl<InstrumentMode> = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
+    readonly patternEditMode: ObservableValueImpl<PatternEditMode> = new ObservableValueImpl<PatternEditMode>(PatternEditMode.Step)
     readonly pressedMainKeys: Set<MainKeyIndex> = new Set<MainKeyIndex>()
     readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
 
@@ -208,6 +213,13 @@ export class MachineContext implements Terminable {
         console.debug(`activateBankGroupKeys(index: ${bankGroupIndex})`)
         this.functionKeys.activate(index => bankGroupIndex === index
             ? KeyState.On : KeyState.Off, BankGroupKeyIndices)
+    }
+
+    updatePatternEditKeys(): void {
+        const editMode = this.patternEditMode.get()
+        this.functionKeys.activate(index => index === editMode
+            ? KeyState.On
+            : KeyState.Off, PatternEditModeIndices)
     }
 
     watchPatternLocationKeys(): Terminable {

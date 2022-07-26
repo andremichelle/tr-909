@@ -1,24 +1,34 @@
 import {Step} from "../../audio/tr909/pattern.js"
-import {MachineContext} from "../context.js"
-import {FunctionKeyIndex, KeyState, MainKeyIndex} from "../keys.js"
+import {MachineContext, PatternEditMode} from "../context.js"
+import {FunctionKeyIndex, KeyState, MainKeyIndex, PatternEditModeIndices} from "../keys.js"
 import {consumed, Mode} from "../modes.js"
 import {Utils} from "../utils.js"
 
 export default class extends Mode {
-    private readonly inputMode: Mode
+    private inputMode: Mode = null
 
     constructor(context: MachineContext) {
         super(context)
 
-        this.inputMode = this.with(new TapInputMode(context))
-        // this.inputMode = this.with(new StepInputMode(context))
+        this.with(this.context.patternEditMode.addObserver((mode: PatternEditMode) => {
+            if (this.inputMode !== null) {
+                this.inputMode.terminate()
+                this.inputMode = null
+            }
+            this.context.resetKeys()
+            if (mode === PatternEditMode.Step) {
+                this.inputMode = new StepInputMode(context)
+            } else if (mode === PatternEditMode.Tap) {
+                this.inputMode = new TapInputMode(context)
+            } else {
+                throw new Error(`Unknown PatternInputMode(${mode})`)
+            }
+            this.context.updatePatternEditKeys()
+            this.context.updateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
+            this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
+        }, true))
 
-        this.with(this.context.startStepRunningAnimation())
-        this.context.updateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
-        this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
-        this.with(this.context.machine.state.guideMode
-            .addObserver(mode => this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
-                .setState(mode ? KeyState.On : KeyState.Off), true))
+        this.with({terminate: () => this.inputMode!.terminate()})
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
@@ -27,6 +37,9 @@ export default class extends Mode {
                 return true
             }
             if (this.context.maySwitchToPatternWriteMode(keyIndex)) {
+                return true
+            }
+            if (this.context.maySwitchIndex(keyIndex, PatternEditModeIndices, this.context.patternEditMode)) {
                 return true
             }
         } else {
@@ -56,7 +69,10 @@ class TapInputMode extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.context.functionKeys.byIndex(FunctionKeyIndex.BackTap).setState(KeyState.On)
+        this.with(this.context.startStepRunningAnimation())
+        this.with(this.context.machine.state.guideMode
+            .addObserver(mode => this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
+                .setState(mode ? KeyState.On : KeyState.Off), true))
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
@@ -85,7 +101,10 @@ class StepInputMode extends Mode {
         super(context)
 
         this.with(this.context.watchPatternStepsKeys())
-        this.context.functionKeys.byIndex(FunctionKeyIndex.TempoStep).setState(KeyState.On)
+        this.with(this.context.startStepRunningAnimation())
+        this.with(this.context.machine.state.guideMode
+            .addObserver(mode => this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
+                .setState(mode ? KeyState.On : KeyState.Off), true))
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {

@@ -16,9 +16,11 @@ export enum FunctionKeyIndex {
     ShuffleFlam, Clear, InstrumentSelect
 }
 
+// zero-based indices
 export const BankGroupKeyIndices = [FunctionKeyIndex.ForwardBankI, FunctionKeyIndex.AvailableMeasuresBankII]
 export const TrackKeyIndices = [FunctionKeyIndex.Track1, FunctionKeyIndex.Track2, FunctionKeyIndex.Track3, FunctionKeyIndex.Track4]
 export const PatternGroupKeyIndices = [FunctionKeyIndex.PatternGroup1, FunctionKeyIndex.PatternGroup2, FunctionKeyIndex.PatternGroup3]
+export const PatternEditModeIndices = [FunctionKeyIndex.TempoStep, FunctionKeyIndex.BackTap]
 
 export enum KeyState {
     Off, Flash, Blink, On
