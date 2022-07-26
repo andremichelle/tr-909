@@ -1,12 +1,6 @@
-import {
-    ArrayUtils,
-    ObservableImpl,
-    ObservableValue,
-    ObservableValueImpl,
-    Terminable,
-    Terminator
-} from "../../lib/common.js"
+import {ArrayUtils} from "../../lib/common.js"
 import {Pattern} from "./pattern.js"
+import {Track} from "./track.js"
 
 export enum BankGroupIndex {I, II}
 
@@ -23,8 +17,6 @@ export enum PatternIndex {
 
 export type Memory = [MemoryBank, MemoryBank]
 
-export type Track = number[]
-
 export type PatternLocation = { patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex }
 
 export class MemoryBank {
@@ -33,7 +25,7 @@ export class MemoryBank {
     static readonly NUM_PATTERNS = 16
     static readonly PATTERNS_COUNT = MemoryBank.NUM_PATTERNS * MemoryBank.NUM_PATTERN_GROUPS
 
-    readonly tracks: Track[] = ArrayUtils.fill(MemoryBank.NUM_TRACKS, () => [])
+    readonly tracks: Track[] = ArrayUtils.fill(MemoryBank.NUM_TRACKS, () => new Track())
     readonly patterns: Pattern[] = ArrayUtils.fill(MemoryBank.PATTERNS_COUNT, () => new Pattern())
 
     indexOf(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {

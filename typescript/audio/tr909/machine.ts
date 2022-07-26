@@ -1,12 +1,13 @@
 import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator} from "../../lib/common.js"
 import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
-import {BankGroupIndex, Memory, MemoryBank, PatternGroupIndex, PatternIndex} from "./memory.js"
+import {BankGroupIndex, Memory, MemoryBank, PatternIndex} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {ChannelIndex, Pattern, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 import {State} from "./state.js"
+import {Track} from "./track.js"
 
 export class Machine implements Terminable {
     static loadModule(context: AudioContext): Promise<void> {
@@ -27,7 +28,7 @@ export class Machine implements Terminable {
 
     readonly processorStepIndex = new ObservableValueImpl<number>(0)
 
-    constructor(context, resources: Resources) {
+    constructor(readonly context, resources: Resources) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {
             numberOfInputs: 1,
             numberOfOutputs: ChannelIndex.End,
@@ -60,25 +61,33 @@ export class Machine implements Terminable {
             format: this.state.serialize()
         } as ToWorkletMessage)))
         this.terminator.merge(this.memory
-            .map((bank: MemoryBank, bankGroupIndex: BankGroupIndex) => bank.patterns
-                .map((pattern: Pattern, arrayIndex: PatternIndex) => pattern
-                    .addObserver(() => this.worklet.port.postMessage({
-                        type: 'update-pattern', bankGroupIndex, arrayIndex, format: pattern.serialize()
-                    } as ToWorkletMessage), false))).flat())
+            .map((bank: MemoryBank, bankGroupIndex: BankGroupIndex) => {
+                return [
+                    ...bank.tracks
+                        .map((track: Track, arrayIndex: number) => track
+                            .addObserver(() => this.worklet.port.postMessage({
+                                type: 'update-track', bankGroupIndex, arrayIndex, format: track.serialize()
+                            } as ToWorkletMessage), false)),
+                    ...bank.patterns
+                        .map((pattern: Pattern, arrayIndex: PatternIndex) => pattern
+                            .addObserver(() => this.worklet.port.postMessage({
+                                type: 'update-pattern', bankGroupIndex, arrayIndex, format: pattern.serialize()
+                            } as ToWorkletMessage), false))]
+            }).flat())
         this.worklet.port.onmessage = event => {
             const message = event.data as ToMainMessage
             if (message.type === 'update-step') {
                 const index = message.stepIndex
-                const time = Date.now() + context.outputLatency * 1000.0
+                const time = context.currentTime + context.outputLatency
                 this.scheduleUpdates.push({time, exec: () => this.processorStepIndex.set(index)})
             }
         }
         this.startScheduler()
 
         // TODO > Test Data < REMOVE WHEN DONE TESTING
-        this.state.patternBy(0, 0).testB()
-        this.state.patternBy(PatternGroupIndex.III, 6).testA()
-        // this.state.activeBank().tracks[0].push(this.state.indexOf(PatternGroupIndex.III, 6), 1, 0, 1)
+        this.state.patternBy(0, 0).testA()
+        this.state.patternBy(0, 1).testB()
+        this.state.activeBank().tracks[0].insert(0, 1, 0, 1)
     }
 
     play(channelIndex: ChannelIndex, step: Step) {
@@ -93,7 +102,7 @@ export class Machine implements Terminable {
     private startScheduler() {
         const schedule = () => {
             if (this.scheduleUpdates.length > 0) {
-                if (Date.now() >= this.scheduleUpdates[0].time) {
+                if (this.context.currentTime >= this.scheduleUpdates[0].time) {
                     this.scheduleUpdates.shift().exec()
                 }
             }

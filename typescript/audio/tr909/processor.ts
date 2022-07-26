@@ -4,7 +4,7 @@ import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage} from
 import {BasicTuneDecayVoice} from "./dsp/basic-voice.js"
 import {BassdrumVoice} from "./dsp/bassdrum.js"
 import {Channel, VoiceFactory} from "./dsp/channel.js"
-import {PatternProvider, TrackPatternPlay, UserPatternSelect} from "./dsp/pattern.js"
+import {PatternProvider, TrackPatternPlay} from "./dsp/pattern.js"
 import {SnaredrumVoice} from "./dsp/snaredrum.js"
 import {Voice} from "./dsp/voice.js"
 import {Memory, MemoryBank} from "./memory.js"
@@ -41,8 +41,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         }, true)
         this.memory = [new MemoryBank(), new MemoryBank()]
         this.state = new State(this.memory)
-        this.patternProvider = new UserPatternSelect(this.state, () => this.moving)
-        // this.patternProvider = new TrackPatternPlay(this.state)
+        // this.patternProvider = new UserPatternSelect(this.state, () => this.moving)
+        this.patternProvider = new TrackPatternPlay(this.state)
         this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
 
         this.port.onmessage = (event: MessageEvent) => {
@@ -51,16 +51,19 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 this.preset.find(message.path).get().setUnipolar(message.unipolar)
             } else if (message.type === 'update-state') {
                 this.state.deserialize(message.format)
+            } else if (message.type === 'update-track') {
+                this.memory[message.bankGroupIndex].tracks[message.arrayIndex].deserialize(message.format)
+                this.patternProvider.onTrackChanged()
             } else if (message.type === 'update-pattern') {
                 this.memory[message.bankGroupIndex].patterns[message.arrayIndex].deserialize(message.format)
-            } else if (message.type === "play-channel") {
-                this.schedulePlay(message.channelIndex, this.frameIndex, message.step, false)
             } else if (message.type === "transport-play") {
                 this.moving = true
             } else if (message.type === "transport-pause") {
                 this.moving = false
             } else if (message.type === "transport-move") {
                 this.bar = message.position
+            } else if (message.type === "play-channel") {
+                this.schedulePlay(message.channelIndex, this.frameIndex, message.step, false)
             }
         }
     }
@@ -80,7 +83,6 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     sequence(): void {
         const pattern: Pattern = this.patternProvider.pattern()
         if (pattern === null) {
-            this.moving = false
             return
         }
         const groove = pattern.groove.get()

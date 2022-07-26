@@ -54,13 +54,13 @@ export default class extends MachineMode {
 
     private initButtons() {
         const trackIndex: TrackIndex = this.context.machine.state.trackIndex.get()
-        const patternSequence = this.context.machine.state.activeBank().tracks[trackIndex]
-        if (patternSequence.length === 0) {
+        const track = this.context.machine.state.activeBank().tracks[trackIndex]
+        if (track.isEmpty()) {
             this.context.activatePatternGroupKeys(0, false)
             this.context.mainKeys.byIndex(0).setState(KeyState.Flash)
             this.context.digits.show(0)
         } else {
-            this.context.activatePatternLocationKeys(patternSequence[0])
+            this.context.activatePatternLocationKeys(track.get(0))
             this.context.digits.show(1) // first measure index
         }
         this.context.activateTrackKeys(trackIndex, false)

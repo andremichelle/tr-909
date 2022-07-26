@@ -16,6 +16,7 @@ import {
     TrackIndex
 } from "./memory.js"
 import {Pattern} from "./pattern.js"
+import {Track} from "./track.js"
 
 export interface StateFormat {
     bankGroupIndex: BankGroupIndex
@@ -57,7 +58,7 @@ export class State implements Serializer<StateFormat>, Terminable {
         return this.memory[this.bankGroupIndex.get()]
     }
 
-    activeTrack(): number[] {
+    activeTrack(): Track {
         return this.activeBank().tracks[this.trackIndex.get()]
     }
 

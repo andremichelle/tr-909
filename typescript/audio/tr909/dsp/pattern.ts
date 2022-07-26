@@ -1,5 +1,6 @@
 import {Pattern} from "../pattern.js"
 import {State} from "../state.js"
+import {Track} from "../track.js"
 
 export interface PatternProvider {
     readonly state: State
@@ -7,6 +8,8 @@ export interface PatternProvider {
     pattern(): Pattern | null
 
     onPatterComplete(): void
+
+    onTrackChanged(): void
 }
 
 export class UserPatternSelect implements PatternProvider {
@@ -34,6 +37,10 @@ export class UserPatternSelect implements PatternProvider {
         this.current = this.waiting
         this.waiting = null
     }
+
+    onTrackChanged(): void {
+        // nothing to do
+    }
 }
 
 export class TrackPatternPlay implements PatternProvider {
@@ -41,9 +48,7 @@ export class TrackPatternPlay implements PatternProvider {
     private current: Pattern = null
 
     constructor(readonly state: State) {
-        const sequence = this.state.activeTrack()
-        const patterns = this.state.activeBank().patterns
-        this.current = sequence.length === 0 ? null : patterns[sequence[this.index]]
+        this.onTrackChanged()
     }
 
     pattern(): Pattern | null {
@@ -51,15 +56,21 @@ export class TrackPatternPlay implements PatternProvider {
     }
 
     onPatterComplete(): void {
-        const track: number[] = this.state.activeTrack()
-        if (++this.index >= track.length) {
+        const track: Track = this.state.activeTrack()
+        if (++this.index >= track.size()) {
             if (this.state.cycleMode.get()) {
-                this.current = this.state.activeBank().patterns[track[this.index = 0]]
+                this.current = this.state.activeBank().patterns[track.get(this.index = 0)]
             } else {
                 this.current = null
             }
         } else {
-            this.current = this.state.activeBank().patterns[track[this.index]]
+            this.current = this.state.activeBank().patterns[track.get(this.index)]
         }
+    }
+
+    onTrackChanged(): void {
+        const track = this.state.activeTrack()
+        const patterns = this.state.activeBank().patterns
+        this.current = track.isEmpty() ? null : patterns[track.get(this.index)]
     }
 }
