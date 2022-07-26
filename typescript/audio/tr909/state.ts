@@ -18,12 +18,17 @@ import {
 import {Pattern} from "./pattern.js"
 import {Track} from "./track.js"
 
+export enum PlayMode {
+    Track, Pattern
+}
+
 export interface StateFormat {
     bankGroupIndex: BankGroupIndex
     patternGroupIndex: PatternGroupIndex
     patternIndex: PatternIndex
     trackIndex: TrackIndex
     cycleMode: boolean
+    playMode: PlayMode
 }
 
 export class State implements Serializer<StateFormat>, Terminable {
@@ -34,8 +39,9 @@ export class State implements Serializer<StateFormat>, Terminable {
     readonly patternIndex: ObservableValue<PatternIndex> = new ObservableValueImpl<PatternIndex>(PatternIndex.Pattern1)
     readonly trackIndex: ObservableValue<TrackIndex> = new ObservableValueImpl<TrackIndex>(TrackIndex.I)
     readonly cycleMode: ObservableValue<boolean> = new ObservableValueImpl<boolean>(false)
+    readonly playMode: ObservableValue<PlayMode> = new ObservableValueImpl<PlayMode>(PlayMode.Track)
 
-    readonly changeNotification: ObservableImpl<State> = new ObservableImpl<State>()
+    readonly changeNotification: ObservableImpl<void> = new ObservableImpl<void>()
     readonly patternIndicesChangeNotification: ObservableImpl<Pattern> = new ObservableImpl<Pattern>()
 
     constructor(readonly memory: Memory) {
@@ -48,6 +54,7 @@ export class State implements Serializer<StateFormat>, Terminable {
         this.terminator.with(this.patternIndex.addObserver(this.onChange, false))
         this.terminator.with(this.trackIndex.addObserver(this.onChange, false))
         this.terminator.with(this.cycleMode.addObserver(this.onChange, false))
+        this.terminator.with(this.playMode.addObserver(this.onChange, false))
     }
 
     activePattern(): Pattern {
@@ -62,8 +69,12 @@ export class State implements Serializer<StateFormat>, Terminable {
         return this.activeBank().tracks[this.trackIndex.get()]
     }
 
-    indexOf(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {
-        return this.activeBank().indexOf(patternGroupIndex, patternIndex)
+    toIndex(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {
+        return this.activeBank().toIndex(patternGroupIndex, patternIndex)
+    }
+
+    indexOf(pattern: Pattern): number {
+        return this.activeBank().indexOf(pattern)
     }
 
     patternBy(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
@@ -80,6 +91,7 @@ export class State implements Serializer<StateFormat>, Terminable {
         this.patternIndex.set(format.patternIndex)
         this.trackIndex.set(format.trackIndex)
         this.cycleMode.set(format.cycleMode)
+        this.playMode.set(format.playMode)
         return this
     }
 
@@ -89,7 +101,8 @@ export class State implements Serializer<StateFormat>, Terminable {
             patternGroupIndex: this.patternGroupIndex.get(),
             patternIndex: this.patternIndex.get(),
             trackIndex: this.trackIndex.get(),
-            cycleMode: this.cycleMode.get()
+            cycleMode: this.cycleMode.get(),
+            playMode: this.playMode.get()
         }
     }
 
@@ -97,6 +110,6 @@ export class State implements Serializer<StateFormat>, Terminable {
         this.terminator.terminate()
     }
 
-    private readonly onChange = () => this.changeNotification.notify(this)
+    private readonly onChange = () => this.changeNotification.notify()
     private readonly onPatternIndicesChange = () => this.patternIndicesChangeNotification.notify(this.activePattern())
 }

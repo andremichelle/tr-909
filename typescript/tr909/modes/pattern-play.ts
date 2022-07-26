@@ -1,18 +1,15 @@
-import {PatternGroupIndex, PatternIndex} from "../../audio/tr909/memory.js"
+import {PatternIndex} from "../../audio/tr909/memory.js"
 import {MachineContext} from "../context.js"
-import {FunctionKeyIndex, KeyState, MainKeyIndex, PatternGroupKeyIndices} from "../keys.js"
+import {FunctionKeyIndex, MainKeyIndex, PatternGroupKeyIndices} from "../keys.js"
 import {MachineMode} from "../modes.js"
 
 export default class extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.context.activateStepsRunningAnimation()
-        this.context.activateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
-        this.with(this.context.machine.state.patternGroupIndex
-            .addObserver((patternGroupIndex: PatternGroupIndex) =>
-                this.context.activatePatternGroupKeys(patternGroupIndex, false), true))
-        this.context.mainKeys.byIndex(this.context.machine.state.patternIndex.get() as number).setState(KeyState.Blink)
+        this.context.updateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
+        this.with(this.context.startStepRunningAnimation())
+        this.with(this.context.watchPatternLocationKeys())
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex): void {
@@ -45,10 +42,6 @@ export default class extends MachineMode {
     onMainKeyPress(keyIndex: MainKeyIndex): void {
         if (keyIndex === MainKeyIndex.TotalAccent) return
         this.context.machine.state.patternIndex.set(keyIndex as number as PatternIndex)
-        if (!this.context.machine.transport.isPlaying()) {
-            this.context.mainKeys.deactivate()
-            this.context.mainKeys.byIndex(keyIndex).setState(KeyState.Blink)
-        }
     }
 
     name(): string {

@@ -7,14 +7,14 @@ export default class extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.with(this.context.activateStepsRunningAnimation())
+        this.with(this.context.startStepRunningAnimation())
         this.with(this.context.machine.state.cycleMode.addObserver(mode =>
             this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
                 .setState(mode ? KeyState.On : KeyState.Off), true))
         this.with(this.context.machine.state.trackIndex.addObserver(() => this.initButtons(), false))
         this.with(this.context.machine.state.bankGroupIndex
             .addObserver((bankGroupIndex: BankGroupIndex) => {
-                this.context.activateBankGroupKeys(bankGroupIndex)
+                this.context.updateBankGroupKeys(bankGroupIndex)
                 this.initButtons()
             }, true))
     }
@@ -56,13 +56,13 @@ export default class extends MachineMode {
         const trackIndex: TrackIndex = this.context.machine.state.trackIndex.get()
         const track = this.context.machine.state.activeBank().tracks[trackIndex]
         if (track.isEmpty()) {
-            this.context.activatePatternGroupKeys(0, false)
+            this.context.updatePatternGroupKeys(0, false)
             this.context.mainKeys.byIndex(0).setState(KeyState.Flash)
             this.context.digits.show(0)
         } else {
-            this.context.activatePatternLocationKeys(track.get(0))
+            this.context.updatePatternLocationKeys(track.get(0))
             this.context.digits.show(1) // first measure index
         }
-        this.context.activateTrackKeys(trackIndex, false)
+        this.context.updateTrackKeys(trackIndex, false)
     }
 }

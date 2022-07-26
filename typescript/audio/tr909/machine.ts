@@ -87,7 +87,7 @@ export class Machine implements Terminable {
         // TODO > Test Data < REMOVE WHEN DONE TESTING
         this.state.patternBy(0, 0).testA()
         this.state.patternBy(0, 1).testB()
-        this.state.activeBank().tracks[0].insert(0, 1, 0, 1)
+        this.state.activeBank().tracks[1].insert(0, 1, 0, 1)
     }
 
     play(channelIndex: ChannelIndex, step: Step) {

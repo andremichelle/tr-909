@@ -1,6 +1,7 @@
 import {Machine} from "../audio/tr909/machine.js"
 import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
+import {PlayMode} from "../audio/tr909/state.js"
 import {Events, ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Digits} from "./digits.js"
@@ -14,11 +15,11 @@ import {
     PatternGroupKeyIndices,
     TrackKeyIndices
 } from "./keys.js"
+import {MachineMode} from "./modes.js"
 import PatternPlayMode from "./modes/pattern-play.js"
 import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
-import {MachineMode} from "./modes.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 export class MachineContext implements Terminable {
@@ -95,7 +96,13 @@ export class MachineContext implements Terminable {
     switchToTrackPlayMode(trackIndex: TrackIndex): void {
         this.resetKeys()
         this.mode.terminate()
-        this.machine.state.trackIndex.set(trackIndex)
+        // TODO Leads to two messages. Optimize!
+        const state = this.machine.state
+        state.changeNotification.mute()
+        state.trackIndex.set(trackIndex)
+        state.playMode.set(PlayMode.Track)
+        state.changeNotification.unmute()
+        state.changeNotification.notify()
         this.mode = new TrackPlayMode(this)
         console.log(`mode: ${this.modeName()}`)
     }
@@ -103,7 +110,12 @@ export class MachineContext implements Terminable {
     switchToTrackWriteMode(trackIndex: TrackIndex) {
         this.resetKeys()
         this.mode.terminate()
-        this.machine.state.trackIndex.set(trackIndex)
+        const state = this.machine.state
+        state.changeNotification.mute()
+        state.trackIndex.set(trackIndex)
+        state.playMode.set(PlayMode.Pattern)
+        state.changeNotification.unmute()
+        state.changeNotification.notify()
         this.mode = new TrackWriteMode(this)
         console.log(`mode: ${this.modeName()}`)
     }
@@ -111,7 +123,12 @@ export class MachineContext implements Terminable {
     switchToPatternPlayMode(patternGroupIndex: PatternGroupIndex): void {
         this.resetKeys()
         this.mode.terminate()
-        this.machine.state.patternGroupIndex.set(patternGroupIndex)
+        const state = this.machine.state
+        state.changeNotification.mute()
+        state.patternGroupIndex.set(patternGroupIndex)
+        state.playMode.set(PlayMode.Pattern)
+        state.changeNotification.unmute()
+        state.changeNotification.notify()
         this.mode = new PatternPlayMode(this)
         console.log(`mode: ${this.modeName()}`)
     }
@@ -119,7 +136,12 @@ export class MachineContext implements Terminable {
     switchToPatternWriteMode(patternGroupIndex: PatternGroupIndex): void {
         this.resetKeys()
         this.mode.terminate()
-        this.machine.state.patternGroupIndex.set(patternGroupIndex)
+        const state = this.machine.state
+        state.changeNotification.mute()
+        state.patternGroupIndex.set(patternGroupIndex)
+        state.playMode.set(PlayMode.Pattern)
+        state.changeNotification.unmute()
+        state.changeNotification.notify()
         this.mode = new PatternWriteMode(this)
         console.log(`mode: ${this.modeName()}`)
     }
@@ -154,32 +176,39 @@ export class MachineContext implements Terminable {
         this.functionKeys.deactivate()
     }
 
-    activatePatternLocationKeys(arrayIndex: number): void {
-        console.debug(`activatePatternLocationKeys(arrayIndex: ${arrayIndex})`)
-        const location = this.machine.state.activeBank().toLocation(arrayIndex)
-        this.activatePatternGroupKeys(location.patternGroupIndex, false)
+    updatePatternLocationKeys(pattern: Pattern | number): void {
+        console.debug(`activatePatternLocationKeys(arrayIndex: ${pattern})`)
+        const location = this.machine.state.activeBank().toLocation(pattern)
+        this.updatePatternGroupKeys(location.patternGroupIndex, false)
+        this.mainKeys.deactivate()
         this.mainKeys.byIndex(location.patternIndex as number).setState(KeyState.Blink)
     }
 
-    activateTrackKeys(trackIndex: TrackIndex, writeMode: boolean): void {
+    updateTrackKeys(trackIndex: TrackIndex, writeMode: boolean): void {
         console.debug(`activateTrackKeys(index: ${trackIndex}, writeMode: ${writeMode})`)
         this.functionKeys.activate(index => index === trackIndex
             ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, TrackKeyIndices)
     }
 
-    activatePatternGroupKeys(patternGroupIndex: PatternGroupIndex, writeMode: boolean): void {
+    updatePatternGroupKeys(patternGroupIndex: PatternGroupIndex, writeMode: boolean): void {
         console.debug(`activatePatternGroupKeys(index: ${patternGroupIndex}, writeMode: ${writeMode})`)
         this.functionKeys.activate(index => patternGroupIndex === index
             ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, PatternGroupKeyIndices)
     }
 
-    activateBankGroupKeys(bankGroupIndex: BankGroupIndex): void {
+    updateBankGroupKeys(bankGroupIndex: BankGroupIndex): void {
         console.debug(`activateBankGroupKeys(index: ${bankGroupIndex})`)
         this.functionKeys.activate(index => bankGroupIndex === index
             ? KeyState.On : KeyState.Off, BankGroupKeyIndices)
     }
 
-    activatePatternStepsKeys(): Terminable {
+    watchPatternLocationKeys(): Terminable {
+        this.updatePatternLocationKeys(this.machine.state.activePattern())
+        return this.machine.state.patternIndicesChangeNotification
+            .addObserver(pattern => this.updatePatternLocationKeys(pattern))
+    }
+
+    watchPatternStepsKeys(): Terminable {
         const terminator = new Terminator()
         let patternSubscription = TerminableVoid
         terminator.with({terminate: () => patternSubscription.terminate()})
@@ -187,12 +216,12 @@ export class MachineContext implements Terminable {
             patternSubscription.terminate()
             patternSubscription = pattern.addObserver(() => this.updatePatternStepsKeys(), true)
         }))
-        terminator.with(this.activateStepsRunningAnimation())
+        terminator.with(this.startStepRunningAnimation())
         this.updatePatternStepsKeys()
         return terminator
     }
 
-    activateStepsRunningAnimation(): Terminable {
+    startStepRunningAnimation(): Terminable {
         const terminator = new Terminator()
         let flashing: Key = null
         terminator.with({

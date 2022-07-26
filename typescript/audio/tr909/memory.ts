@@ -28,18 +28,27 @@ export class MemoryBank {
     readonly tracks: Track[] = ArrayUtils.fill(MemoryBank.NUM_TRACKS, () => new Track())
     readonly patterns: Pattern[] = ArrayUtils.fill(MemoryBank.PATTERNS_COUNT, () => new Pattern())
 
-    indexOf(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {
+    toIndex(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {
         return patternGroupIndex * MemoryBank.NUM_PATTERNS + patternIndex
+    }
+
+    indexOf(pattern: Pattern): number {
+        const index = this.patterns.indexOf(pattern)
+        console.assert(-1 < index)
+        return index
     }
 
     patternBy(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
         return this.patterns[patternGroupIndex * MemoryBank.NUM_PATTERNS + patternIndex]
     }
 
-    toLocation(index: number): PatternLocation {
+    toLocation(pattern: Pattern | number): PatternLocation {
+        if (pattern instanceof Pattern) {
+            pattern = this.indexOf(pattern)
+        }
         return {
-            patternGroupIndex: Math.floor(index / MemoryBank.NUM_PATTERNS) % MemoryBank.NUM_PATTERN_GROUPS,
-            patternIndex: index % MemoryBank.NUM_PATTERNS
+            patternGroupIndex: Math.floor(pattern / MemoryBank.NUM_PATTERNS) % MemoryBank.NUM_PATTERN_GROUPS,
+            patternIndex: pattern % MemoryBank.NUM_PATTERNS
         }
     }
 }

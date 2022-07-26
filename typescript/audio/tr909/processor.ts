@@ -4,7 +4,7 @@ import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage} from
 import {BasicTuneDecayVoice} from "./dsp/basic-voice.js"
 import {BassdrumVoice} from "./dsp/bassdrum.js"
 import {Channel, VoiceFactory} from "./dsp/channel.js"
-import {PatternProvider, TrackPatternPlay} from "./dsp/pattern.js"
+import {PatternProvider, TrackPatternPlay, UserPatternSelect} from "./dsp/pattern.js"
 import {SnaredrumVoice} from "./dsp/snaredrum.js"
 import {Voice} from "./dsp/voice.js"
 import {Memory, MemoryBank} from "./memory.js"
@@ -12,7 +12,7 @@ import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {ChannelIndex, Pattern, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
-import {State} from "./state.js"
+import {PlayMode, State} from "./state.js"
 
 const LevelMapping = new Linear(-18.0, 0.0) // min active, half accent, full, accent + total accent
 
@@ -41,8 +41,9 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         }, true)
         this.memory = [new MemoryBank(), new MemoryBank()]
         this.state = new State(this.memory)
-        // this.patternProvider = new UserPatternSelect(this.state, () => this.moving)
-        this.patternProvider = new TrackPatternPlay(this.state)
+        this.state.playMode.addObserver(mode => mode === PlayMode.Track
+            ? this.patternProvider = new TrackPatternPlay(this.state)
+            : this.patternProvider = new UserPatternSelect(this.state, () => this.moving), true)
         this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
 
         this.port.onmessage = (event: MessageEvent) => {
@@ -51,9 +52,10 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 this.preset.find(message.path).get().setUnipolar(message.unipolar)
             } else if (message.type === 'update-state') {
                 this.state.deserialize(message.format)
+                this.patternProvider.reevaluate()
             } else if (message.type === 'update-track') {
                 this.memory[message.bankGroupIndex].tracks[message.arrayIndex].deserialize(message.format)
-                this.patternProvider.onTrackChanged()
+                this.patternProvider.reevaluate()
             } else if (message.type === 'update-pattern') {
                 this.memory[message.bankGroupIndex].patterns[message.arrayIndex].deserialize(message.format)
             } else if (message.type === "transport-play") {

@@ -9,7 +9,7 @@ export interface PatternProvider {
 
     onPatterComplete(): void
 
-    onTrackChanged(): void
+    reevaluate(): void
 }
 
 export class UserPatternSelect implements PatternProvider {
@@ -38,7 +38,7 @@ export class UserPatternSelect implements PatternProvider {
         this.waiting = null
     }
 
-    onTrackChanged(): void {
+    reevaluate(): void {
         // nothing to do
     }
 }
@@ -48,7 +48,7 @@ export class TrackPatternPlay implements PatternProvider {
     private current: Pattern = null
 
     constructor(readonly state: State) {
-        this.onTrackChanged()
+        this.reevaluate()
     }
 
     pattern(): Pattern | null {
@@ -68,7 +68,7 @@ export class TrackPatternPlay implements PatternProvider {
         }
     }
 
-    onTrackChanged(): void {
+    reevaluate(): void {
         const track = this.state.activeTrack()
         const patterns = this.state.activeBank().patterns
         this.current = track.isEmpty() ? null : patterns[track.get(this.index)]

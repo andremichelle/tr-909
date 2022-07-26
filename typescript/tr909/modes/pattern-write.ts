@@ -8,8 +8,8 @@ export default class extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.context.activateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
-        this.context.activatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
+        this.context.updateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
+        this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
         this.context.functionKeys.byIndex(FunctionKeyIndex.BackTap).setState(KeyState.On)
     }
 

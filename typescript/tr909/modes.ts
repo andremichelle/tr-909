@@ -34,7 +34,7 @@ export class StepModeState extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.with(this.context.activatePatternStepsKeys())
+        this.with(this.context.watchPatternStepsKeys())
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
@@ -53,7 +53,7 @@ export class ClearStepsState extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.with(this.context.activatePatternStepsKeys())
+        this.with(this.context.watchPatternStepsKeys())
         this.with(this.context.machine.processorStepIndex.addObserver(stepIndex => {
             const instrumentMode = this.context.instrumentMode.get()
             const pattern = this.context.machine.state.activePattern()
@@ -70,7 +70,7 @@ export class TapModeState extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.with(this.context.activateStepsRunningAnimation())
+        this.with(this.context.startStepRunningAnimation())
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
@@ -95,7 +95,7 @@ export class ClearTapState extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.with(this.context.activateStepsRunningAnimation())
+        this.with(this.context.startStepRunningAnimation())
         this.with(this.context.machine.processorStepIndex.addObserver(stepIndex => {
             const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.pressedMainKeys)
             if (instrumentMode === InstrumentMode.None || instrumentMode === InstrumentMode.TotalAccent) {
