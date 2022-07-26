@@ -63,7 +63,7 @@ export class MachineContext implements Terminable {
         this.functionKeys.forEach((key: Key, keyId: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
-                this.mode.onFunctionKeyPress(keyId)
+                this.mode.onFunctionKeyPress(keyId, this.shiftMode.get())
             }))
             this.terminator.with(key.bind('pointerup', () => this.mode.onFunctionKeyRelease(keyId)))
         })
@@ -169,6 +169,14 @@ export class MachineContext implements Terminable {
         }
         value.set(index as T)
         return true
+    }
+
+    mayToggle(keyIndex: FunctionKeyIndex, index: FunctionKeyIndex, value: ObservableValue<boolean>): boolean {
+        if (keyIndex === index) {
+            value.set(!value.get())
+            return true
+        }
+        return false
     }
 
     resetKeys(): void {

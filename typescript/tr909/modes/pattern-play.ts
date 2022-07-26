@@ -12,8 +12,8 @@ export default class extends MachineMode {
         this.with(this.context.watchPatternLocationKeys())
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex): void {
-        if (this.context.shiftMode.get()) {
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): void {
+        if (shift) {
             if (this.context.maySwitchToTrackWriteMode(keyIndex)) {
                 return
             }

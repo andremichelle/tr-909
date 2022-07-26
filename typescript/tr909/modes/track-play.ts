@@ -19,8 +19,8 @@ export default class extends MachineMode {
             }, true))
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
-        if (this.context.shiftMode.get()) {
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): void {
+        if (shift) {
             if (this.context.maySwitchToTrackWriteMode(keyIndex)) {
                 return
             }

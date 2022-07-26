@@ -17,8 +17,8 @@ export default class extends MachineMode {
                 this.context.updatePatternGroupKeys(patternGroupIndex, false), true))
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
-        if (this.context.shiftMode.get()) {
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): void {
+        if (shift) {
             // Cannot switch to Pattern Write Mode from here
         } else {
             if (this.context.maySwitchToTrackPlayMode(keyIndex)) {

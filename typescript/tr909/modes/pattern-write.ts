@@ -8,13 +8,17 @@ export default class extends MachineMode {
     constructor(context: MachineContext) {
         super(context)
 
+        this.with(this.context.startStepRunningAnimation())
+        this.with(this.context.machine.state.guideMode
+            .addObserver(mode => this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
+                .setState(mode ? KeyState.On : KeyState.Off), true))
         this.context.updateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
         this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
         this.context.functionKeys.byIndex(FunctionKeyIndex.BackTap).setState(KeyState.On)
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
-        if (this.context.shiftMode.get()) {
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): void {
+        if (shift) {
             if (this.context.maySwitchToTrackWriteMode(keyIndex)) {
                 return
             }
@@ -26,6 +30,9 @@ export default class extends MachineMode {
                 return
             }
             if (this.context.maySwitchToPatternPlayMode(keyIndex)) {
+                return
+            }
+            if (this.context.mayToggle(keyIndex, FunctionKeyIndex.CycleGuideLastMeasure, this.context.machine.state.guideMode)) {
                 return
             }
         }

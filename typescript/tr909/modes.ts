@@ -12,7 +12,7 @@ export abstract class MachineMode implements Terminable {
     protected constructor(readonly context: MachineContext) {
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex): void {
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): void {
     }
 
     onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {

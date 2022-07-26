@@ -87,6 +87,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         if (pattern === null) {
             return
         }
+        const guideMode = this.state.guideMode.get()
         const groove = pattern.groove.get()
         const scale = pattern.scale.get().value()
         const b0 = this.bar
@@ -103,6 +104,12 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 const frameIndexDelayed = frameIndex + pattern.flamDelay.get() / 1000.0 * sampleRate
                 const totalAccent: boolean = pattern.isTotalAccent(stepIndex)
                 for (let channelIndex = 0; channelIndex < ChannelIndex.End; channelIndex++) {
+                    if (guideMode && channelIndex === ChannelIndex.Rim && stepIndex % 4 === 0) {
+                        this.schedulePlay(channelIndex, frameIndex, stepIndex === 0
+                            ? Step.Full
+                            : Step.Weak, totalAccent)
+                        continue
+                    }
                     const step: Step = pattern.getStep(channelIndex, stepIndex)
                     if (step === Step.None) {
                         continue
