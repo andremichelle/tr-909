@@ -2,7 +2,7 @@ import {Machine} from "../audio/tr909/machine.js"
 import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
 import {PlayMode} from "../audio/tr909/state.js"
-import {Events, ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
+import {Events, ObservableValue, ObservableValueImpl, Terminable, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Digits} from "./digits.js"
 import {
@@ -15,7 +15,7 @@ import {
     PatternGroupKeyIndices,
     TrackKeyIndices
 } from "./keys.js"
-import {MachineMode} from "./modes.js"
+import {Mode} from "./modes.js"
 import PatternPlayMode from "./modes/pattern-play.js"
 import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
@@ -42,7 +42,7 @@ export class MachineContext implements Terminable {
     readonly pressedMainKeys: Set<MainKeyIndex> = new Set<MainKeyIndex>()
     readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
 
-    private mode: NonNullable<MachineMode> = new TrackPlayMode(this)
+    private mode: NonNullable<Mode> = new TrackPlayMode(this)
 
     constructor(readonly machine: Machine,
                 readonly mainKeys: KeyGroup<MainKeyIndex>,
@@ -218,14 +218,13 @@ export class MachineContext implements Terminable {
 
     watchPatternStepsKeys(): Terminable {
         const terminator = new Terminator()
-        let patternSubscription = TerminableVoid
+        const state = this.machine.state
+        let patternSubscription = state.activePattern().addObserver(() => this.updatePatternStepsKeys(), true)
         terminator.with({terminate: () => patternSubscription.terminate()})
-        terminator.with(this.machine.state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
+        terminator.with(state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             patternSubscription.terminate()
             patternSubscription = pattern.addObserver(() => this.updatePatternStepsKeys(), true)
         }))
-        terminator.with(this.startStepRunningAnimation())
-        this.updatePatternStepsKeys()
         return terminator
     }
 

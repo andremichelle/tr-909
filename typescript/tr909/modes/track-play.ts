@@ -1,9 +1,9 @@
 import {BankGroupIndex, TrackIndex} from "../../audio/tr909/memory.js"
 import {MachineContext} from "../context.js"
 import {BankGroupKeyIndices, FunctionKeyIndex, KeyState, MainKeyIndex, TrackKeyIndices} from "../keys.js"
-import {MachineMode} from "../modes.js"
+import {consumed, Mode} from "../modes.js"
 
-export default class extends MachineMode {
+export default class extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
@@ -19,33 +19,39 @@ export default class extends MachineMode {
             }, true))
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): void {
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
         if (shift) {
             if (this.context.maySwitchToTrackWriteMode(keyIndex)) {
-                return
+                return true
             }
             if (this.context.maySwitchToPatternWriteMode(keyIndex)) {
-                return
+                return true
             }
             if (this.context.maySwitchIndex(keyIndex, BankGroupKeyIndices, this.context.machine.state.bankGroupIndex)) {
-                return
+                return true
             }
         } else {
             if (this.context.maySwitchToPatternPlayMode(keyIndex)) {
-                return
+                return true
             }
             if (this.context.maySwitchIndex(keyIndex, TrackKeyIndices, this.context.machine.state.trackIndex)) {
-                return
+                return true
             }
             if (keyIndex === FunctionKeyIndex.CycleGuideLastMeasure) {
                 const mode = this.context.machine.state.cycleMode
                 mode.set(!mode.get())
+                return true
             }
         }
+        return false
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex) {
-        this.context.playInstrument(keyIndex)
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+        if (keyIndex !== MainKeyIndex.TotalAccent) {
+            this.context.playInstrument(keyIndex)
+            return true
+        }
+        return false
     }
 
     name(): string {

@@ -1,9 +1,9 @@
 import {PatternGroupIndex, PatternIndex} from "../../audio/tr909/memory.js"
 import {MachineContext} from "../context.js"
 import {FunctionKeyIndex, MainKeyIndex, PatternGroupKeyIndices} from "../keys.js"
-import {MachineMode} from "../modes.js"
+import {consumed, Mode} from "../modes.js"
 
-export default class extends MachineMode {
+export default class extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
@@ -17,22 +17,26 @@ export default class extends MachineMode {
                 this.context.updatePatternGroupKeys(patternGroupIndex, false), true))
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): void {
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
         if (shift) {
             // Cannot switch to Pattern Write Mode from here
         } else {
             if (this.context.maySwitchToTrackPlayMode(keyIndex)) {
-                return
+                return true
             }
             if (this.context.maySwitchIndex(keyIndex, PatternGroupKeyIndices, this.context.machine.state.patternGroupIndex)) {
-                return
+                return true
             }
         }
+        return false
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex) {
-        if (keyIndex === MainKeyIndex.TotalAccent) return
-        this.context.machine.state.patternIndex.set(keyIndex as number as PatternIndex)
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+        if (keyIndex !== MainKeyIndex.TotalAccent) {
+            this.context.machine.state.patternIndex.set(keyIndex as number as PatternIndex)
+            return true
+        }
+        return false
     }
 
     name(): string {

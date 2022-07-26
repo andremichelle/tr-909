@@ -6,22 +6,28 @@ import {MachineContext} from "./context.js"
 import {FunctionKeyIndex, Key, KeyState, MainKeyIndex} from "./keys.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
-export abstract class MachineMode implements Terminable {
+export type consumed = boolean
+
+export abstract class Mode implements Terminable {
     private readonly terminator: Terminator = new Terminator()
 
     protected constructor(readonly context: MachineContext) {
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): void {
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
+        return false
     }
 
-    onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
+    onFunctionKeyRelease(keyIndex: FunctionKeyIndex): consumed {
+        return false
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): void {
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+        return false
     }
 
-    onMainKeyRelease(keyIndex: MainKeyIndex): void {
+    onMainKeyRelease(keyIndex: MainKeyIndex): consumed {
+        return false
     }
 
     abstract name(): string
@@ -30,18 +36,21 @@ export abstract class MachineMode implements Terminable {
     readonly terminate = (): void => this.terminator.terminate()
 }
 
-export class StepModeState extends MachineMode {
+export class StepModeState extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
         this.with(this.context.watchPatternStepsKeys())
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): void {
-        if (keyIndex === MainKeyIndex.TotalAccent) return
-        const pattern = this.context.machine.state.activePattern()
-        const instrumentMode = this.context.instrumentMode.get()
-        Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+        if (keyIndex === MainKeyIndex.TotalAccent) {
+            const pattern = this.context.machine.state.activePattern()
+            const instrumentMode = this.context.instrumentMode.get()
+            Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
+            return true
+        }
+        return false
     }
 
     name(): string {
@@ -49,7 +58,7 @@ export class StepModeState extends MachineMode {
     }
 }
 
-export class ClearStepsState extends MachineMode {
+export class ClearStepsState extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
@@ -66,24 +75,27 @@ export class ClearStepsState extends MachineMode {
     }
 }
 
-export class TapModeState extends MachineMode {
+export class TapModeState extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
         this.with(this.context.startStepRunningAnimation())
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): void {
-        if (keyIndex === MainKeyIndex.TotalAccent) return
-        const machine = this.context.machine
-        const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.pressedMainKeys)
-        const channelIndex = playInstrument.channelIndex
-        const step = playInstrument.step
-        machine.play(channelIndex, step)
-        if (machine.transport.isPlaying()) {
-            machine.state.activePattern()
-                .setStep(channelIndex, machine.processorStepIndex.get(), step ? Step.Full : Step.Weak)
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+        if (keyIndex !== MainKeyIndex.TotalAccent) {
+            const machine = this.context.machine
+            const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.pressedMainKeys)
+            const channelIndex = playInstrument.channelIndex
+            const step = playInstrument.step
+            machine.play(channelIndex, step)
+            if (machine.transport.isPlaying()) {
+                machine.state.activePattern()
+                    .setStep(channelIndex, machine.processorStepIndex.get(), step ? Step.Full : Step.Weak)
+            }
+            return true
         }
+        return false
     }
 
     name(): string {
@@ -91,7 +103,7 @@ export class TapModeState extends MachineMode {
     }
 }
 
-export class ClearTapState extends MachineMode {
+export class ClearTapState extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
@@ -111,7 +123,7 @@ export class ClearTapState extends MachineMode {
     }
 }
 
-export class InstrumentSelectState extends MachineMode {
+export class InstrumentSelectState extends Mode {
     private readonly update = (instrumentMode: InstrumentMode) => {
         const toButtonStates = Utils.instrumentModeToButtonStates(instrumentMode)
         this.context.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => key.setState(toButtonStates(keyIndex)))
@@ -123,8 +135,9 @@ export class InstrumentSelectState extends MachineMode {
         this.with(this.context.instrumentMode.addObserver(this.update, true))
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): void {
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(this.context.pressedMainKeys))
+        return true
     }
 
     name(): string {
@@ -132,7 +145,7 @@ export class InstrumentSelectState extends MachineMode {
     }
 }
 
-export class ShuffleFlamState extends MachineMode {
+export class ShuffleFlamState extends Mode {
     private static GrooveExp: number[] = ArrayUtils.fill(7, index => 1.0 + index * 0.2)
 
     private readonly subscriptions = this.with(new Terminator())
@@ -150,20 +163,24 @@ export class ShuffleFlamState extends MachineMode {
         this.update()
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): void {
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         const pattern = this.context.machine.state.activePattern()
         if (keyIndex === MainKeyIndex.Step1) {
             pattern.groove.set(GrooveIdentity)
+            return true
         } else if (keyIndex <= MainKeyIndex.Step7) {
             const grooveFunction = new GrooveFunction()
             const powInjective = new PowInjective()
             powInjective.exponent.set(ShuffleFlamState.GrooveExp[keyIndex])
             grooveFunction.injective.set(powInjective)
             pattern.groove.set(grooveFunction)
+            return true
         } else if (keyIndex >= MainKeyIndex.Step9 && keyIndex <= MainKeyIndex.Step16) {
             const flamIndex = keyIndex - MainKeyIndex.Step9
             pattern.flamDelay.set(Pattern.FlamDelays[flamIndex])
+            return true
         }
+        return false
     }
 
     name(): string {
@@ -192,7 +209,7 @@ export class ShuffleFlamState extends MachineMode {
     }
 }
 
-export class LastStepSelectState extends MachineMode {
+export class LastStepSelectState extends Mode {
     private readonly subscriptions = this.with(new Terminator())
 
     constructor(context: MachineContext) {
@@ -206,9 +223,12 @@ export class LastStepSelectState extends MachineMode {
         this.update()
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): void {
-        if (keyIndex === MainKeyIndex.TotalAccent) return
-        this.context.machine.state.activePattern().lastStep.set(keyIndex + 1)
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+        if (keyIndex !== MainKeyIndex.TotalAccent) {
+            this.context.machine.state.activePattern().lastStep.set(keyIndex + 1)
+            return true
+        }
+        return false
     }
 
     update(): void {
