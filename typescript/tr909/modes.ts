@@ -8,6 +8,7 @@ import {InstrumentMode, Utils} from "./utils.js"
 
 export type consumed = boolean
 
+// noinspection JSUnusedLocalSymbols
 export abstract class Mode implements Terminable {
     private readonly terminator: Terminator = new Terminator()
 
@@ -28,6 +29,10 @@ export abstract class Mode implements Terminable {
 
     onMainKeyRelease(keyIndex: MainKeyIndex): consumed {
         return false
+    }
+
+    getDisplayValue(): number | 'none' {
+        return 'none'
     }
 
     abstract name(): string

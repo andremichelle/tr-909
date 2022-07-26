@@ -27,8 +27,7 @@ export interface StateFormat {
     patternGroupIndex: PatternGroupIndex
     patternIndex: PatternIndex
     trackIndex: TrackIndex
-    guideMode: boolean
-    cycleMode: boolean
+    cycleGuideMode: boolean
     playMode: PlayMode
 }
 
@@ -39,8 +38,7 @@ export class State implements Serializer<StateFormat>, Terminable {
     readonly patternGroupIndex: ObservableValue<PatternGroupIndex> = new ObservableValueImpl<PatternGroupIndex>(PatternGroupIndex.I)
     readonly patternIndex: ObservableValue<PatternIndex> = new ObservableValueImpl<PatternIndex>(PatternIndex.Pattern1)
     readonly trackIndex: ObservableValue<TrackIndex> = new ObservableValueImpl<TrackIndex>(TrackIndex.I)
-    readonly guideMode: ObservableValue<boolean> = new ObservableValueImpl<boolean>(false)
-    readonly cycleMode: ObservableValue<boolean> = new ObservableValueImpl<boolean>(false)
+    readonly cycleGuideMode: ObservableValue<boolean> = new ObservableValueImpl<boolean>(false)
     readonly playMode: ObservableValue<PlayMode> = new ObservableValueImpl<PlayMode>(PlayMode.Track)
 
     readonly changeNotification: ObservableImpl<void> = new ObservableImpl<void>()
@@ -55,8 +53,7 @@ export class State implements Serializer<StateFormat>, Terminable {
         this.terminator.with(this.patternGroupIndex.addObserver(this.onChange, false))
         this.terminator.with(this.patternIndex.addObserver(this.onChange, false))
         this.terminator.with(this.trackIndex.addObserver(this.onChange, false))
-        this.terminator.with(this.guideMode.addObserver(this.onChange, false))
-        this.terminator.with(this.cycleMode.addObserver(this.onChange, false))
+        this.terminator.with(this.cycleGuideMode.addObserver(this.onChange, false))
         this.terminator.with(this.playMode.addObserver(this.onChange, false))
     }
 
@@ -93,8 +90,7 @@ export class State implements Serializer<StateFormat>, Terminable {
         this.patternGroupIndex.set(format.patternGroupIndex)
         this.patternIndex.set(format.patternIndex)
         this.trackIndex.set(format.trackIndex)
-        this.guideMode.set(format.guideMode)
-        this.cycleMode.set(format.cycleMode)
+        this.cycleGuideMode.set(format.cycleGuideMode)
         this.playMode.set(format.playMode)
         return this
     }
@@ -105,8 +101,7 @@ export class State implements Serializer<StateFormat>, Terminable {
             patternGroupIndex: this.patternGroupIndex.get(),
             patternIndex: this.patternIndex.get(),
             trackIndex: this.trackIndex.get(),
-            guideMode: this.guideMode.get(),
-            cycleMode: this.cycleMode.get(),
+            cycleGuideMode: this.cycleGuideMode.get(),
             playMode: this.playMode.get()
         }
     }

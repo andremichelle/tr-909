@@ -27,6 +27,7 @@ export class Machine implements Terminable {
     readonly master: GainNode
 
     readonly processorStepIndex = new ObservableValueImpl<number>(0)
+    readonly processorTrackMeasure = new ObservableValueImpl<number>(1) // TODO Update
 
     constructor(readonly context, resources: Resources) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {

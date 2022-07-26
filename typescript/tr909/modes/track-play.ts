@@ -8,9 +8,7 @@ export default class extends Mode {
         super(context)
 
         this.with(this.context.startStepRunningAnimation())
-        this.with(this.context.machine.state.cycleMode.addObserver(mode =>
-            this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
-                .setState(mode ? KeyState.On : KeyState.Off), true))
+        this.with({terminate: () => this.context.functionKeys.deactivate(TrackKeyIndices)})
         this.with(this.context.machine.state.trackIndex.addObserver(() => this.initButtons(), false))
         this.with(this.context.machine.state.bankGroupIndex
             .addObserver((bankGroupIndex: BankGroupIndex) => {
@@ -21,25 +19,23 @@ export default class extends Mode {
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
         if (shift) {
+            if (this.context.maySwitchIndex(keyIndex, BankGroupKeyIndices, this.context.machine.state.bankGroupIndex)) {
+                return true
+            }
             if (this.context.maySwitchToTrackWriteMode(keyIndex)) {
                 return true
             }
             if (this.context.maySwitchToPatternWriteMode(keyIndex)) {
                 return true
             }
-            if (this.context.maySwitchIndex(keyIndex, BankGroupKeyIndices, this.context.machine.state.bankGroupIndex)) {
-                return true
-            }
         } else {
-            if (this.context.maySwitchToPatternPlayMode(keyIndex)) {
-                return true
-            }
             if (this.context.maySwitchIndex(keyIndex, TrackKeyIndices, this.context.machine.state.trackIndex)) {
                 return true
             }
-            if (keyIndex === FunctionKeyIndex.CycleGuideLastMeasure) {
-                const mode = this.context.machine.state.cycleMode
-                mode.set(!mode.get())
+            if (this.context.maySwitchToPatternPlayMode(keyIndex)) {
+                return true
+            }
+            if (this.context.mayToggle(keyIndex, FunctionKeyIndex.CycleGuideLastMeasure, this.context.machine.state.cycleGuideMode)) {
                 return true
             }
         }
@@ -54,13 +50,17 @@ export default class extends Mode {
         return false
     }
 
+    getDisplayValue(): number | 'none' {
+        return this.context.machine.state.activeTrack().isEmpty() ? 0 : this.context.machine.processorTrackMeasure.get()
+    }
+
     name(): string {
         return 'Track Play'
     }
 
     private initButtons() {
         const trackIndex: TrackIndex = this.context.machine.state.trackIndex.get()
-        const track = this.context.machine.state.activeBank().tracks[trackIndex]
+        const track = this.context.machine.state.activeTrack()
         if (track.isEmpty()) {
             this.context.updatePatternGroupKeys(0, false)
             this.context.mainKeys.byIndex(0).setState(KeyState.Flash)

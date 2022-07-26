@@ -58,7 +58,7 @@ export class TrackPatternPlay implements PatternProvider {
     onPatterComplete(): void {
         const track: Track = this.state.activeTrack()
         if (++this.index >= track.size()) {
-            if (this.state.cycleMode.get()) {
+            if (this.state.cycleGuideMode.get()) {
                 this.current = this.state.activeBank().patterns[track.get(this.index = 0)]
             } else {
                 this.current = null

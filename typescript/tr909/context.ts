@@ -11,7 +11,8 @@ import {
     Key,
     KeyGroup,
     KeyState,
-    MainKeyIndex, PatternEditModeIndices,
+    MainKeyIndex,
+    PatternEditModeIndices,
     PatternGroupKeyIndices,
     TrackKeyIndices
 } from "./keys.js"
@@ -21,6 +22,21 @@ import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
 import {InstrumentMode, Utils} from "./utils.js"
+
+// root
+// > Track-Play
+// > Track-Write
+// > Pattern-Play
+// > Pattern-Write
+//   > Clear + PatternKey (not playing)
+//   > Step Edit
+//     > Select instrument
+//     > Last Step
+//     > Clear
+//   > Tap Edit
+//     > Clear
+//     > Guide
+
 
 export enum PatternEditMode {
     Step, Tap
@@ -65,19 +81,34 @@ export class MachineContext implements Terminable {
                 this.mode.onMainKeyRelease(keyIndex)
             }))
         })
-        this.functionKeys.forEach((key: Key, keyId: FunctionKeyIndex) => {
+        this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
-                this.mode.onFunctionKeyPress(keyId, this.shiftMode.get())
+                if (this.mode.onFunctionKeyPress(keyIndex, this.shiftMode.get())) {
+                    return
+                }
+                if (keyIndex === FunctionKeyIndex.TempoStep) {
+                    this.digits.show(this.machine.preset.tempo.get())
+                    return true
+                }
             }))
-            this.terminator.with(key.bind('pointerup', () => this.mode.onFunctionKeyRelease(keyId)))
+            this.terminator.with(key.bind('pointerup', () => {
+                if (keyIndex === FunctionKeyIndex.TempoStep) {
+                    const displayValue: number | "none" = this.mode.getDisplayValue()
+                    if (displayValue === 'none') {
+                        this.digits.clear()
+                    } else {
+                        this.digits.show(displayValue)
+                    }
+                    return true
+                }
+                this.mode.onFunctionKeyRelease(keyIndex)
+            }))
         })
         this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
             this.shiftKey.setPointerCapture(event.pointerId)
             this.shiftMode.set(true)
         }))
-        this.terminator.with(this.shiftMode.addObserver(enabled =>
-            this.shiftKey.setState(enabled ? KeyState.On : KeyState.Off)))
         this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
         this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
             const code = event.code
@@ -91,6 +122,13 @@ export class MachineContext implements Terminable {
                 this.shiftMode.set(false)
             }
         }))
+        this.terminator.with(this.shiftMode
+            .addObserver(enabled => this.shiftKey
+                .setState(enabled ? KeyState.On : KeyState.Off)))
+        this.terminator.with(this.machine.state.cycleGuideMode
+            .addObserver(mode => this.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
+                .setState(mode ? KeyState.On : KeyState.Off), true))
+
         console.log(`mode: ${this.modeName()}`)
     }
 
@@ -98,57 +136,8 @@ export class MachineContext implements Terminable {
         return this.mode.name()
     }
 
-    switchToTrackPlayMode(trackIndex: TrackIndex): void {
-        this.resetKeys()
-        this.mode.terminate()
-        // TODO Leads to two messages. Optimize!
-        const state = this.machine.state
-        state.changeNotification.mute()
-        state.trackIndex.set(trackIndex)
-        state.playMode.set(PlayMode.Track)
-        state.changeNotification.unmute()
-        state.changeNotification.notify()
-        this.mode = new TrackPlayMode(this)
-        console.log(`mode: ${this.modeName()}`)
-    }
-
-    switchToTrackWriteMode(trackIndex: TrackIndex) {
-        this.resetKeys()
-        this.mode.terminate()
-        const state = this.machine.state
-        state.changeNotification.mute()
-        state.trackIndex.set(trackIndex)
-        state.playMode.set(PlayMode.Pattern)
-        state.changeNotification.unmute()
-        state.changeNotification.notify()
-        this.mode = new TrackWriteMode(this)
-        console.log(`mode: ${this.modeName()}`)
-    }
-
-    switchToPatternPlayMode(patternGroupIndex: PatternGroupIndex): void {
-        this.resetKeys()
-        this.mode.terminate()
-        const state = this.machine.state
-        state.changeNotification.mute()
-        state.patternGroupIndex.set(patternGroupIndex)
-        state.playMode.set(PlayMode.Pattern)
-        state.changeNotification.unmute()
-        state.changeNotification.notify()
-        this.mode = new PatternPlayMode(this)
-        console.log(`mode: ${this.modeName()}`)
-    }
-
-    switchToPatternWriteMode(patternGroupIndex: PatternGroupIndex): void {
-        this.resetKeys()
-        this.mode.terminate()
-        const state = this.machine.state
-        state.changeNotification.mute()
-        state.patternGroupIndex.set(patternGroupIndex)
-        state.playMode.set(PlayMode.Pattern)
-        state.changeNotification.unmute()
-        state.changeNotification.notify()
-        this.mode = new PatternWriteMode(this)
-        console.log(`mode: ${this.modeName()}`)
+    isPlaying(): boolean {
+        return this.machine.transport.isPlaying()
     }
 
     maySwitchToTrackPlayMode(keyIndex: FunctionKeyIndex): boolean {
@@ -184,9 +173,60 @@ export class MachineContext implements Terminable {
         return false
     }
 
-    resetKeys(): void {
+    switchToTrackPlayMode(trackIndex: TrackIndex): void {
+        this.resetMainKeys()
+        this.mode.terminate()
+        const state = this.machine.state
+        state.changeNotification.mute()
+        state.trackIndex.set(trackIndex)
+        state.playMode.set(PlayMode.Track)
+        state.changeNotification.unmute()
+        state.changeNotification.notify()
+        this.mode = new TrackPlayMode(this)
+        console.log(`mode: ${this.modeName()}`)
+    }
+
+    switchToTrackWriteMode(trackIndex: TrackIndex) {
+        this.resetMainKeys()
+        this.mode.terminate()
+        const state = this.machine.state
+        state.changeNotification.mute()
+        state.trackIndex.set(trackIndex)
+        state.playMode.set(PlayMode.Pattern)
+        state.changeNotification.unmute()
+        state.changeNotification.notify()
+        this.mode = new TrackWriteMode(this)
+        console.log(`mode: ${this.modeName()}`)
+    }
+
+    switchToPatternPlayMode(patternGroupIndex: PatternGroupIndex): void {
+        this.resetMainKeys()
+        this.mode.terminate()
+        const state = this.machine.state
+        state.changeNotification.mute()
+        state.patternGroupIndex.set(patternGroupIndex)
+        state.playMode.set(PlayMode.Pattern)
+        state.changeNotification.unmute()
+        state.changeNotification.notify()
+        this.mode = new PatternPlayMode(this)
+        console.log(`mode: ${this.modeName()}`)
+    }
+
+    switchToPatternWriteMode(patternGroupIndex: PatternGroupIndex): void {
+        this.resetMainKeys()
+        this.mode.terminate()
+        const state = this.machine.state
+        state.changeNotification.mute()
+        state.patternGroupIndex.set(patternGroupIndex)
+        state.playMode.set(PlayMode.Pattern)
+        state.changeNotification.unmute()
+        state.changeNotification.notify()
+        this.mode = new PatternWriteMode(this)
+        console.log(`mode: ${this.modeName()}`)
+    }
+
+    resetMainKeys(): void {
         this.mainKeys.deactivate()
-        this.functionKeys.deactivate()
     }
 
     updatePatternLocationKeys(pattern: Pattern | number): void {
@@ -231,11 +271,17 @@ export class MachineContext implements Terminable {
     watchPatternStepsKeys(): Terminable {
         const terminator = new Terminator()
         const state = this.machine.state
-        let patternSubscription = state.activePattern().addObserver(() => this.updatePatternStepsKeys(), true)
+        const updateKeys = () => {
+            const pattern: Pattern = this.machine.state.activePattern()
+            const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
+            this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) =>
+                key.setState(keyIndex === MainKeyIndex.TotalAccent ? KeyState.Off : mapping(pattern, keyIndex)))
+        }
+        let patternSubscription = state.activePattern().addObserver(() => updateKeys(), true)
         terminator.with({terminate: () => patternSubscription.terminate()})
         terminator.with(state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             patternSubscription.terminate()
-            patternSubscription = pattern.addObserver(() => this.updatePatternStepsKeys(), true)
+            patternSubscription = pattern.addObserver(() => updateKeys(), true)
         }))
         return terminator
     }
@@ -271,12 +317,5 @@ export class MachineContext implements Terminable {
 
     terminate(): void {
         this.terminator.terminate()
-    }
-
-    private updatePatternStepsKeys() {
-        const pattern: Pattern = this.machine.state.activePattern()
-        const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
-        this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) =>
-            key.setState(keyIndex === MainKeyIndex.TotalAccent ? KeyState.Off : mapping(pattern, keyIndex)))
     }
 }

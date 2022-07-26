@@ -27,18 +27,6 @@ export default class extends Mode {
             if (this.context.maySwitchIndex(keyIndex, PatternGroupKeyIndices, this.context.machine.state.patternGroupIndex)) {
                 return true
             }
-            if (keyIndex === FunctionKeyIndex.TempoStep) {
-                this.context.digits.show(this.context.machine.preset.tempo.get()) // TODO push digits renderer on stack
-                return true
-            }
-        }
-        return false
-    }
-
-    onFunctionKeyRelease(keyIndex: FunctionKeyIndex): consumed {
-        if (keyIndex === FunctionKeyIndex.TempoStep) {
-            this.context.digits.clear() // TODO shift digits renderer and render last (if any)
-            return true
         }
         return false
     }
