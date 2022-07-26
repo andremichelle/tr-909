@@ -5,6 +5,8 @@ export class TrackFormat {
 }
 
 export class Track implements Serializer<TrackFormat>, Observable<void> {
+    static readonly MAX_MEASURES = 896
+
     private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
     private readonly sequence: number[] = []
 
@@ -30,6 +32,7 @@ export class Track implements Serializer<TrackFormat>, Observable<void> {
 
     insert(...indices: number[]): void {
         if (indices.length > 0) {
+            // TODO Respect MAX_MEASURES!
             indices.forEach(index => this.sequence.push(index))
             this.observable.notify()
         }
@@ -38,6 +41,10 @@ export class Track implements Serializer<TrackFormat>, Observable<void> {
     get(index: number): number {
         console.assert(index >= 0 && index < this.sequence.length)
         return this.sequence[index]
+    }
+
+    remaining(): number {
+        return Track.MAX_MEASURES - this.size()
     }
 
     isEmpty(): boolean {

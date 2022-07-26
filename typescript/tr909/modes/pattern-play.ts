@@ -7,7 +7,7 @@ export default class extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.context.updateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
+        this.context.display.show('none')
         this.with(this.context.startStepRunningAnimation())
         this.with(this.context.watchPatternLocationKeys())
     }

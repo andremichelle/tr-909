@@ -64,10 +64,10 @@ export default class extends Mode {
         if (track.isEmpty()) {
             this.context.updatePatternGroupKeys(0, false)
             this.context.mainKeys.byIndex(0).setState(KeyState.Flash)
-            this.context.digits.show(0)
+            this.context.display.show(0)
         } else {
             this.context.updatePatternLocationKeys(track.get(0))
-            this.context.digits.show(1) // first measure index
+            this.context.display.show(1) // first measure index
         }
         this.context.updateTrackKeys(trackIndex, false)
     }

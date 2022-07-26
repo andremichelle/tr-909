@@ -10,6 +10,7 @@ export default class extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
+        this.context.display.show('none')
         this.with(this.context.patternEditMode.addObserver((mode: PatternEditMode) => {
             if (this.inputMode !== null) {
                 this.inputMode.terminate()
@@ -24,11 +25,14 @@ export default class extends Mode {
                 throw new Error(`Unknown PatternInputMode(${mode})`)
             }
             this.context.updatePatternEditKeys()
-            this.context.updateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
-            this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
         }, true))
-
-        this.with({terminate: () => this.inputMode!.terminate()})
+        this.with(this.context.startStepRunningAnimation())
+        this.with({
+            terminate: () => {
+                this.inputMode!.terminate()
+                this.context.clearPatternEditKeys()
+            }
+        })
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
@@ -70,8 +74,6 @@ export default class extends Mode {
 class TapInputMode extends Mode {
     constructor(context: MachineContext) {
         super(context)
-
-        this.with(this.context.startStepRunningAnimation())
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
@@ -110,7 +112,6 @@ class StepInputMode extends Mode {
         super(context)
 
         this.with(this.context.watchPatternStepsKeys())
-        this.with(this.context.startStepRunningAnimation())
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {

@@ -4,7 +4,7 @@ import {Pattern} from "../audio/tr909/pattern.js"
 import {PlayMode} from "../audio/tr909/state.js"
 import {Events, ObservableValue, ObservableValueImpl, Terminable, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
-import {Digits} from "./digits.js"
+import {Display} from "./display.js"
 import {
     BankGroupKeyIndices,
     FunctionKeyIndex,
@@ -53,7 +53,7 @@ export class MachineContext implements Terminable {
             new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
                 .map((element: HTMLButtonElement) => new Key(element))),
             new Key(HTML.query('[data-button=shift-key]')),
-            new Digits(HTML.query('svg[data-display=led-display]', parentNode)))
+            new Display(HTML.query('svg[data-display=led-display]', parentNode)))
     }
 
     private readonly terminator = new Terminator()
@@ -69,7 +69,7 @@ export class MachineContext implements Terminable {
                 readonly mainKeys: KeyGroup<MainKeyIndex>,
                 readonly functionKeys: KeyGroup<FunctionKeyIndex>,
                 readonly shiftKey: Key,
-                readonly digits: Digits) {
+                readonly display: Display) {
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 this.pressedMainKeys.add(keyIndex)
@@ -88,18 +88,13 @@ export class MachineContext implements Terminable {
                     return
                 }
                 if (keyIndex === FunctionKeyIndex.TempoStep) {
-                    this.digits.show(this.machine.preset.tempo.get())
+                    this.display.show(this.machine.preset.tempo.get())
                     return true
                 }
             }))
             this.terminator.with(key.bind('pointerup', () => {
                 if (keyIndex === FunctionKeyIndex.TempoStep) {
-                    const displayValue: number | "none" = this.mode.getDisplayValue()
-                    if (displayValue === 'none') {
-                        this.digits.clear()
-                    } else {
-                        this.digits.show(displayValue)
-                    }
+                    this.resetDisplay()
                     return true
                 }
                 this.mode.onFunctionKeyRelease(keyIndex)
@@ -229,6 +224,10 @@ export class MachineContext implements Terminable {
         this.mainKeys.deactivate()
     }
 
+    resetDisplay() {
+        this.display.show(this.mode.getDisplayValue())
+    }
+
     updatePatternLocationKeys(pattern: Pattern | number): void {
         console.debug(`activatePatternLocationKeys(arrayIndex: ${pattern})`)
         const location = this.machine.state.activeBank().toLocation(pattern)
@@ -260,6 +259,10 @@ export class MachineContext implements Terminable {
         this.functionKeys.activate(index => index === editMode
             ? KeyState.On
             : KeyState.Off, PatternEditModeIndices)
+    }
+
+    clearPatternEditKeys(): void {
+        this.functionKeys.deactivate(PatternEditModeIndices)
     }
 
     watchPatternLocationKeys(): Terminable {

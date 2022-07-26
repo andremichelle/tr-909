@@ -31,30 +31,32 @@ class Digit {
     }
 }
 
-export class Digits {
+export type DisplayValue = number | 'none'
+
+export class Display {
     private readonly digits: Digit[]
 
     constructor(svg: SVGSVGElement) {
         this.digits = Array.from(svg.querySelectorAll('g g')).map(g => new Digit(Array.from(g.querySelectorAll('path'))))
     }
 
-    show(value: number): void {
-        value = Math.floor(value)
-        value
-            .toString(10)
-            .padStart(3, ' ')
-            .split('')
-            .forEach((digit: string, index: number) => {
-                const integer = parseInt(digit)
-                if (isNaN(integer)) {
-                    this.digits[index].clear()
-                } else {
-                    this.digits[index].show(integer)
-                }
-            })
-    }
-
-    clear(): void {
-        this.digits.forEach(digit => digit.clear())
+    show(value: DisplayValue): void {
+        if (value === 'none') {
+            this.digits.forEach(digit => digit.clear())
+        } else {
+            value = Math.floor(value)
+            value
+                .toString(10)
+                .padStart(3, ' ')
+                .split('')
+                .forEach((digit: string, index: number) => {
+                    const integer = parseInt(digit)
+                    if (isNaN(integer)) {
+                        this.digits[index].clear()
+                    } else {
+                        this.digits[index].show(integer)
+                    }
+                })
+        }
     }
 }

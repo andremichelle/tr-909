@@ -3,6 +3,7 @@ import {Pattern, Step} from "../audio/tr909/pattern.js"
 import {ArrayUtils, Terminable, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
 import {MachineContext} from "./context.js"
+import {DisplayValue} from "./display.js"
 import {FunctionKeyIndex, Key, KeyState, MainKeyIndex} from "./keys.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
@@ -31,7 +32,7 @@ export abstract class Mode implements Terminable {
         return false
     }
 
-    getDisplayValue(): number | 'none' {
+    getDisplayValue(): DisplayValue {
         return 'none'
     }
 

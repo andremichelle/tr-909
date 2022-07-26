@@ -27,6 +27,18 @@ export default class extends Mode {
             if (this.context.maySwitchIndex(keyIndex, PatternGroupKeyIndices, this.context.machine.state.patternGroupIndex)) {
                 return true
             }
+            if (keyIndex === FunctionKeyIndex.AvailableMeasuresBankII) {
+                this.context.display.show(this.context.machine.state.activeTrack().remaining())
+                return true
+            }
+        }
+        return false
+    }
+
+    onFunctionKeyRelease(keyIndex: FunctionKeyIndex): consumed {
+        if (keyIndex === FunctionKeyIndex.AvailableMeasuresBankII) {
+            this.context.resetDisplay()
+            return true
         }
         return false
     }
