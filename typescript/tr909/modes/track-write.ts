@@ -33,7 +33,7 @@ export default class extends Mode {
 
     onFunctionKeyRelease(key: FunctionKeyLabel<any>): void {
         if (key === FunctionKeyLabel.AvailableMeasures) {
-            this.context.resetDisplay()
+            this.context.updateDisplay()
         }
     }
 

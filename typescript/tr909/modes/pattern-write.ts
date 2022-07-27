@@ -12,6 +12,7 @@ export default class extends Mode {
 
         this.context.display.show('none')
         this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
+
         this.with(this.context.patternEditMode.addObserver((mode: PatternEditMode) => {
             if (this.inputMode !== null) {
                 this.inputMode.terminate()

@@ -4,7 +4,7 @@ import {Pattern} from "../audio/tr909/pattern.js"
 import {PlayMode} from "../audio/tr909/state.js"
 import {ArrayUtils, Events, ObservableValue, ObservableValueImpl, Terminable, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
-import {Display} from "./display.js"
+import {Display, DisplayValue} from "./display.js"
 import {
     FunctionKeyIndex,
     FunctionKeyLabel,
@@ -99,7 +99,7 @@ export class MachineContext implements Terminable {
             this.terminator.with(key.bind('pointerup', () => {
                 labels[index].forEach((label: FunctionKeyLabel<any>) => {
                     if (label === FunctionKeyLabel.Tempo) {
-                        this.resetDisplay()
+                        this.updateDisplay(this.mode.getDisplayValue())
                     }
                     this.mode.onFunctionKeyRelease(label)
                 })
@@ -229,8 +229,8 @@ export class MachineContext implements Terminable {
         this.mainKeys.deactivate()
     }
 
-    resetDisplay() {
-        this.display.show(this.mode.getDisplayValue())
+    updateDisplay(value?: DisplayValue): void {
+        this.display.show(value === undefined ? this.mode.getDisplayValue() : value)
     }
 
     updatePatternLocationKeys(pattern: Pattern | number): void {
@@ -261,6 +261,7 @@ export class MachineContext implements Terminable {
 
     updatePatternEditKeys(): void {
         const editMode = this.patternEditMode.get()
+        console.debug(`updatePatternEditKeys(editMode: ${PatternEditMode[editMode]})`)
         this.functionKeys.activate(index => index === editMode
             ? KeyState.On
             : KeyState.Off, ZeroBasedIndices.PatternEditModes)
