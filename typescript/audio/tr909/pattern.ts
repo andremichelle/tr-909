@@ -39,6 +39,9 @@ export class Pattern implements Observable<void> {
     // http://www.e-licktronic.com/forum/viewtopic.php?f=25&t=1430
     static readonly FlamDelays = ArrayUtils.fill(8, index => 10 + index * 4)
 
+    // https://www.kvraudio.com/forum/viewtopic.php?p=3740195&sid=89d14cd241a916781a274f424c4d92a0#p3740195
+    static readonly ShuffleDelays = ArrayUtils.fill(7, index => index * 2 / 96)
+
     readonly scale = new ObservableValueImpl<Scale>(Scale.D16)
     readonly flamDelay = new ObservableValueImpl<number>(Pattern.FlamDelays[0])
     readonly lastStep = new ObservableValueImpl<number>(16)

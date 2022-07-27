@@ -111,22 +111,34 @@ export class MachineContext implements Terminable {
             this.shiftMode.set(true)
         }))
         this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
+
+        const shortcuts: Map<string, FunctionKeyLabel<any>> = new Map<string, FunctionKeyLabel<any>>([
+            ['KeyC', FunctionKeyLabel.Clear],
+            ['KeyI', FunctionKeyLabel.InstrumentSelect],
+        ])
+
         this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
             const code = event.code
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftMode.set(true)
-            } else if (code === 'KeyC') {
-                this.mode.onFunctionKeyPress(FunctionKeyLabel.Clear)
-                this.functionKeys.byIndex(FunctionKeyLabel.Clear.keyIndex).setState(KeyState.On)
+            } else {
+                const functionKeyLabel = shortcuts.get(code)
+                if (functionKeyLabel !== undefined) {
+                    this.mode.onFunctionKeyPress(functionKeyLabel)
+                    this.functionKeys.byIndex(functionKeyLabel.keyIndex).setState(KeyState.On)
+                }
             }
         }))
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
             const code = event.code
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftMode.set(false)
-            } else if (code === 'KeyC') {
-                this.mode.onFunctionKeyRelease(FunctionKeyLabel.Clear)
-                this.functionKeys.byIndex(FunctionKeyLabel.Clear.keyIndex).setState(KeyState.Off)
+            } else {
+                const functionKeyLabel = shortcuts.get(code)
+                if (functionKeyLabel !== undefined) {
+                    this.mode.onFunctionKeyRelease(functionKeyLabel)
+                    this.functionKeys.byIndex(functionKeyLabel.keyIndex).setState(KeyState.Off)
+                }
             }
         }))
         this.terminator.with(this.shiftMode
