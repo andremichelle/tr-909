@@ -21,6 +21,17 @@ export enum FunctionKeyIndex {
     ShuffleFlam, Clear, InstrumentSelect
 }
 
+export const FunctionKeyboard = new Map<string, FunctionKeyIndex>([
+    ['Digit1', FunctionKeyIndex.Track1],
+    ['Digit2', FunctionKeyIndex.Track2],
+    ['Digit3', FunctionKeyIndex.Track3],
+    ['Digit4', FunctionKeyIndex.Track4],
+    ['KeyL', FunctionKeyIndex.LastStep],
+    ['KeyS', FunctionKeyIndex.ShuffleFlam],
+    ['KeyC', FunctionKeyIndex.Clear],
+    ['KeyI', FunctionKeyIndex.InstrumentSelect],
+])
+
 export class ZeroBasedIndices {
     static readonly BankGroupKeys = [
         FunctionKeyIndex.ForwardBankI, FunctionKeyIndex.AvailableMeasuresBankII
@@ -87,7 +98,7 @@ export class FunctionKeyLabel<T> {
         FunctionKeyLabel.create(FunctionKeyIndex.ForwardBankI, BankGroupIndex.I),
         FunctionKeyLabel.create(FunctionKeyIndex.AvailableMeasuresBankII, BankGroupIndex.II)
     ]
-    static readonly LastMeas: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'last measure')
+    static readonly LastMeasure: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'last measure')
     static readonly TempoMode: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TapeSyncTempoMode, 'tempo mode')
     static readonly ShiftLastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.LastStep, '') // unused
     static readonly ShiftScale: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Scale, '') // unused
@@ -117,7 +128,7 @@ export class FunctionKeyLabel<T> {
         FunctionKeyLabel.ExtInst,
         ...FunctionKeyLabel.PatternEditMode,
         ...FunctionKeyLabel.BankGroup,
-        FunctionKeyLabel.LastMeas,
+        FunctionKeyLabel.LastMeasure,
         FunctionKeyLabel.TempoMode,
         FunctionKeyLabel.ShiftLastStep,
         FunctionKeyLabel.ShiftScale,

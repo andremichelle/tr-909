@@ -2,10 +2,19 @@ import {Machine} from "../audio/tr909/machine.js"
 import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
 import {PlayMode} from "../audio/tr909/state.js"
-import {ArrayUtils, Events, ObservableValue, ObservableValueImpl, Terminable, Terminator} from "../lib/common.js"
+import {
+    ArrayUtils,
+    Events,
+    ifDefined,
+    ObservableValue,
+    ObservableValueImpl,
+    Terminable,
+    Terminator
+} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Display, DisplayValue} from "./display.js"
 import {
+    FunctionKeyboard,
     FunctionKeyIndex,
     FunctionKeyLabel,
     Key,
@@ -21,20 +30,6 @@ import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
 import {InstrumentMode, Utils} from "./utils.js"
-
-// root
-// > Track-Play
-// > Track-Write
-// > Pattern-Play
-// > Pattern-Write
-//   > Clear + PatternKey (not playing)
-//   > Step Edit
-//     > Select instrument
-//     > Last Step
-//     > Clear
-//   > Tap Edit
-//     > Clear
-//     > Guide
 
 export class MachineContext implements Terminable {
     static create(machine: Machine, parentNode: ParentNode): MachineContext {
@@ -55,6 +50,7 @@ export class MachineContext implements Terminable {
     readonly instrumentMode: ObservableValueImpl<InstrumentMode> = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
     readonly patternEditMode: ObservableValueImpl<PatternEditMode> = new ObservableValueImpl<PatternEditMode>(PatternEditMode.Step)
     readonly pressedMainKeys: Set<MainKeyIndex> = new Set<MainKeyIndex>()
+    readonly activeLabels: FunctionKeyLabel<any>[][] = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
     readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
 
     private mode: NonNullable<Mode> = new TrackPlayMode(this)
@@ -76,17 +72,16 @@ export class MachineContext implements Terminable {
             }))
         })
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
-            const labels: FunctionKeyLabel<any>[][] = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
                 if (this.shiftMode.get()) {
-                    labels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex])
+                    this.activeLabels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex])
                     if (this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex])) {
                         return
                     }
                 } else {
                     const label = FunctionKeyLabel.NormalKeys[keyIndex]
-                    labels[keyIndex].push(label)
+                    this.activeLabels[keyIndex].push(label)
                     if (label === FunctionKeyLabel.Tempo) {
                         this.display.show(this.machine.preset.tempo.get())
                         return
@@ -96,50 +91,34 @@ export class MachineContext implements Terminable {
                     }
                 }
             }))
-            this.terminator.with(key.bind('pointerup', () => {
-                labels[keyIndex].forEach((label: FunctionKeyLabel<any>) => {
-                    if (label === FunctionKeyLabel.Tempo) {
-                        this.updateDisplay(this.mode.getDisplayValue())
-                    }
-                    this.mode.onFunctionKeyRelease(label)
-                })
-                labels[keyIndex] = []
-            }))
+            this.terminator.with(key.bind('pointerup', () => this.releaseFunctionKey(keyIndex)))
         })
         this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
             this.shiftKey.setPointerCapture(event.pointerId)
             this.shiftMode.set(true)
         }))
         this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
-
-        const shortcuts: Map<string, FunctionKeyLabel<any>> = new Map<string, FunctionKeyLabel<any>>([
-            ['KeyC', FunctionKeyLabel.Clear],
-            ['KeyI', FunctionKeyLabel.InstrumentSelect],
-        ])
-
         this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
             const code = event.code
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftMode.set(true)
-            } else {
-                const functionKeyLabel = shortcuts.get(code)
-                if (functionKeyLabel !== undefined) {
-                    this.mode.onFunctionKeyPress(functionKeyLabel)
-                    this.functionKeys.byIndex(functionKeyLabel.keyIndex).setState(KeyState.On)
-                }
             }
+            ifDefined(
+                FunctionKeyboard.get(code),
+                (keyIndex: FunctionKeyIndex) => {
+                    const label = this.shiftMode.get()
+                        ? FunctionKeyLabel.ShiftKeys[keyIndex]
+                        : FunctionKeyLabel.NormalKeys[keyIndex]
+                    this.activeLabels[keyIndex].push(label)
+                    this.mode.onFunctionKeyPress(label)
+                })
         }))
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
             const code = event.code
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftMode.set(false)
-            } else {
-                const functionKeyLabel = shortcuts.get(code)
-                if (functionKeyLabel !== undefined) {
-                    this.mode.onFunctionKeyRelease(functionKeyLabel)
-                    this.functionKeys.byIndex(functionKeyLabel.keyIndex).setState(KeyState.Off)
-                }
             }
+            ifDefined(FunctionKeyboard.get(code), (keyIndex: FunctionKeyIndex) => this.releaseFunctionKey(keyIndex))
         }))
         this.terminator.with(this.shiftMode
             .addObserver(enabled => this.shiftKey
@@ -176,19 +155,19 @@ export class MachineContext implements Terminable {
     }
 
     maySwitchTrackIndex(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.maySetIndex(label, FunctionKeyLabel.TrackPlay, this.machine.state.trackIndex)
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.machine.state.trackIndex.set(index))
     }
 
     maySwitchBankGroupIndex(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.maySetIndex(label, FunctionKeyLabel.BankGroup, this.machine.state.bankGroupIndex)
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.BankGroup, index => this.machine.state.bankGroupIndex.set(index))
     }
 
     maySwitchPatternGroupIndex(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.maySetIndex(label, FunctionKeyLabel.PatternPlay, this.machine.state.patternGroupIndex)
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.machine.state.patternGroupIndex.set(index))
     }
 
     maySwitchPatternEditMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.maySetIndex(label, FunctionKeyLabel.PatternEditMode, this.patternEditMode)
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternEditMode, index => this.patternEditMode.set(index))
     }
 
     mayToggle(label: FunctionKeyLabel<any>,
@@ -356,10 +335,14 @@ export class MachineContext implements Terminable {
         this.terminator.terminate()
     }
 
-    private static maySetIndex<T extends number>(label: FunctionKeyLabel<T>,
-                                                 choices: ReadonlyArray<FunctionKeyLabel<T>>,
-                                                 value: ObservableValue<T>): boolean {
-        return MachineContext.mayExecWithIndex(label, choices, index => value.set(index))
+    private releaseFunctionKey(keyIndex: FunctionKeyIndex): void {
+        const labels = this.activeLabels[keyIndex]
+        labels.splice(0, labels.length).forEach((label: FunctionKeyLabel<any>) => {
+            if (label === FunctionKeyLabel.Tempo) {
+                this.updateDisplay(this.mode.getDisplayValue())
+            }
+            this.mode.onFunctionKeyRelease(label)
+        })
     }
 
     private static mayExecWithIndex<T>(label: FunctionKeyLabel<any>,
