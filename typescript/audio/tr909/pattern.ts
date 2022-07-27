@@ -121,6 +121,19 @@ export class Pattern implements Observable<void> {
         return this.totalAccents[stepIndex]
     }
 
+    clear() {
+        console.debug('Clear pattern')
+        this.observable.mute()
+        this.steps.forEach(steps => steps.fill(Step.None))
+        this.scale.set(Scale.D16)
+        this.groove.set(GrooveIdentity)
+        this.lastStep.set(16)
+        this.flamDelay.set(Pattern.FlamDelays[4])
+        this.totalAccents.fill(false)
+        this.observable.unmute()
+        this.observable.notify()
+    }
+
     serialize(): PatternFormat {
         return {
             steps: this.steps,

@@ -75,18 +75,18 @@ export class MachineContext implements Terminable {
                 this.mode.onMainKeyRelease(keyIndex)
             }))
         })
-        this.functionKeys.forEach((key: Key, index: number) => {
+        this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
             const labels: FunctionKeyLabel<any>[][] = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
                 if (this.shiftMode.get()) {
-                    labels[index].push(FunctionKeyLabel.ShiftKeys[index])
-                    if (this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[index])) {
+                    labels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex])
+                    if (this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex])) {
                         return
                     }
                 } else {
-                    const label = FunctionKeyLabel.NormalKeys[index]
-                    labels[index].push(label)
+                    const label = FunctionKeyLabel.NormalKeys[keyIndex]
+                    labels[keyIndex].push(label)
                     if (label === FunctionKeyLabel.Tempo) {
                         this.display.show(this.machine.preset.tempo.get())
                         return
@@ -97,14 +97,13 @@ export class MachineContext implements Terminable {
                 }
             }))
             this.terminator.with(key.bind('pointerup', () => {
-                labels[index].forEach((label: FunctionKeyLabel<any>) => {
+                labels[keyIndex].forEach((label: FunctionKeyLabel<any>) => {
                     if (label === FunctionKeyLabel.Tempo) {
                         this.updateDisplay(this.mode.getDisplayValue())
                     }
                     this.mode.onFunctionKeyRelease(label)
                 })
-                labels[index] = []
-
+                labels[keyIndex] = []
             }))
         })
         this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
@@ -116,12 +115,18 @@ export class MachineContext implements Terminable {
             const code = event.code
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftMode.set(true)
+            } else if (code === 'KeyC') {
+                this.mode.onFunctionKeyPress(FunctionKeyLabel.Clear)
+                this.functionKeys.byIndex(FunctionKeyLabel.Clear.keyIndex).setState(KeyState.On)
             }
         }))
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
             const code = event.code
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftMode.set(false)
+            } else if (code === 'KeyC') {
+                this.mode.onFunctionKeyRelease(FunctionKeyLabel.Clear)
+                this.functionKeys.byIndex(FunctionKeyLabel.Clear.keyIndex).setState(KeyState.Off)
             }
         }))
         this.terminator.with(this.shiftMode
@@ -259,12 +264,12 @@ export class MachineContext implements Terminable {
             ? KeyState.On : KeyState.Off, ZeroBasedIndices.BankGroupKeys)
     }
 
-    updatePatternEditKeys(): void {
-        const editMode = this.patternEditMode.get()
-        console.debug(`updatePatternEditKeys(editMode: ${PatternEditMode[editMode]})`)
-        this.functionKeys.activate(index => index === editMode
-            ? KeyState.On
-            : KeyState.Off, ZeroBasedIndices.PatternEditModes)
+    watchPatternEditKeys(): Terminable {
+        return this.patternEditMode.addObserver((patternEditMode: PatternEditMode) => {
+            this.functionKeys.activate(index => index === patternEditMode
+                ? KeyState.On
+                : KeyState.Off, ZeroBasedIndices.PatternEditModes)
+        }, true)
     }
 
     clearPatternEditKeys(): void {

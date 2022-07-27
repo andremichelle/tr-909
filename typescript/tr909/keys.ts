@@ -26,56 +26,66 @@ export class ZeroBasedIndices {
     static TrackKeys = [FunctionKeyIndex.Track1, FunctionKeyIndex.Track2, FunctionKeyIndex.Track3, FunctionKeyIndex.Track4]
     static PatternGroupKeys = [FunctionKeyIndex.PatternGroup1, FunctionKeyIndex.PatternGroup2, FunctionKeyIndex.PatternGroup3]
     static PatternEditModes = [FunctionKeyIndex.TempoStep, FunctionKeyIndex.BackTap]
+    static StepKeys = [
+        MainKeyIndex.Step1, MainKeyIndex.Step2, MainKeyIndex.Step3, MainKeyIndex.Step4,
+        MainKeyIndex.Step5, MainKeyIndex.Step6, MainKeyIndex.Step7, MainKeyIndex.Step8,
+        MainKeyIndex.Step9, MainKeyIndex.Step10, MainKeyIndex.Step11, MainKeyIndex.Step12,
+        MainKeyIndex.Step13, MainKeyIndex.Step14, MainKeyIndex.Step15, MainKeyIndex.Step16
+    ]
 }
 
 export class FunctionKeyLabel<T> {
     static TrackPlay: FunctionKeyLabel<TrackIndex>[] = [
-        FunctionKeyLabel.create(TrackIndex.I),
-        FunctionKeyLabel.create(TrackIndex.II),
-        FunctionKeyLabel.create(TrackIndex.III),
-        FunctionKeyLabel.create(TrackIndex.IV)
+        FunctionKeyLabel.create(FunctionKeyIndex.Track1, TrackIndex.I),
+        FunctionKeyLabel.create(FunctionKeyIndex.Track2, TrackIndex.II),
+        FunctionKeyLabel.create(FunctionKeyIndex.Track3, TrackIndex.III),
+        FunctionKeyLabel.create(FunctionKeyIndex.Track4, TrackIndex.IV)
     ]
     static PatternPlay: FunctionKeyLabel<PatternGroupIndex>[] = [
-        FunctionKeyLabel.create(PatternGroupIndex.I),
-        FunctionKeyLabel.create(PatternGroupIndex.II),
-        FunctionKeyLabel.create(PatternGroupIndex.III)
+        FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup1, PatternGroupIndex.I),
+        FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup2, PatternGroupIndex.II),
+        FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup3, PatternGroupIndex.III)
     ]
-    static Empty: FunctionKeyLabel<string> = FunctionKeyLabel.create('empty')
-    static Tempo: FunctionKeyLabel<string> = FunctionKeyLabel.create('tempo')
-    static Back: FunctionKeyLabel<string> = FunctionKeyLabel.create('back')
-    static Forward: FunctionKeyLabel<string> = FunctionKeyLabel.create('fwd')
-    static AvailableMeasures: FunctionKeyLabel<string> = FunctionKeyLabel.create('available measure')
-    static CycleGuide: FunctionKeyLabel<string> = FunctionKeyLabel.create('cycle/guide')
-    static TapeSync: FunctionKeyLabel<string> = FunctionKeyLabel.create('tape sync')
-    static LastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create('last step')
-    static Scale: FunctionKeyLabel<string> = FunctionKeyLabel.create('scale')
-    static ShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create('shuffle/flam')
-    static Clear: FunctionKeyLabel<string> = FunctionKeyLabel.create('clear')
-    static InstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create('instrument select')
+    static Empty: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.EmptyExtInst, 'empty')
+    static Tempo: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, 'tempo')
+    static Back: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.BackTap, 'back')
+    static Forward: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ForwardBankI, 'forward')
+    static AvailableMeasures: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.AvailableMeasuresBankII, 'available measure')
+    static CycleGuide: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'cycle/guide')
+    static TapeSync: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TapeSyncTempoMode, 'tape sync')
+    static LastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.LastStep, 'last step')
+    static Scale: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Scale, 'scale')
+    static ShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ShuffleFlam, 'shuffle/flam')
+    static Clear: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Clear, 'clear')
+    static InstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.InstrumentSelect, 'instrument select')
 
     static TrackWrite: FunctionKeyLabel<TrackIndex>[] = [
-        FunctionKeyLabel.create(TrackIndex.I),
-        FunctionKeyLabel.create(TrackIndex.II),
-        FunctionKeyLabel.create(TrackIndex.III),
-        FunctionKeyLabel.create(TrackIndex.IV)
+        FunctionKeyLabel.create(FunctionKeyIndex.Track1, TrackIndex.I),
+        FunctionKeyLabel.create(FunctionKeyIndex.Track2, TrackIndex.II),
+        FunctionKeyLabel.create(FunctionKeyIndex.Track3, TrackIndex.III),
+        FunctionKeyLabel.create(FunctionKeyIndex.Track4, TrackIndex.IV)
     ]
     static PatternWrite: FunctionKeyLabel<PatternGroupIndex>[] = [
-        FunctionKeyLabel.create(PatternGroupIndex.I),
-        FunctionKeyLabel.create(PatternGroupIndex.II),
-        FunctionKeyLabel.create(PatternGroupIndex.III)
+        FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup1, PatternGroupIndex.I),
+        FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup2, PatternGroupIndex.II),
+        FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup3, PatternGroupIndex.III)
     ]
-    static ExtInst: FunctionKeyLabel<string> = FunctionKeyLabel.create('external instrument')
+    static ExtInst: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.EmptyExtInst, 'external instrument')
     static PatternEditMode: FunctionKeyLabel<PatternEditMode>[] = [
-        FunctionKeyLabel.create(PatternEditMode.Step),
-        FunctionKeyLabel.create(PatternEditMode.Tap)
+        FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, PatternEditMode.Step),
+        FunctionKeyLabel.create(FunctionKeyIndex.BackTap, PatternEditMode.Tap)
     ]
     static BankGroup: FunctionKeyLabel<BankGroupIndex>[] = [
-        FunctionKeyLabel.create(BankGroupIndex.I),
-        FunctionKeyLabel.create(BankGroupIndex.II)
+        FunctionKeyLabel.create(FunctionKeyIndex.ForwardBankI, BankGroupIndex.I),
+        FunctionKeyLabel.create(FunctionKeyIndex.AvailableMeasuresBankII, BankGroupIndex.II)
     ]
-    static LastMeas: FunctionKeyLabel<string> = FunctionKeyLabel.create('last measure')
-    static TempoMode: FunctionKeyLabel<string> = FunctionKeyLabel.create('tempo mode')
-    static Void: FunctionKeyLabel<string> = FunctionKeyLabel.create('')
+    static LastMeas: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'last measure')
+    static TempoMode: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TapeSyncTempoMode, 'tempo mode')
+    static ShiftLastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.LastStep, '') // unused
+    static ShiftScale: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Scale, '') // unused
+    static ShiftShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ShuffleFlam, '') // unused
+    static ShiftClear: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Clear, '') // unused
+    static ShiftInstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.InstrumentSelect, '') // unused
 
     static NormalKeys: FunctionKeyLabel<any>[] = [
         ...FunctionKeyLabel.TrackPlay,
@@ -101,18 +111,18 @@ export class FunctionKeyLabel<T> {
         ...FunctionKeyLabel.BankGroup,
         FunctionKeyLabel.LastMeas,
         FunctionKeyLabel.TempoMode,
-        FunctionKeyLabel.Void,
-        FunctionKeyLabel.Void,
-        FunctionKeyLabel.Void,
-        FunctionKeyLabel.Void,
-        FunctionKeyLabel.Void
+        FunctionKeyLabel.ShiftLastStep,
+        FunctionKeyLabel.ShiftScale,
+        FunctionKeyLabel.ShiftShuffleFlam,
+        FunctionKeyLabel.ShiftClear,
+        FunctionKeyLabel.ShiftInstrumentSelect
     ]
 
-    private static create<T>(value: T): FunctionKeyLabel<T> {
-        return new FunctionKeyLabel<T>(value)
+    private static create<T>(keyIndex: FunctionKeyIndex, value: T): FunctionKeyLabel<T> {
+        return new FunctionKeyLabel<T>(keyIndex, value)
     }
 
-    private constructor(readonly value: T) {
+    private constructor(readonly keyIndex: FunctionKeyIndex, readonly value: T) {
     }
 }
 

@@ -1,64 +1,52 @@
 import {Step} from "../../audio/tr909/pattern.js"
 import {MachineContext} from "../context.js"
-import {FunctionKeyLabel, MainKeyIndex, PatternEditMode} from "../keys.js"
+import {FunctionKeyLabel, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"
 import {consumed, Mode} from "../modes.js"
 import {Utils} from "../utils.js"
 
 export default class extends Mode {
-    private inputMode: Mode = null
+    private inputMode: NonNullable<Mode>
 
     constructor(context: MachineContext) {
         super(context)
 
-        this.context.display.show('none')
+        this.context.updateDisplay('none')
         this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
 
-        this.with(this.context.patternEditMode.addObserver((mode: PatternEditMode) => {
-            if (this.inputMode !== null) {
-                this.inputMode.terminate()
-                this.inputMode = null
-            }
-            this.context.resetMainKeys()
-            if (mode === PatternEditMode.Step) {
-                this.inputMode = new StepInputMode(context)
-            } else if (mode === PatternEditMode.Tap) {
-                this.inputMode = new TapInputMode(context)
+
+        this.inputMode = new SelectMode(context)
+
+        const updateInputMode = () => {
+            this.inputMode.terminate()
+
+            if (this.context.isPlaying()) {
+                const patternEditMode = this.context.patternEditMode.get()
+                if (patternEditMode === PatternEditMode.Step) {
+                    this.inputMode = new StepInputMode(context)
+                } else if (patternEditMode === PatternEditMode.Tap) {
+                    this.inputMode = new TapInputMode(context)
+                } else {
+                    throw new Error(`Unknown PatternInputMode(${patternEditMode})`)
+                }
             } else {
-                throw new Error(`Unknown PatternInputMode(${mode})`)
+                this.inputMode = new SelectMode(context)
             }
-            this.context.updatePatternEditKeys()
-        }, true))
-        this.with(this.context.startStepRunningAnimation())
+            console.debug(`mode: ${this.context.modeName()}`)
+        }
+
+        this.with(this.context.patternEditMode.addObserver(updateInputMode))
+        this.with(this.context.machine.transport.addObserver(updateInputMode, true))
+        this.with(this.context.watchPatternEditKeys())
         this.with({
             terminate: () => {
-                this.inputMode!.terminate()
+                this.inputMode.terminate()
                 this.context.clearPatternEditKeys()
             }
         })
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
-        if (this.inputMode.onFunctionKeyPress(label)) {
-            return true
-        }
-        if (!this.context.isPlaying()) {
-            if (this.context.maySwitchToTrackPlayMode(label)) {
-                return true
-            }
-            if (this.context.maySwitchToPatternPlayMode(label)) {
-                return true
-            }
-            if (this.context.maySwitchToTrackWriteMode(label)) {
-                return true
-            }
-            if (this.context.maySwitchToPatternWriteMode(label)) {
-                return true
-            }
-            if (this.context.maySwitchIndex(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
-                return true
-            }
-        }
-        return false
+        return this.inputMode.onFunctionKeyPress(label)
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
@@ -66,13 +54,72 @@ export default class extends Mode {
     }
 
     name(): string {
-        return 'Pattern Write'
+        return `Pattern Write (${this.inputMode.name()})`
+    }
+}
+
+class SelectMode extends Mode {
+    private clear: boolean = false
+
+    constructor(context: MachineContext) {
+        super(context)
+
+        console.assert(!context.machine.transport.isPlaying())
+        this.with(this.context.machine.state.patternIndex
+            .addObserver((patternIndex) => this.context.mainKeys
+                .activate(index => patternIndex === index
+                    ? KeyState.Blink
+                    : KeyState.Off, ZeroBasedIndices.StepKeys), true))
+    }
+
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+        if (this.context.maySwitchToTrackPlayMode(label)) {
+            return true
+        }
+        if (this.context.maySwitchToPatternPlayMode(label)) {
+            return true
+        }
+        if (this.context.maySwitchToTrackWriteMode(label)) {
+            return true
+        }
+        if (this.context.maySwitchToPatternWriteMode(label)) {
+            return true
+        }
+        if (this.context.maySwitchIndex(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
+            return true
+        }
+        if (label === FunctionKeyLabel.Clear) {
+            this.clear = true
+            return true
+        }
+    }
+
+    onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
+        if (label === FunctionKeyLabel.Clear) {
+            this.clear = false
+        }
+    }
+
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+        if (keyIndex === MainKeyIndex.TotalAccent) return false
+        this.context.machine.state.patternIndex.set(keyIndex as number)
+        if (this.clear) {
+            this.context.machine.state.activePattern().clear()
+        }
+        return true
+    }
+
+    name(): string {
+        return 'Select/Clear'
     }
 }
 
 class TapInputMode extends Mode {
     constructor(context: MachineContext) {
         super(context)
+
+        console.assert(context.machine.transport.isPlaying())
+        this.with(this.context.startStepRunningAnimation())
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
@@ -107,6 +154,8 @@ class StepInputMode extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
+        console.assert(context.machine.transport.isPlaying())
+        this.with(this.context.startStepRunningAnimation())
         this.with(this.context.watchPatternStepsKeys())
     }
 

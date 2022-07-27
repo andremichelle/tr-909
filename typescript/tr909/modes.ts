@@ -16,11 +16,11 @@ export abstract class Mode implements Terminable {
     protected constructor(readonly context: MachineContext) {
     }
 
-    onFunctionKeyPress(value: FunctionKeyLabel<any>): consumed {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
         return false
     }
 
-    onFunctionKeyRelease(value: FunctionKeyLabel<any>): void {
+    onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
