@@ -1,4 +1,9 @@
+import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Events, Terminable} from "../lib/common.js"
+
+export enum PatternEditMode {
+    Step, Tap
+}
 
 export enum MainKeyIndex {
     Step1, Step2, Step3, Step4,
@@ -16,11 +21,100 @@ export enum FunctionKeyIndex {
     ShuffleFlam, Clear, InstrumentSelect
 }
 
-// zero-based indices
-export const BankGroupKeyIndices = [FunctionKeyIndex.ForwardBankI, FunctionKeyIndex.AvailableMeasuresBankII]
-export const TrackKeyIndices = [FunctionKeyIndex.Track1, FunctionKeyIndex.Track2, FunctionKeyIndex.Track3, FunctionKeyIndex.Track4]
-export const PatternGroupKeyIndices = [FunctionKeyIndex.PatternGroup1, FunctionKeyIndex.PatternGroup2, FunctionKeyIndex.PatternGroup3]
-export const PatternEditModeIndices = [FunctionKeyIndex.TempoStep, FunctionKeyIndex.BackTap]
+export class ZeroBasedIndices {
+    static BankGroupKeys = [FunctionKeyIndex.ForwardBankI, FunctionKeyIndex.AvailableMeasuresBankII]
+    static TrackKeys = [FunctionKeyIndex.Track1, FunctionKeyIndex.Track2, FunctionKeyIndex.Track3, FunctionKeyIndex.Track4]
+    static PatternGroupKeys = [FunctionKeyIndex.PatternGroup1, FunctionKeyIndex.PatternGroup2, FunctionKeyIndex.PatternGroup3]
+    static PatternEditModes = [FunctionKeyIndex.TempoStep, FunctionKeyIndex.BackTap]
+}
+
+export class FunctionKeyLabel<T> {
+    static TrackPlay: FunctionKeyLabel<TrackIndex>[] = [
+        FunctionKeyLabel.create(TrackIndex.I),
+        FunctionKeyLabel.create(TrackIndex.II),
+        FunctionKeyLabel.create(TrackIndex.III),
+        FunctionKeyLabel.create(TrackIndex.IV)
+    ]
+    static PatternPlay: FunctionKeyLabel<PatternGroupIndex>[] = [
+        FunctionKeyLabel.create(PatternGroupIndex.I),
+        FunctionKeyLabel.create(PatternGroupIndex.II),
+        FunctionKeyLabel.create(PatternGroupIndex.III)
+    ]
+    static Empty: FunctionKeyLabel<string> = FunctionKeyLabel.create('empty')
+    static Tempo: FunctionKeyLabel<string> = FunctionKeyLabel.create('tempo')
+    static Back: FunctionKeyLabel<string> = FunctionKeyLabel.create('back')
+    static Forward: FunctionKeyLabel<string> = FunctionKeyLabel.create('fwd')
+    static AvailableMeasures: FunctionKeyLabel<string> = FunctionKeyLabel.create('available measure')
+    static CycleGuide: FunctionKeyLabel<string> = FunctionKeyLabel.create('cycle/guide')
+    static TapeSync: FunctionKeyLabel<string> = FunctionKeyLabel.create('tape sync')
+    static LastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create('last step')
+    static Scale: FunctionKeyLabel<string> = FunctionKeyLabel.create('scale')
+    static ShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create('shuffle/flam')
+    static Clear: FunctionKeyLabel<string> = FunctionKeyLabel.create('clear')
+    static InstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create('instrument select')
+
+    static TrackWrite: FunctionKeyLabel<TrackIndex>[] = [
+        FunctionKeyLabel.create(TrackIndex.I),
+        FunctionKeyLabel.create(TrackIndex.II),
+        FunctionKeyLabel.create(TrackIndex.III),
+        FunctionKeyLabel.create(TrackIndex.IV)
+    ]
+    static PatternWrite: FunctionKeyLabel<PatternGroupIndex>[] = [
+        FunctionKeyLabel.create(PatternGroupIndex.I),
+        FunctionKeyLabel.create(PatternGroupIndex.II),
+        FunctionKeyLabel.create(PatternGroupIndex.III)
+    ]
+    static ExtInst: FunctionKeyLabel<string> = FunctionKeyLabel.create('external instrument')
+    static PatternEditMode: FunctionKeyLabel<PatternEditMode>[] = [
+        FunctionKeyLabel.create(PatternEditMode.Step),
+        FunctionKeyLabel.create(PatternEditMode.Tap)
+    ]
+    static BankGroup: FunctionKeyLabel<BankGroupIndex>[] = [
+        FunctionKeyLabel.create(BankGroupIndex.I),
+        FunctionKeyLabel.create(BankGroupIndex.II)
+    ]
+    static LastMeas: FunctionKeyLabel<string> = FunctionKeyLabel.create('last measure')
+    static TempoMode: FunctionKeyLabel<string> = FunctionKeyLabel.create('tempo mode')
+    static Void: FunctionKeyLabel<string> = FunctionKeyLabel.create('')
+
+    static NormalKeys: FunctionKeyLabel<any>[] = [
+        ...FunctionKeyLabel.TrackPlay,
+        ...FunctionKeyLabel.PatternPlay,
+        FunctionKeyLabel.Empty,
+        FunctionKeyLabel.Tempo,
+        FunctionKeyLabel.Back,
+        FunctionKeyLabel.Forward,
+        FunctionKeyLabel.AvailableMeasures,
+        FunctionKeyLabel.CycleGuide,
+        FunctionKeyLabel.TapeSync,
+        FunctionKeyLabel.LastStep,
+        FunctionKeyLabel.Scale,
+        FunctionKeyLabel.ShuffleFlam,
+        FunctionKeyLabel.Clear,
+        FunctionKeyLabel.InstrumentSelect
+    ]
+    static ShiftKeys: FunctionKeyLabel<any>[] = [
+        ...FunctionKeyLabel.TrackWrite,
+        ...FunctionKeyLabel.PatternWrite,
+        FunctionKeyLabel.ExtInst,
+        ...FunctionKeyLabel.PatternEditMode,
+        ...FunctionKeyLabel.BankGroup,
+        FunctionKeyLabel.LastMeas,
+        FunctionKeyLabel.TempoMode,
+        FunctionKeyLabel.Void,
+        FunctionKeyLabel.Void,
+        FunctionKeyLabel.Void,
+        FunctionKeyLabel.Void,
+        FunctionKeyLabel.Void
+    ]
+
+    private static create<T>(value: T): FunctionKeyLabel<T> {
+        return new FunctionKeyLabel<T>(value)
+    }
+
+    private constructor(readonly value: T) {
+    }
+}
 
 export enum KeyState {
     Off, Flash, Blink, On

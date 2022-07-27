@@ -2,19 +2,18 @@ import {Machine} from "../audio/tr909/machine.js"
 import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
 import {PlayMode} from "../audio/tr909/state.js"
-import {Events, ObservableValue, ObservableValueImpl, Terminable, Terminator} from "../lib/common.js"
+import {ArrayUtils, Events, ObservableValue, ObservableValueImpl, Terminable, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Display} from "./display.js"
 import {
-    BankGroupKeyIndices,
     FunctionKeyIndex,
+    FunctionKeyLabel,
     Key,
     KeyGroup,
     KeyState,
     MainKeyIndex,
-    PatternEditModeIndices,
-    PatternGroupKeyIndices,
-    TrackKeyIndices
+    PatternEditMode,
+    ZeroBasedIndices
 } from "./keys.js"
 import {Mode} from "./modes.js"
 import PatternPlayMode from "./modes/pattern-play.js"
@@ -36,11 +35,6 @@ import {InstrumentMode, Utils} from "./utils.js"
 //   > Tap Edit
 //     > Clear
 //     > Guide
-
-
-export enum PatternEditMode {
-    Step, Tap
-}
 
 export class MachineContext implements Terminable {
     static create(machine: Machine, parentNode: ParentNode): MachineContext {
@@ -81,23 +75,36 @@ export class MachineContext implements Terminable {
                 this.mode.onMainKeyRelease(keyIndex)
             }))
         })
-        this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
+        this.functionKeys.forEach((key: Key, index: number) => {
+            const labels: FunctionKeyLabel<any>[][] = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
-                if (this.mode.onFunctionKeyPress(keyIndex, this.shiftMode.get())) {
-                    return
-                }
-                if (keyIndex === FunctionKeyIndex.TempoStep) {
-                    this.display.show(this.machine.preset.tempo.get())
-                    return true
+                if (this.shiftMode.get()) {
+                    labels[index].push(FunctionKeyLabel.ShiftKeys[index])
+                    if (this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[index])) {
+                        return
+                    }
+                } else {
+                    const label = FunctionKeyLabel.NormalKeys[index]
+                    labels[index].push(label)
+                    if (label === FunctionKeyLabel.Tempo) {
+                        this.display.show(this.machine.preset.tempo.get())
+                        return
+                    }
+                    if (this.mode.onFunctionKeyPress(label)) {
+                        return
+                    }
                 }
             }))
             this.terminator.with(key.bind('pointerup', () => {
-                if (keyIndex === FunctionKeyIndex.TempoStep) {
-                    this.resetDisplay()
-                    return true
-                }
-                this.mode.onFunctionKeyRelease(keyIndex)
+                labels[index].forEach((label: FunctionKeyLabel<any>) => {
+                    if (label === FunctionKeyLabel.Tempo) {
+                        this.resetDisplay()
+                    }
+                    this.mode.onFunctionKeyRelease(label)
+                })
+                labels[index] = []
+
             }))
         })
         this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
@@ -135,33 +142,31 @@ export class MachineContext implements Terminable {
         return this.machine.transport.isPlaying()
     }
 
-    maySwitchToTrackPlayMode(keyIndex: FunctionKeyIndex): boolean {
-        return Utils.maySwitchToMode(keyIndex, TrackKeyIndices, index => this.switchToTrackPlayMode(index))
+    maySwitchToTrackPlayMode(label: FunctionKeyLabel<any>): boolean {
+        return MachineContext.maySwitchToMode(label, FunctionKeyLabel.TrackPlay, index => this.switchToTrackPlayMode(index))
     }
 
-    maySwitchToTrackWriteMode(keyIndex: FunctionKeyIndex): boolean {
-        return Utils.maySwitchToMode(keyIndex, TrackKeyIndices, index => this.switchToTrackWriteMode(index))
+    maySwitchToTrackWriteMode(label: FunctionKeyLabel<any>): boolean {
+        return MachineContext.maySwitchToMode(label, FunctionKeyLabel.TrackWrite, index => this.switchToTrackWriteMode(index))
     }
 
-    maySwitchToPatternPlayMode(keyIndex: FunctionKeyIndex): boolean {
-        return Utils.maySwitchToMode(keyIndex, PatternGroupKeyIndices, index => this.switchToPatternPlayMode(index))
+    maySwitchToPatternPlayMode(label: FunctionKeyLabel<any>): boolean {
+        return MachineContext.maySwitchToMode(label, FunctionKeyLabel.PatternPlay, index => this.switchToPatternPlayMode(index))
     }
 
-    maySwitchToPatternWriteMode(keyIndex: FunctionKeyIndex): boolean {
-        return Utils.maySwitchToMode(keyIndex, PatternGroupKeyIndices, index => this.switchToPatternWriteMode(index))
+    maySwitchToPatternWriteMode(label: FunctionKeyLabel<any>): boolean {
+        return MachineContext.maySwitchToMode(label, FunctionKeyLabel.PatternWrite, index => this.switchToPatternWriteMode(index))
     }
 
-    maySwitchIndex<T extends number>(keyIndex: FunctionKeyIndex, indices: FunctionKeyIndex[], value: ObservableValue<T>): boolean {
-        const index: number = indices.indexOf(keyIndex)
-        if (index === -1) {
-            return false
-        }
+    maySwitchIndex<T extends number>(label: FunctionKeyLabel<T>, choices: FunctionKeyLabel<T>[], value: ObservableValue<T>): boolean {
+        const index: number = choices.indexOf(label)
+        if (index === -1) return false
         value.set(index as T)
         return true
     }
 
-    mayToggle(keyIndex: FunctionKeyIndex, index: FunctionKeyIndex, value: ObservableValue<boolean>): boolean {
-        if (keyIndex === index) {
+    mayToggle(label: FunctionKeyLabel<any>, compare: FunctionKeyLabel<any>, value: ObservableValue<boolean>): boolean {
+        if (label === compare) {
             value.set(!value.get())
             return true
         }
@@ -239,30 +244,30 @@ export class MachineContext implements Terminable {
     updateTrackKeys(trackIndex: TrackIndex, writeMode: boolean): void {
         console.debug(`activateTrackKeys(index: ${trackIndex}, writeMode: ${writeMode})`)
         this.functionKeys.activate(index => index === trackIndex
-            ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, TrackKeyIndices)
+            ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, ZeroBasedIndices.TrackKeys)
     }
 
     updatePatternGroupKeys(patternGroupIndex: PatternGroupIndex, writeMode: boolean): void {
         console.debug(`activatePatternGroupKeys(index: ${patternGroupIndex}, writeMode: ${writeMode})`)
         this.functionKeys.activate(index => patternGroupIndex === index
-            ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, PatternGroupKeyIndices)
+            ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, ZeroBasedIndices.PatternGroupKeys)
     }
 
     updateBankGroupKeys(bankGroupIndex: BankGroupIndex): void {
         console.debug(`activateBankGroupKeys(index: ${bankGroupIndex})`)
         this.functionKeys.activate(index => bankGroupIndex === index
-            ? KeyState.On : KeyState.Off, BankGroupKeyIndices)
+            ? KeyState.On : KeyState.Off, ZeroBasedIndices.BankGroupKeys)
     }
 
     updatePatternEditKeys(): void {
         const editMode = this.patternEditMode.get()
         this.functionKeys.activate(index => index === editMode
             ? KeyState.On
-            : KeyState.Off, PatternEditModeIndices)
+            : KeyState.Off, ZeroBasedIndices.PatternEditModes)
     }
 
     clearPatternEditKeys(): void {
-        this.functionKeys.deactivate(PatternEditModeIndices)
+        this.functionKeys.deactivate(ZeroBasedIndices.PatternEditModes)
     }
 
     watchPatternLocationKeys(): Terminable {
@@ -320,5 +325,14 @@ export class MachineContext implements Terminable {
 
     terminate(): void {
         this.terminator.terminate()
+    }
+
+    private static maySwitchToMode<T>(label: FunctionKeyLabel<any>,
+                                      choices: FunctionKeyLabel<T>[],
+                                      exec: (value: T) => void): boolean {
+        const index = choices.indexOf(label)
+        if (index === -1) return false
+        exec(choices[index].value)
+        return true
     }
 }

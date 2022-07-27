@@ -1,6 +1,6 @@
 import {BankGroupIndex, TrackIndex} from "../../audio/tr909/memory.js"
 import {MachineContext} from "../context.js"
-import {BankGroupKeyIndices, FunctionKeyIndex, KeyState, MainKeyIndex, TrackKeyIndices} from "../keys.js"
+import {FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices,} from "../keys.js"
 import {consumed, Mode} from "../modes.js"
 
 export default class extends Mode {
@@ -8,7 +8,7 @@ export default class extends Mode {
         super(context)
 
         this.with(this.context.startStepRunningAnimation())
-        this.with({terminate: () => this.context.functionKeys.deactivate(TrackKeyIndices)})
+        this.with({terminate: () => this.context.functionKeys.deactivate(ZeroBasedIndices.TrackKeys)})
         this.with(this.context.machine.state.trackIndex.addObserver(() => this.initButtons(), false))
         this.with(this.context.machine.state.bankGroupIndex
             .addObserver((bankGroupIndex: BankGroupIndex) => {
@@ -17,27 +17,24 @@ export default class extends Mode {
             }, true))
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
-        if (shift) {
-            if (this.context.maySwitchIndex(keyIndex, BankGroupKeyIndices, this.context.machine.state.bankGroupIndex)) {
-                return true
-            }
-            if (this.context.maySwitchToTrackWriteMode(keyIndex)) {
-                return true
-            }
-            if (this.context.maySwitchToPatternWriteMode(keyIndex)) {
-                return true
-            }
-        } else {
-            if (this.context.maySwitchIndex(keyIndex, TrackKeyIndices, this.context.machine.state.trackIndex)) {
-                return true
-            }
-            if (this.context.maySwitchToPatternPlayMode(keyIndex)) {
-                return true
-            }
-            if (this.context.mayToggle(keyIndex, FunctionKeyIndex.CycleGuideLastMeasure, this.context.machine.state.cycleGuideMode)) {
-                return true
-            }
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+        if (this.context.maySwitchIndex(label, FunctionKeyLabel.TrackPlay, this.context.machine.state.trackIndex)) {
+            return true
+        }
+        if (this.context.maySwitchToTrackWriteMode(label)) {
+            return true
+        }
+        if (this.context.maySwitchToPatternPlayMode(label)) {
+            return true
+        }
+        if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.machine.state.cycleGuideMode)) {
+            return true
+        }
+        if (this.context.maySwitchIndex(label, FunctionKeyLabel.BankGroup, this.context.machine.state.bankGroupIndex)) {
+            return true
+        }
+        if (this.context.maySwitchToPatternWriteMode(label)) {
+            return true
         }
         return false
     }

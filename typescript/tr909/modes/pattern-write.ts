@@ -1,6 +1,6 @@
 import {Step} from "../../audio/tr909/pattern.js"
-import {MachineContext, PatternEditMode} from "../context.js"
-import {FunctionKeyIndex, MainKeyIndex, PatternEditModeIndices} from "../keys.js"
+import {MachineContext} from "../context.js"
+import {FunctionKeyLabel, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"
 import {consumed, Mode} from "../modes.js"
 import {Utils} from "../utils.js"
 
@@ -11,6 +11,7 @@ export default class extends Mode {
         super(context)
 
         this.context.display.show('none')
+        this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
         this.with(this.context.patternEditMode.addObserver((mode: PatternEditMode) => {
             if (this.inputMode !== null) {
                 this.inputMode.terminate()
@@ -35,28 +36,25 @@ export default class extends Mode {
         })
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
-        if (this.inputMode.onFunctionKeyPress(keyIndex, shift)) {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+        if (this.inputMode.onFunctionKeyPress(label)) {
             return true
         }
         if (!this.context.isPlaying()) {
-            if (shift) {
-                if (this.context.maySwitchToTrackWriteMode(keyIndex)) {
-                    return true
-                }
-                if (this.context.maySwitchToPatternWriteMode(keyIndex)) {
-                    return true
-                }
-                if (this.context.maySwitchIndex(keyIndex, PatternEditModeIndices, this.context.patternEditMode)) {
-                    return true
-                }
-            } else {
-                if (this.context.maySwitchToTrackPlayMode(keyIndex)) {
-                    return true
-                }
-                if (this.context.maySwitchToPatternPlayMode(keyIndex)) {
-                    return true
-                }
+            if (this.context.maySwitchToTrackPlayMode(label)) {
+                return true
+            }
+            if (this.context.maySwitchToPatternPlayMode(label)) {
+                return true
+            }
+            if (this.context.maySwitchToTrackWriteMode(label)) {
+                return true
+            }
+            if (this.context.maySwitchToPatternWriteMode(label)) {
+                return true
+            }
+            if (this.context.maySwitchIndex(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
+                return true
             }
         }
         return false
@@ -76,12 +74,9 @@ class TapInputMode extends Mode {
         super(context)
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
-        if (shift) {
-        } else {
-            if (this.context.mayToggle(keyIndex, FunctionKeyIndex.CycleGuideLastMeasure, this.context.machine.state.cycleGuideMode)) {
-                return true
-            }
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+        if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.machine.state.cycleGuideMode)) {
+            return true
         }
         return false
     }

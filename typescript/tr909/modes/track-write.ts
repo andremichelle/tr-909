@@ -1,6 +1,6 @@
 import {PatternGroupIndex, PatternIndex} from "../../audio/tr909/memory.js"
 import {MachineContext} from "../context.js"
-import {FunctionKeyIndex, MainKeyIndex, PatternGroupKeyIndices} from "../keys.js"
+import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
 import {consumed, Mode} from "../modes.js"
 
 export default class extends Mode {
@@ -17,30 +17,24 @@ export default class extends Mode {
                 this.context.updatePatternGroupKeys(patternGroupIndex, false), true))
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
-        if (shift) {
-            // Cannot switch to Pattern Write Mode from here
-        } else {
-            if (this.context.maySwitchToTrackPlayMode(keyIndex)) {
-                return true
-            }
-            if (this.context.maySwitchIndex(keyIndex, PatternGroupKeyIndices, this.context.machine.state.patternGroupIndex)) {
-                return true
-            }
-            if (keyIndex === FunctionKeyIndex.AvailableMeasuresBankII) {
-                this.context.display.show(this.context.machine.state.activeTrack().remaining())
-                return true
-            }
+    onFunctionKeyPress(value: FunctionKeyLabel<any>): consumed {
+        if (this.context.maySwitchToTrackPlayMode(value)) {
+            return true
+        }
+        if (this.context.maySwitchIndex(value, FunctionKeyLabel.PatternPlay, this.context.machine.state.patternGroupIndex)) {
+            return true
+        }
+        if (value === FunctionKeyLabel.AvailableMeasures) {
+            this.context.display.show(this.context.machine.state.activeTrack().remaining())
+            return true
         }
         return false
     }
 
-    onFunctionKeyRelease(keyIndex: FunctionKeyIndex): consumed {
-        if (keyIndex === FunctionKeyIndex.AvailableMeasuresBankII) {
+    onFunctionKeyRelease(key: FunctionKeyLabel<any>): void {
+        if (key === FunctionKeyLabel.AvailableMeasures) {
             this.context.resetDisplay()
-            return true
         }
-        return false
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {

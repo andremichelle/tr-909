@@ -4,7 +4,7 @@ import {ArrayUtils, Terminable, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
 import {MachineContext} from "./context.js"
 import {DisplayValue} from "./display.js"
-import {FunctionKeyIndex, Key, KeyState, MainKeyIndex} from "./keys.js"
+import {FunctionKeyLabel, Key, KeyState, MainKeyIndex} from "./keys.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 export type consumed = boolean
@@ -16,20 +16,18 @@ export abstract class Mode implements Terminable {
     protected constructor(readonly context: MachineContext) {
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
+    onFunctionKeyPress(value: FunctionKeyLabel<any>): consumed {
         return false
     }
 
-    onFunctionKeyRelease(keyIndex: FunctionKeyIndex): consumed {
-        return false
+    onFunctionKeyRelease(value: FunctionKeyLabel<any>): void {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         return false
     }
 
-    onMainKeyRelease(keyIndex: MainKeyIndex): consumed {
-        return false
+    onMainKeyRelease(keyIndex: MainKeyIndex): void {
     }
 
     getDisplayValue(): DisplayValue {

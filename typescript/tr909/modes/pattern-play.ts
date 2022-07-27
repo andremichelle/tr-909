@@ -1,6 +1,6 @@
 import {PatternIndex} from "../../audio/tr909/memory.js"
 import {MachineContext} from "../context.js"
-import {FunctionKeyIndex, MainKeyIndex, PatternGroupKeyIndices} from "../keys.js"
+import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
 import {consumed, Mode} from "../modes.js"
 
 export default class extends Mode {
@@ -12,21 +12,18 @@ export default class extends Mode {
         this.with(this.context.watchPatternLocationKeys())
     }
 
-    onFunctionKeyPress(keyIndex: FunctionKeyIndex, shift: boolean): consumed {
-        if (shift) {
-            if (this.context.maySwitchToTrackWriteMode(keyIndex)) {
-                return true
-            }
-            if (this.context.maySwitchToPatternWriteMode(keyIndex)) {
-                return true
-            }
-        } else {
-            if (this.context.maySwitchToTrackPlayMode(keyIndex)) {
-                return true
-            }
-            if (this.context.maySwitchIndex(keyIndex, PatternGroupKeyIndices, this.context.machine.state.patternGroupIndex)) {
-                return true
-            }
+    onFunctionKeyPress(key: FunctionKeyLabel<any>): consumed {
+        if (this.context.maySwitchToTrackPlayMode(key)) {
+            return true
+        }
+        if (this.context.maySwitchToTrackWriteMode(key)) {
+            return true
+        }
+        if (this.context.maySwitchIndex(key, FunctionKeyLabel.PatternPlay, this.context.machine.state.patternGroupIndex)) {
+            return true
+        }
+        if (this.context.maySwitchToPatternWriteMode(key)) {
+            return true
         }
         return false
     }
