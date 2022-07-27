@@ -1,5 +1,5 @@
-import {Linear} from "../../lib/mapping.js"
 import {Parameter, PrintMapping, Terminable, Terminator} from "../../lib/common.js"
+import {Linear} from "../../lib/mapping.js"
 
 export class LimiterWorklet extends AudioWorkletNode implements Terminable {
     static loadModule(context: AudioContext): Promise<void> {

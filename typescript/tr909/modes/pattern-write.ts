@@ -1,6 +1,6 @@
 import {Step} from "../../audio/tr909/pattern.js"
 import {MachineContext} from "../context.js"
-import {FunctionKeyLabel, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"
+import {FunctionKeyLabel, MainKeyIndex, PatternEditMode} from "../keys.js"
 import {consumed, Mode} from "../modes.js"
 import {Utils} from "../utils.js"
 

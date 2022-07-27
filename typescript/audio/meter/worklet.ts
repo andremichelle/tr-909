@@ -1,8 +1,8 @@
 // noinspection JSUnusedGlobalSymbols
 
 import {ArrayUtils} from "../../lib/common.js"
-import {UpdateMeterMessage} from "./message.js"
 import {dbToGain, gainToDb} from "../common.js"
+import {UpdateMeterMessage} from "./message.js"
 
 export class MeterWorklet extends AudioWorkletNode {
     static loadModule(context: AudioContext): Promise<void> {

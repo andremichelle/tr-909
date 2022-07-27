@@ -1,5 +1,5 @@
-import {barsToNumFrames, dbToGain, numFramesToBars, RENDER_QUANTUM, TransportMessage} from "../common.js"
 import {TAU} from "../../lib/math.js"
+import {barsToNumFrames, dbToGain, numFramesToBars, RENDER_QUANTUM, TransportMessage} from "../common.js"
 import {Message} from "./message.js"
 
 registerProcessor("metronome-processor", class extends AudioWorkletProcessor {

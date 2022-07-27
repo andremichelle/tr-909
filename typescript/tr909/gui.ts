@@ -1,7 +1,7 @@
 import {secondsToBars} from "../audio/common.js"
+import {Machine} from "../audio/tr909/machine.js"
 import {Pattern} from "../audio/tr909/pattern.js"
 import {Scale} from "../audio/tr909/scale.js"
-import {Machine} from "../audio/tr909/machine.js"
 import {Events, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {MachineContext} from "./context.js"
