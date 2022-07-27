@@ -160,28 +160,35 @@ export class MachineContext implements Terminable {
     }
 
     maySwitchToTrackPlayMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.maySwitchToMode(label, FunctionKeyLabel.TrackPlay, index => this.switchToTrackPlayMode(index))
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.switchToTrackPlayMode(index))
     }
 
     maySwitchToTrackWriteMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.maySwitchToMode(label, FunctionKeyLabel.TrackWrite, index => this.switchToTrackWriteMode(index))
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.TrackWrite, index => this.switchToTrackWriteMode(index))
     }
 
     maySwitchToPatternPlayMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.maySwitchToMode(label, FunctionKeyLabel.PatternPlay, index => this.switchToPatternPlayMode(index))
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.switchToPatternPlayMode(index))
     }
 
     maySwitchToPatternWriteMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.maySwitchToMode(label, FunctionKeyLabel.PatternWrite, index => this.switchToPatternWriteMode(index))
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternWrite, index => this.switchToPatternWriteMode(index))
     }
 
-    maySwitchValue<T extends number>(label: FunctionKeyLabel<T>,
-                                     choices: ReadonlyArray<FunctionKeyLabel<T>>,
-                                     value: ObservableValue<T>): boolean {
-        const index: number = choices.indexOf(label)
-        if (index === -1) return false
-        value.set(index as T)
-        return true
+    maySwitchTrackIndex(label: FunctionKeyLabel<any>): boolean {
+        return MachineContext.maySetIndex(label, FunctionKeyLabel.TrackPlay, this.machine.state.trackIndex)
+    }
+
+    maySwitchBankGroupIndex(label: FunctionKeyLabel<any>): boolean {
+        return MachineContext.maySetIndex(label, FunctionKeyLabel.BankGroup, this.machine.state.bankGroupIndex)
+    }
+
+    maySwitchPatternGroupIndex(label: FunctionKeyLabel<any>): boolean {
+        return MachineContext.maySetIndex(label, FunctionKeyLabel.PatternPlay, this.machine.state.patternGroupIndex)
+    }
+
+    maySwitchPatternEditMode(label: FunctionKeyLabel<any>): boolean {
+        return MachineContext.maySetIndex(label, FunctionKeyLabel.PatternEditMode, this.patternEditMode)
     }
 
     mayToggle(label: FunctionKeyLabel<any>,
@@ -349,9 +356,15 @@ export class MachineContext implements Terminable {
         this.terminator.terminate()
     }
 
-    private static maySwitchToMode<T>(label: FunctionKeyLabel<any>,
-                                      choices: ReadonlyArray<FunctionKeyLabel<T>>,
-                                      exec: (value: T) => void): boolean {
+    private static maySetIndex<T extends number>(label: FunctionKeyLabel<T>,
+                                                 choices: ReadonlyArray<FunctionKeyLabel<T>>,
+                                                 value: ObservableValue<T>): boolean {
+        return MachineContext.mayExecWithIndex(label, choices, index => value.set(index))
+    }
+
+    private static mayExecWithIndex<T>(label: FunctionKeyLabel<any>,
+                                       choices: ReadonlyArray<FunctionKeyLabel<T>>,
+                                       exec: (value: T) => void): boolean {
         const index = choices.indexOf(label)
         if (index === -1) return false
         exec(choices[index].value)

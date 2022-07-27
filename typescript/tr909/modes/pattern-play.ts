@@ -12,17 +12,17 @@ export default class extends Mode {
         this.with(this.context.watchPatternLocationKeys())
     }
 
-    onFunctionKeyPress(key: FunctionKeyLabel<any>): consumed {
-        if (this.context.maySwitchToTrackPlayMode(key)) {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+        if (this.context.maySwitchToTrackPlayMode(label)) {
             return true
         }
-        if (this.context.maySwitchToTrackWriteMode(key)) {
+        if (this.context.maySwitchToTrackWriteMode(label)) {
             return true
         }
-        if (this.context.maySwitchValue(key, FunctionKeyLabel.PatternPlay, this.context.machine.state.patternGroupIndex)) {
+        if (this.context.maySwitchPatternGroupIndex(label)) {
             return true
         }
-        if (this.context.maySwitchToPatternWriteMode(key)) {
+        if (this.context.maySwitchToPatternWriteMode(label)) {
             return true
         }
         return false

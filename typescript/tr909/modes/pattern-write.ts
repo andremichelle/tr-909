@@ -101,7 +101,7 @@ class PatternSelectMode extends Mode {
         if (this.context.maySwitchToPatternWriteMode(label)) {
             return true
         }
-        if (this.context.maySwitchValue(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
+        if (this.context.maySwitchPatternEditMode(label)) {
             return true
         }
         if (label === FunctionKeyLabel.Clear) {
@@ -142,7 +142,7 @@ class StepInputMode extends Mode {
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
-        if (this.context.maySwitchValue(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
+        if (this.context.maySwitchPatternEditMode(label)) {
             return true
         }
         if (label === FunctionKeyLabel.LastStep) {
@@ -206,7 +206,7 @@ class TapInputMode extends Mode {
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
-        if (this.context.maySwitchValue(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
+        if (this.context.maySwitchPatternEditMode(label)) {
             return true
         }
         if (label === FunctionKeyLabel.Clear) {

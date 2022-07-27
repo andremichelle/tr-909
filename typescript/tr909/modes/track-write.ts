@@ -17,14 +17,14 @@ export default class extends Mode {
                 this.context.updatePatternGroupKeys(patternGroupIndex, false), true))
     }
 
-    onFunctionKeyPress(value: FunctionKeyLabel<any>): consumed {
-        if (this.context.maySwitchToTrackPlayMode(value)) {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+        if (this.context.maySwitchToTrackPlayMode(label)) {
             return true
         }
-        if (this.context.maySwitchValue(value, FunctionKeyLabel.PatternPlay, this.context.machine.state.patternGroupIndex)) {
+        if (this.context.maySwitchPatternGroupIndex(label)) {
             return true
         }
-        if (value === FunctionKeyLabel.AvailableMeasures) {
+        if (label === FunctionKeyLabel.AvailableMeasures) {
             this.context.display.show(this.context.machine.state.activeTrack().remaining())
             return true
         }
