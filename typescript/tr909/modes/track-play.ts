@@ -18,7 +18,7 @@ export default class extends Mode {
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
-        if (this.context.maySwitchIndex(label, FunctionKeyLabel.TrackPlay, this.context.machine.state.trackIndex)) {
+        if (this.context.maySwitchValue(label, FunctionKeyLabel.TrackPlay, this.context.machine.state.trackIndex)) {
             return true
         }
         if (this.context.maySwitchToTrackWriteMode(label)) {
@@ -30,7 +30,7 @@ export default class extends Mode {
         if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.machine.state.cycleGuideMode)) {
             return true
         }
-        if (this.context.maySwitchIndex(label, FunctionKeyLabel.BankGroup, this.context.machine.state.bankGroupIndex)) {
+        if (this.context.maySwitchValue(label, FunctionKeyLabel.BankGroup, this.context.machine.state.bankGroupIndex)) {
             return true
         }
         if (this.context.maySwitchToPatternWriteMode(label)) {

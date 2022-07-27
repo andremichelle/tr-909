@@ -21,7 +21,7 @@ export default class extends Mode {
         if (this.context.maySwitchToTrackPlayMode(value)) {
             return true
         }
-        if (this.context.maySwitchIndex(value, FunctionKeyLabel.PatternPlay, this.context.machine.state.patternGroupIndex)) {
+        if (this.context.maySwitchValue(value, FunctionKeyLabel.PatternPlay, this.context.machine.state.patternGroupIndex)) {
             return true
         }
         if (value === FunctionKeyLabel.AvailableMeasures) {

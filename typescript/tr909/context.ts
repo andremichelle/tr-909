@@ -175,14 +175,18 @@ export class MachineContext implements Terminable {
         return MachineContext.maySwitchToMode(label, FunctionKeyLabel.PatternWrite, index => this.switchToPatternWriteMode(index))
     }
 
-    maySwitchIndex<T extends number>(label: FunctionKeyLabel<T>, choices: FunctionKeyLabel<T>[], value: ObservableValue<T>): boolean {
+    maySwitchValue<T extends number>(label: FunctionKeyLabel<T>,
+                                     choices: ReadonlyArray<FunctionKeyLabel<T>>,
+                                     value: ObservableValue<T>): boolean {
         const index: number = choices.indexOf(label)
         if (index === -1) return false
         value.set(index as T)
         return true
     }
 
-    mayToggle(label: FunctionKeyLabel<any>, compare: FunctionKeyLabel<any>, value: ObservableValue<boolean>): boolean {
+    mayToggle(label: FunctionKeyLabel<any>,
+              compare: FunctionKeyLabel<any>,
+              value: ObservableValue<boolean>): boolean {
         if (label === compare) {
             value.set(!value.get())
             return true
@@ -346,7 +350,7 @@ export class MachineContext implements Terminable {
     }
 
     private static maySwitchToMode<T>(label: FunctionKeyLabel<any>,
-                                      choices: FunctionKeyLabel<T>[],
+                                      choices: ReadonlyArray<FunctionKeyLabel<T>>,
                                       exec: (value: T) => void): boolean {
         const index = choices.indexOf(label)
         if (index === -1) return false

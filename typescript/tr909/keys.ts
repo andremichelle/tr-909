@@ -22,72 +22,80 @@ export enum FunctionKeyIndex {
 }
 
 export class ZeroBasedIndices {
-    static BankGroupKeys = [FunctionKeyIndex.ForwardBankI, FunctionKeyIndex.AvailableMeasuresBankII]
-    static TrackKeys = [FunctionKeyIndex.Track1, FunctionKeyIndex.Track2, FunctionKeyIndex.Track3, FunctionKeyIndex.Track4]
-    static PatternGroupKeys = [FunctionKeyIndex.PatternGroup1, FunctionKeyIndex.PatternGroup2, FunctionKeyIndex.PatternGroup3]
-    static PatternEditModes = [FunctionKeyIndex.TempoStep, FunctionKeyIndex.BackTap]
-    static StepKeys = [
+    static readonly BankGroupKeys = [
+        FunctionKeyIndex.ForwardBankI, FunctionKeyIndex.AvailableMeasuresBankII
+    ] as const
+    static readonly TrackKeys = [
+        FunctionKeyIndex.Track1, FunctionKeyIndex.Track2, FunctionKeyIndex.Track3, FunctionKeyIndex.Track4
+    ] as const
+    static readonly PatternGroupKeys = [
+        FunctionKeyIndex.PatternGroup1, FunctionKeyIndex.PatternGroup2, FunctionKeyIndex.PatternGroup3
+    ] as const
+    static readonly PatternEditModes = [
+        FunctionKeyIndex.TempoStep, FunctionKeyIndex.BackTap
+    ] as const
+    static readonly StepKeys = [
         MainKeyIndex.Step1, MainKeyIndex.Step2, MainKeyIndex.Step3, MainKeyIndex.Step4,
         MainKeyIndex.Step5, MainKeyIndex.Step6, MainKeyIndex.Step7, MainKeyIndex.Step8,
         MainKeyIndex.Step9, MainKeyIndex.Step10, MainKeyIndex.Step11, MainKeyIndex.Step12,
         MainKeyIndex.Step13, MainKeyIndex.Step14, MainKeyIndex.Step15, MainKeyIndex.Step16
-    ]
+    ] as const
 }
 
 export class FunctionKeyLabel<T> {
-    static TrackPlay: FunctionKeyLabel<TrackIndex>[] = [
+    static readonly TrackPlay: ReadonlyArray<FunctionKeyLabel<TrackIndex>> = [
         FunctionKeyLabel.create(FunctionKeyIndex.Track1, TrackIndex.I),
         FunctionKeyLabel.create(FunctionKeyIndex.Track2, TrackIndex.II),
         FunctionKeyLabel.create(FunctionKeyIndex.Track3, TrackIndex.III),
         FunctionKeyLabel.create(FunctionKeyIndex.Track4, TrackIndex.IV)
     ]
-    static PatternPlay: FunctionKeyLabel<PatternGroupIndex>[] = [
+    static readonly PatternPlay: ReadonlyArray<FunctionKeyLabel<PatternGroupIndex>> = [
         FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup1, PatternGroupIndex.I),
         FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup2, PatternGroupIndex.II),
         FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup3, PatternGroupIndex.III)
     ]
-    static Empty: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.EmptyExtInst, 'empty')
-    static Tempo: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, 'tempo')
-    static Back: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.BackTap, 'back')
-    static Forward: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ForwardBankI, 'forward')
-    static AvailableMeasures: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.AvailableMeasuresBankII, 'available measure')
-    static CycleGuide: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'cycle/guide')
-    static TapeSync: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TapeSyncTempoMode, 'tape sync')
-    static LastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.LastStep, 'last step')
-    static Scale: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Scale, 'scale')
-    static ShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ShuffleFlam, 'shuffle/flam')
-    static Clear: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Clear, 'clear')
-    static InstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.InstrumentSelect, 'instrument select')
+    static readonly Empty: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.EmptyExtInst, 'empty')
+    static readonly Tempo: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, 'tempo')
+    static readonly Back: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.BackTap, 'back')
+    static readonly Forward: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ForwardBankI, 'forward')
+    static readonly AvailableMeasures: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.AvailableMeasuresBankII, 'available measure')
+    static readonly CycleGuide: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'cycle/guide')
+    static readonly TapeSync: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TapeSyncTempoMode, 'tape sync')
+    static readonly LastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.LastStep, 'last step')
+    static readonly Scale: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Scale, 'scale')
+    static readonly ShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ShuffleFlam, 'shuffle/flam')
+    static readonly Clear: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Clear, 'clear')
+    static readonly InstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.InstrumentSelect, 'instrument select')
 
-    static TrackWrite: FunctionKeyLabel<TrackIndex>[] = [
+    static readonly TrackWrite: ReadonlyArray<FunctionKeyLabel<TrackIndex>> = [
         FunctionKeyLabel.create(FunctionKeyIndex.Track1, TrackIndex.I),
         FunctionKeyLabel.create(FunctionKeyIndex.Track2, TrackIndex.II),
         FunctionKeyLabel.create(FunctionKeyIndex.Track3, TrackIndex.III),
         FunctionKeyLabel.create(FunctionKeyIndex.Track4, TrackIndex.IV)
     ]
-    static PatternWrite: FunctionKeyLabel<PatternGroupIndex>[] = [
+    static readonly PatternWrite: ReadonlyArray<FunctionKeyLabel<PatternGroupIndex>> = [
         FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup1, PatternGroupIndex.I),
         FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup2, PatternGroupIndex.II),
         FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup3, PatternGroupIndex.III)
     ]
-    static ExtInst: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.EmptyExtInst, 'external instrument')
-    static PatternEditMode: FunctionKeyLabel<PatternEditMode>[] = [
+    static readonly ExtInst: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.EmptyExtInst, 'external instrument')
+    static readonly PatternEditMode: ReadonlyArray<FunctionKeyLabel<PatternEditMode>> = [
         FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, PatternEditMode.Step),
         FunctionKeyLabel.create(FunctionKeyIndex.BackTap, PatternEditMode.Tap)
-    ]
-    static BankGroup: FunctionKeyLabel<BankGroupIndex>[] = [
+    ] as const
+    static readonly BankGroup: ReadonlyArray<FunctionKeyLabel<BankGroupIndex>> = [
         FunctionKeyLabel.create(FunctionKeyIndex.ForwardBankI, BankGroupIndex.I),
         FunctionKeyLabel.create(FunctionKeyIndex.AvailableMeasuresBankII, BankGroupIndex.II)
     ]
-    static LastMeas: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'last measure')
-    static TempoMode: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TapeSyncTempoMode, 'tempo mode')
-    static ShiftLastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.LastStep, '') // unused
-    static ShiftScale: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Scale, '') // unused
-    static ShiftShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ShuffleFlam, '') // unused
-    static ShiftClear: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Clear, '') // unused
-    static ShiftInstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.InstrumentSelect, '') // unused
+    static readonly LastMeas: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'last measure')
+    static readonly TempoMode: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TapeSyncTempoMode, 'tempo mode')
+    static readonly ShiftLastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.LastStep, '') // unused
+    static readonly ShiftScale: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Scale, '') // unused
+    static readonly ShiftShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ShuffleFlam, '') // unused
+    static readonly ShiftClear: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Clear, '') // unused
+    static readonly ShiftInstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.InstrumentSelect, '') // unused
 
-    static NormalKeys: FunctionKeyLabel<any>[] = [
+    static readonly NormalKeys: ReadonlyArray<FunctionKeyLabel<any>> = [
         ...FunctionKeyLabel.TrackPlay,
         ...FunctionKeyLabel.PatternPlay,
         FunctionKeyLabel.Empty,
@@ -103,7 +111,7 @@ export class FunctionKeyLabel<T> {
         FunctionKeyLabel.Clear,
         FunctionKeyLabel.InstrumentSelect
     ]
-    static ShiftKeys: FunctionKeyLabel<any>[] = [
+    static readonly ShiftKeys: ReadonlyArray<FunctionKeyLabel<any>> = [
         ...FunctionKeyLabel.TrackWrite,
         ...FunctionKeyLabel.PatternWrite,
         FunctionKeyLabel.ExtInst,
@@ -166,7 +174,7 @@ export class Key {
 }
 
 export class KeyGroup<INDEX extends number> {
-    constructor(readonly keys: Key[]) {
+    constructor(readonly keys: ReadonlyArray<Key>) {
     }
 
     forEach(fn: (key: Key, index: INDEX) => void): void {
@@ -177,12 +185,12 @@ export class KeyGroup<INDEX extends number> {
         return this.keys[index]
     }
 
-    activate(map: (zeroBasedIndex: number) => KeyState, indices: INDEX[]): void {
+    activate(map: (zeroBasedIndex: number) => KeyState, indices: ReadonlyArray<INDEX>): void {
         indices.forEach((keyIndex: INDEX, zeroBasedIndex: number) =>
             this.byIndex(keyIndex).setState(map(zeroBasedIndex)))
     }
 
-    deactivate(indices?: INDEX[]): void {
+    deactivate(indices?: ReadonlyArray<INDEX>): void {
         if (indices === undefined) {
             this.keys.forEach(key => key.setState(KeyState.Off))
         } else {

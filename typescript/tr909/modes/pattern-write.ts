@@ -45,9 +45,9 @@ export default class extends Mode {
             console.debug(`mode: ${this.context.modeName()}`)
         }
 
-        this.with(this.transientEditing.addObserver(updateInputMode, true))
+        this.with(this.transientEditing.addObserver(updateInputMode, false))
+        this.with(this.context.machine.transport.addObserver(updateInputMode, false))
         this.with(this.context.patternEditMode.addObserver(updateInputMode))
-        this.with(this.context.machine.transport.addObserver(updateInputMode, true))
         this.with(this.context.watchPatternEditKeys())
         this.with({
             terminate: () => {
@@ -101,7 +101,7 @@ class PatternSelectMode extends Mode {
         if (this.context.maySwitchToPatternWriteMode(label)) {
             return true
         }
-        if (this.context.maySwitchIndex(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
+        if (this.context.maySwitchValue(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
             return true
         }
         if (label === FunctionKeyLabel.Clear) {
@@ -142,7 +142,7 @@ class StepInputMode extends Mode {
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
-        if (this.context.maySwitchIndex(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
+        if (this.context.maySwitchValue(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
             return true
         }
         if (label === FunctionKeyLabel.LastStep) {
@@ -206,7 +206,7 @@ class TapInputMode extends Mode {
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
-        if (this.context.maySwitchIndex(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
+        if (this.context.maySwitchValue(label, FunctionKeyLabel.PatternEditMode, this.context.patternEditMode)) {
             return true
         }
         if (label === FunctionKeyLabel.Clear) {

@@ -19,7 +19,7 @@ export default class extends Mode {
         if (this.context.maySwitchToTrackWriteMode(key)) {
             return true
         }
-        if (this.context.maySwitchIndex(key, FunctionKeyLabel.PatternPlay, this.context.machine.state.patternGroupIndex)) {
+        if (this.context.maySwitchValue(key, FunctionKeyLabel.PatternPlay, this.context.machine.state.patternGroupIndex)) {
             return true
         }
         if (this.context.maySwitchToPatternWriteMode(key)) {
