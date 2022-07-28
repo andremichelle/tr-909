@@ -1,6 +1,7 @@
 import {Machine} from "../audio/tr909/machine.js"
 import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
+import {Scale} from "../audio/tr909/scale.js"
 import {PlayMode} from "../audio/tr909/state.js"
 import {
     ArrayUtils,
@@ -33,16 +34,12 @@ import {InstrumentMode, Utils} from "./utils.js"
 
 export class MachineContext implements Terminable {
     static create(machine: Machine, parentNode: ParentNode): MachineContext {
-        return new MachineContext(machine,
-            new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
-                HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
-                HTML.query('[data-control=main-key][data-parameter=total-accent]')]
-                .map((element: HTMLButtonElement) => new Key(element))
-            ),
-            new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
-                .map((element: HTMLButtonElement) => new Key(element))),
-            new Key(HTML.query('[data-button=shift-key]')),
-            new Display(HTML.query('svg[data-display=led-display]', parentNode)))
+        return new MachineContext(machine, new Display(HTML.query('svg[data-display=led-display]', parentNode)), new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
+            HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
+            HTML.query('[data-control=main-key][data-parameter=total-accent]')]
+            .map((element: HTMLButtonElement) => new Key(element))
+        ), new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
+            .map((element: HTMLButtonElement) => new Key(element))), new Key(HTML.query('[data-button=shift-key]')))
     }
 
     private readonly terminator = new Terminator()
@@ -56,10 +53,10 @@ export class MachineContext implements Terminable {
     private mode: NonNullable<Mode> = new TrackPlayMode(this)
 
     constructor(readonly machine: Machine,
+                readonly display: Display,
                 readonly mainKeys: KeyGroup<MainKeyIndex>,
                 readonly functionKeys: KeyGroup<FunctionKeyIndex>,
-                readonly shiftKey: Key,
-                readonly display: Display) {
+                readonly shiftKey: Key) {
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 this.pressedMainKeys.add(keyIndex)
@@ -107,9 +104,23 @@ export class MachineContext implements Terminable {
                     (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
             }
         }))
+        //
+        // Key states for all modes...
+        //
         this.terminator.with(this.machine.state.cycleGuideMode
             .addObserver(mode => this.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
                 .setState(mode ? KeyState.On : KeyState.Off), true))
+
+        const patternSubscription = this.terminator.with(new Terminator())
+        const indicator: SVGUseElement = HTML.query('[data-control=scale] [data-control=indicator]')
+        const activePatternObserver = (pattern: Pattern) => {
+            patternSubscription.terminate()
+            patternSubscription.with(pattern.scale.addObserver((scale: Scale) =>
+                indicator.y.baseVal.value = scale === Scale.N6D16
+                    ? 0 : scale === Scale.N3D8 ? 16 : scale === Scale.D32 ? 32 : 48, true))
+        }
+        this.terminator.with(this.machine.state.patternIndicesChangeNotification.addObserver(activePatternObserver))
+        activePatternObserver(this.machine.state.activePattern())
 
         console.debug(`mode: ${this.modeName()}`)
     }

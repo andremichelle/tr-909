@@ -133,6 +133,10 @@ export class Pattern implements Observable<void> {
         return this.totalAccents[stepIndex]
     }
 
+    cycleToNextScale(): void {
+        this.scale.set(this.scale.get().cycleNext())
+    }
+
     clear() {
         console.debug('Clear pattern')
         this.observable.mute()

@@ -160,6 +160,10 @@ class StepInputMode extends Mode {
             this.transientEdit.set(TransientEditing.LastStep)
             return true
         }
+        if (label === FunctionKeyLabel.Scale) {
+            this.context.machine.state.activePattern().cycleToNextScale()
+            return true
+        }
         if (label === FunctionKeyLabel.ShuffleFlam) {
             this.transientEdit.set(TransientEditing.ShuffleFlam)
             return true
@@ -215,6 +219,10 @@ class TapInputMode extends Mode {
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
         if (this.context.maySwitchPatternEditMode(label)) {
+            return true
+        }
+        if (label === FunctionKeyLabel.Scale) {
+            this.context.machine.state.activePattern().cycleToNextScale()
             return true
         }
         if (label === FunctionKeyLabel.Clear) {
