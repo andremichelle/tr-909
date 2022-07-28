@@ -2,7 +2,7 @@ import {FlamIndex, Pattern, ShuffleIndex, Step} from "../../audio/tr909/pattern.
 import {ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {MachineContext} from "../context.js"
 import {FunctionKeyLabel, Key, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"
-import {consumed, Mode} from "../modes.js"
+import {consumed, Mode} from "../mode.js"
 import {InstrumentMode, Utils} from "../utils.js"
 
 enum TransientEditing {

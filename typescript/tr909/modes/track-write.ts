@@ -1,7 +1,7 @@
 import {PatternGroupIndex, PatternIndex} from "../../audio/tr909/memory.js"
 import {MachineContext} from "../context.js"
 import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
-import {consumed, Mode} from "../modes.js"
+import {consumed, Mode} from "../mode.js"
 
 export default class extends Mode {
     constructor(context: MachineContext) {

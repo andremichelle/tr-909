@@ -25,7 +25,7 @@ import {
     PatternEditMode,
     ZeroBasedIndices
 } from "./keys.js"
-import {Mode} from "./modes.js"
+import {Mode} from "./mode.js"
 import PatternPlayMode from "./modes/pattern-play.js"
 import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
