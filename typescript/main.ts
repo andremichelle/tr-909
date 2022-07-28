@@ -2,10 +2,12 @@ import {LimiterWorklet} from "./audio/limiter/worklet.js"
 import {MeterWorklet, StereoMeterWorklet} from "./audio/meter/worklet.js"
 import {MetronomeWorklet} from "./audio/metronome/worklet.js"
 import {Machine} from "./audio/tr909/machine.js"
+import {Pattern} from "./audio/tr909/pattern.js"
 import {loadResources} from "./audio/tr909/resources.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
+import {PowInjective} from "./lib/injective.js"
 import {GUI} from "./tr909/gui.js"
 
 const showProgress = (() => {
@@ -83,3 +85,12 @@ const showProgress = (() => {
     }
     requestAnimationFrame(run)
 })()
+
+const r = Pattern.ShuffleDelays[6]
+const exp = Math.log(0.5) / Math.log(r + 0.5)
+const injective = new PowInjective()
+injective.exponent.set(exp)
+console.log(exp, injective.fy(0.5), 0.5 + r)
+
+
+// pow(x, 1 / exp) = 0.5 + r

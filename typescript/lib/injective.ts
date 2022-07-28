@@ -52,12 +52,12 @@ export abstract class Injective<DATA extends InjectiveData> extends Settings<DAT
 }
 
 export class IdentityInjective extends Injective<never> {
-    fx(x: number): number {
-        return x
+    fx(y: number): number {
+        return y
     }
 
-    fy(y: number): number {
-        return y
+    fy(x: number): number {
+        return x
     }
 
     serialize(): SettingsFormat<never> {
@@ -87,12 +87,12 @@ export class PowInjective extends Injective<PowData> {
 
     readonly exponent = this.bindValue(new Parameter<number>(this.range, PrintMapping.FLOAT_ONE, 2.0))
 
-    fx(x: number): number {
-        return Math.pow(x, this.exponent.get())
+    fx(y: number): number {
+        return Math.pow(y, this.exponent.get())
     }
 
-    fy(y: number): number {
-        return Math.pow(y, 1.0 / this.exponent.get())
+    fy(x: number): number {
+        return Math.pow(x, 1.0 / this.exponent.get())
     }
 
     serialize(): SettingsFormat<PowData> {

@@ -18,6 +18,8 @@ export enum Step {
     None = 0, Weak = 1, Full = 2, Extra
 }
 
+export type ShuffleIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6
+
 export enum ChannelIndex {
     Bassdrum, Snaredrum,
     TomLow, TomMid, TomHi,
@@ -138,6 +140,7 @@ export class Pattern implements Observable<void> {
     }
 
     serialize(): PatternFormat {
+        console.debug('Serialize pattern')
         return {
             steps: this.steps,
             totalAccents: this.totalAccents,
@@ -149,6 +152,7 @@ export class Pattern implements Observable<void> {
     }
 
     deserialize(format: PatternFormat): void {
+        console.debug('Deserialize pattern')
         this.observable.mute()
         format.steps.forEach((steps: Step[], channel: number) =>
             steps.forEach((step: Step, stepIndex: number) =>

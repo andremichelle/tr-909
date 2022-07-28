@@ -21,11 +21,15 @@ export enum FunctionKeyIndex {
     ShuffleFlam, Clear, InstrumentSelect
 }
 
-export const FunctionKeyboard = new Map<string, FunctionKeyIndex>([
+export const FunctionKeyboardShortcuts = new Map<string, FunctionKeyIndex>([
     ['Digit1', FunctionKeyIndex.Track1],
     ['Digit2', FunctionKeyIndex.Track2],
     ['Digit3', FunctionKeyIndex.Track3],
     ['Digit4', FunctionKeyIndex.Track4],
+    ['Digit5', FunctionKeyIndex.PatternGroup1],
+    ['Digit6', FunctionKeyIndex.PatternGroup2],
+    ['Digit7', FunctionKeyIndex.PatternGroup3],
+    ['Digit8', FunctionKeyIndex.EmptyExtInst],
     ['KeyL', FunctionKeyIndex.LastStep],
     ['KeyS', FunctionKeyIndex.ShuffleFlam],
     ['KeyC', FunctionKeyIndex.Clear],

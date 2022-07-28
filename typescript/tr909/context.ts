@@ -14,7 +14,7 @@ import {
 import {HTML} from "../lib/dom.js"
 import {Display, DisplayValue} from "./display.js"
 import {
-    FunctionKeyboard,
+    FunctionKeyboardShortcuts,
     FunctionKeyIndex,
     FunctionKeyLabel,
     Key,
@@ -103,8 +103,7 @@ export class MachineContext implements Terminable {
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftMode.set(true)
             }
-            ifDefined(
-                FunctionKeyboard.get(code),
+            ifDefined(FunctionKeyboardShortcuts.get(code),
                 (keyIndex: FunctionKeyIndex) => {
                     const label = this.shiftMode.get()
                         ? FunctionKeyLabel.ShiftKeys[keyIndex]
@@ -118,11 +117,8 @@ export class MachineContext implements Terminable {
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftMode.set(false)
             }
-            ifDefined(FunctionKeyboard.get(code), (keyIndex: FunctionKeyIndex) => this.releaseFunctionKey(keyIndex))
+            ifDefined(FunctionKeyboardShortcuts.get(code), (keyIndex: FunctionKeyIndex) => this.releaseFunctionKey(keyIndex))
         }))
-        this.terminator.with(this.shiftMode
-            .addObserver(enabled => this.shiftKey
-                .setState(enabled ? KeyState.On : KeyState.Off)))
         this.terminator.with(this.machine.state.cycleGuideMode
             .addObserver(mode => this.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
                 .setState(mode ? KeyState.On : KeyState.Off), true))
