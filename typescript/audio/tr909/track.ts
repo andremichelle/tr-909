@@ -28,12 +28,13 @@ export class Track implements Serializer<TrackFormat>, Observable<void> {
         }
     }
 
-    insert(...indices: number[]): void {
-        if (indices.length > 0) {
-            // TODO Respect MAX_MEASURES!
-            indices.forEach(index => this.sequence.push(index))
-            this.observable.notify()
+    insert(index: number, position: number = Number.MAX_SAFE_INTEGER): void {
+        if (position >= this.sequence.length) {
+            this.sequence.push(index)
+        } else {
+            this.sequence[position] = index
         }
+        this.observable.notify()
     }
 
     get(index: number): number {

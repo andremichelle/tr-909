@@ -5,6 +5,8 @@ import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
 import {consumed, Mode} from "../mode.js"
 
 export default class extends Mode {
+    private writeIndex: number = 0
+
     constructor(context: MachineContext) {
         super(context)
 
@@ -29,6 +31,20 @@ export default class extends Mode {
             this.context.display.show(this.context.machine.memory.availableMeasures())
             return true
         }
+        if (label == FunctionKeyLabel.Back) {
+            if (this.writeIndex > 0) {
+                this.writeIndex--
+                this.context.updateDisplay()
+                return true
+            }
+        }
+        if (label == FunctionKeyLabel.Forward) {
+            if (this.writeIndex > 0) {
+                this.writeIndex--
+                this.context.updateDisplay()
+                return true
+            }
+        }
         return false
     }
 
@@ -39,17 +55,17 @@ export default class extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
-            // TODO Enter
+        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+            this.context.memoryState().activeTrack().insert(this.context.memoryState().patternIndex.get(), this.writeIndex++)
+            this.context.updateDisplay()
         } else {
             this.context.memoryState().patternIndex.set(keyIndex as number as PatternIndex)
-            return true
         }
-        return false
+        return true
     }
 
     getDisplayValue(): DisplayValue {
-        return 0
+        return this.writeIndex
     }
 
     name(): string {
