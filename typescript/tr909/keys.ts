@@ -175,16 +175,20 @@ export class Key {
         this.applyState()
     }
 
+    setPressed(isPressed: boolean): void {
+        this.element.classList.toggle('active', isPressed)
+    }
+
     applyState(): void {
-        this.element.classList.toggle('active', this.state === KeyState.On)
-        this.element.classList.toggle('blink-active', this.state === KeyState.Blink)
-        this.element.classList.toggle('flash-active', this.state === KeyState.Flash)
+        this.element.classList.toggle('enabled', this.state === KeyState.On)
+        this.element.classList.toggle('blink-enabled', this.state === KeyState.Blink)
+        this.element.classList.toggle('flash-enabled', this.state === KeyState.Flash)
     }
 
     flash(): void {
-        this.element.classList.toggle('active', this.state !== KeyState.On)
-        this.element.classList.toggle('blink-active', this.state !== KeyState.Blink)
-        this.element.classList.toggle('flash-active', this.state !== KeyState.Flash)
+        this.element.classList.toggle('enabled', this.state !== KeyState.On)
+        this.element.classList.toggle('blink-enabled', this.state !== KeyState.Blink)
+        this.element.classList.toggle('flash-enabled', this.state !== KeyState.Flash)
     }
 }
 

@@ -30,8 +30,8 @@ export class Channel {
     process(output: Float32Array, from: number, to: number): void {
         let frameIndex = 0
         for (const event of this.nextEvent(to)) {
-            const toFrame = event.position - from
-            console.assert(toFrame >= 0 && toFrame < RENDER_QUANTUM)
+            const toFrame = Math.max(0, event.position - from)
+            console.assert(toFrame < RENDER_QUANTUM)
             this.advance(output, frameIndex, toFrame)
             this.active?.stop()
             const voice = this.factory.createVoice(this.index, event.step, event.totalAccent)

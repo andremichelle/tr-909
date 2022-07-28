@@ -1,10 +1,12 @@
+import {ScaleIndex} from "./pattern.js"
+
 export class Scale {
     static N6D16 = new Scale(3, 16)
     static N3D8 = new Scale(3, 32)
     static D32 = new Scale(1, 32)
     static D16 = new Scale(1, 16)
 
-    static getByIndex(index: number): Scale {
+    static getByIndex(index: ScaleIndex): Scale {
         console.assert(index >= 0 && index < 4)
         return Scale.Available[index]
     }
@@ -19,10 +21,10 @@ export class Scale {
     }
 
     cycleNext(): Scale {
-        return Scale.getByIndex((this.index() + Scale.Available.length - 1) % Scale.Available.length)
+        return Scale.getByIndex((this.index() + Scale.Available.length - 1) % Scale.Available.length as ScaleIndex)
     }
 
-    index(): number {
-        return Scale.Available.indexOf(this)
+    index(): ScaleIndex {
+        return Scale.Available.indexOf(this) as ScaleIndex
     }
 }

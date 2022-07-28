@@ -60,7 +60,7 @@ export default class extends Mode {
         const track = this.context.machine.state.activeTrack()
         if (track.isEmpty()) {
             this.context.updatePatternGroupKeys(0, false)
-            this.context.mainKeys.byIndex(0).setState(KeyState.Flash)
+            this.context.mainKeys.byIndex(0).setState(KeyState.Blink)
             this.context.display.show(0)
         } else {
             this.context.updatePatternLocationKeys(track.get(0))

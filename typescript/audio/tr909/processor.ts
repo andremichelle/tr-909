@@ -88,20 +88,19 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             return
         }
         const cycleGuideMode = this.state.cycleGuideMode.get()
-        const groove = pattern.groove.get()
         const scale = pattern.scale.get().value()
         const b0 = this.bar
         const b1 = b0 + this.barIncrement
-        const t0 = groove.inverse(b0)
-        const t1 = groove.inverse(b1)
+        const t0 = pattern.inverse(b0)
+        const t1 = pattern.inverse(b1)
         let index = Math.floor(t0 / scale)
         let search = index * scale
         while (search < t1) {
             if (search >= t0) {
                 const stepIndex = index % pattern.lastStep.get()
-                const bar = groove.transform(search)
+                const bar = pattern.transform(search)
                 const frameIndex = this.frameIndex + Math.floor(barsToNumFrames(bar - b0, this.bpm, sampleRate))
-                const frameIndexDelayed = frameIndex + pattern.flamDelay.get() / 1000.0 * sampleRate
+                const frameIndexDelayed = frameIndex + Pattern.FlamDelays[pattern.flamIndex.get()] / 1000.0 * sampleRate
                 const totalAccent: boolean = pattern.isTotalAccent(stepIndex)
                 for (let channelIndex = 0; channelIndex < ChannelIndex.End; channelIndex++) {
                     if (cycleGuideMode && channelIndex === ChannelIndex.Rim && stepIndex % 4 === 0) {

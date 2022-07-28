@@ -24,7 +24,7 @@ button.switch, button.trigger
   box-shadow: 0 0 1px 2px rgba(black, 0.6) inset, 0 -1px 2px 0 rgba(white, 0.7), 0 2px 2px 0 rgba(black, 0.4)
   pointer-events: all
 
-  &:active
+  &:active, &.active
     box-shadow: 0 0 3px 2px rgba(black, 0.8) inset, 0 -1px 2px 0 rgba(white, 0.7), 0 2px 2px 0 rgba(black, 0.4)
 
     &:before
@@ -35,11 +35,11 @@ button.switch, button.trigger
       transform: scale(0.97)
       transform-origin: 6px 12px
 
-  &.switch.blink-active:after,
-  &.switch.flash-active:after
+  &.switch.blink-enabled:after,
+  &.switch.flash-enabled:after
     background-color: darken($color-led, 10%)
 
-  &.switch.active:after
+  &.switch.enabled:after
     background-color: $color-led
     box-shadow: 0 0 0.5px 0.5px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.3), 0 -0.5px 4px 0.5px $color-led-glow
 
@@ -96,11 +96,11 @@ button.translucent-button
     visibility: hidden
     background-image: url('../svg/translucent-button-active.svg')
 
-  &:active
+  &:active, &.active
     box-shadow: 0 0 8px 0 rgba(black, 0.3) inset, 0 0.5px 2px 0 rgba(white, 0.8)
 
-  &.blink-active:after
+  &.blink-enabled:after
     opacity: 0.5
 
-  &.active:after
+  &.enabled:after
     visibility: visible

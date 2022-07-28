@@ -85,12 +85,3 @@ const showProgress = (() => {
     }
     requestAnimationFrame(run)
 })()
-
-const r = Pattern.ShuffleDelays[6]
-const exp = Math.log(0.5) / Math.log(r + 0.5)
-const injective = new PowInjective()
-injective.exponent.set(exp)
-console.log(exp, injective.fy(0.5), 0.5 + r)
-
-
-// pow(x, 1 / exp) = 0.5 + r

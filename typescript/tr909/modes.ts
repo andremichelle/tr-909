@@ -1,7 +1,5 @@
-import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
-import {Pattern, Step} from "../audio/tr909/pattern.js"
+import {FlamIndex, Pattern, ShuffleIndex, Step} from "../audio/tr909/pattern.js"
 import {ArrayUtils, Terminable, Terminator} from "../lib/common.js"
-import {PowInjective} from "../lib/injective.js"
 import {MachineContext} from "./context.js"
 import {DisplayValue} from "./display.js"
 import {FunctionKeyLabel, Key, KeyState, MainKeyIndex} from "./keys.js"
@@ -160,8 +158,8 @@ export class ShuffleFlamState extends Mode {
         const state = this.context.machine.state
         this.with(state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             this.subscriptions.terminate()
-            this.subscriptions.with(pattern.groove.addObserver(() => this.update(), false))
-            this.subscriptions.with(pattern.flamDelay.addObserver(() => this.update(), false))
+            this.subscriptions.with(pattern.shuffleIndex.addObserver(() => this.update(), false))
+            this.subscriptions.with(pattern.flamIndex.addObserver(() => this.update(), false))
             this.update()
         }))
         this.update()
@@ -169,19 +167,12 @@ export class ShuffleFlamState extends Mode {
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         const pattern = this.context.machine.state.activePattern()
-        if (keyIndex === MainKeyIndex.Step1) {
-            pattern.groove.set(GrooveIdentity)
-            return true
-        } else if (keyIndex <= MainKeyIndex.Step7) {
-            const grooveFunction = new GrooveFunction()
-            const powInjective = new PowInjective()
-            powInjective.exponent.set(ShuffleFlamState.GrooveExp[keyIndex])
-            grooveFunction.injective.set(powInjective)
-            pattern.groove.set(grooveFunction)
+        if (keyIndex <= MainKeyIndex.Step7) {
+            pattern.shuffleIndex.set(keyIndex as ShuffleIndex)
             return true
         } else if (keyIndex >= MainKeyIndex.Step9 && keyIndex <= MainKeyIndex.Step16) {
             const flamIndex = keyIndex - MainKeyIndex.Step9
-            pattern.flamDelay.set(Pattern.FlamDelays[flamIndex])
+            pattern.flamIndex.set(flamIndex as FlamIndex)
             return true
         }
         return false
@@ -194,19 +185,11 @@ export class ShuffleFlamState extends Mode {
     private update(): void {
         this.context.mainKeys.deactivate()
         const pattern = this.context.machine.state.activePattern()
-        const groove = pattern.groove.get()
-        if (groove === GrooveIdentity) {
-            this.context.mainKeys[0].setState(KeyState.On)
-        } else if (groove instanceof GrooveFunction) {
-            const injective = groove.injective.get()
-            if (injective instanceof PowInjective) {
-                const index = ShuffleFlamState.GrooveExp.indexOf(injective.exponent.get())
-                if (index >= 0 && index < 7) {
-                    this.context.mainKeys[index].setState(KeyState.On)
-                }
-            }
+        const shuffleIndex = pattern.shuffleIndex.get()
+        if (shuffleIndex >= 0 && shuffleIndex < 7) {
+            this.context.mainKeys[shuffleIndex].setState(KeyState.On)
         }
-        const flamIndex = Pattern.FlamDelays.indexOf(pattern.flamDelay.get())
+        const flamIndex = Pattern.FlamDelays.indexOf(pattern.flamIndex.get())
         if (flamIndex >= 0 && flamIndex <= 7) {
             this.context.mainKeys[MainKeyIndex.Step9 + flamIndex].setState(KeyState.On)
         }

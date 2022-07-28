@@ -126,12 +126,12 @@ export class GUI {
             position += secondsToBars(elapsedTime, this.machine.preset.tempo.get()) * 8.0
             lastTime = now
             if (position >= 1.0) {
-                HTML.queryAll('.blink-active', this.parentNode).forEach(element => element.classList.toggle('active', blink))
+                HTML.queryAll('.blink-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', blink))
                 blink = !blink
                 position -= 1.0
             }
             const flash: boolean = frame % 4 < 2
-            HTML.queryAll('.flash-active', this.parentNode).forEach(element => element.classList.toggle('active', flash))
+            HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash))
             frame++
             if (running) {
                 requestAnimationFrame(next)

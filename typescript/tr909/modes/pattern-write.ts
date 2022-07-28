@@ -1,5 +1,5 @@
-import {Step} from "../../audio/tr909/pattern.js"
-import {ObservableValue, ObservableValueImpl, Terminable, TerminableVoid} from "../../lib/common.js"
+import {FlamIndex, Pattern, ShuffleIndex, Step} from "../../audio/tr909/pattern.js"
+import {ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {MachineContext} from "../context.js"
 import {FunctionKeyLabel, Key, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"
 import {consumed, Mode} from "../modes.js"
@@ -20,7 +20,7 @@ export default class extends Mode {
         this.context.updateDisplay('none')
         this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
 
-        this.inputMode = new PatternSelectMode(context)
+        this.inputMode = new Idle(context)
 
         const updateInputMode = () => {
             this.inputMode.terminate()
@@ -36,14 +36,19 @@ export default class extends Mode {
                     } else {
                         throw new Error(`Unknown PatternInputMode(${patternEditMode})`)
                     }
+                } else if (editing === TransientEditing.ShuffleFlam) {
+                    this.inputMode = new ShuffleFlamInput(context, this.transientEditing)
                 } else if (editing === TransientEditing.InstrumentSelect) {
                     this.inputMode = new InstrumentSelectInput(context, this.transientEditing)
+                } else {
+                    throw new Error(`Unknown TransientEditing(${TransientEditing[editing]})`)
                 }
             } else {
                 this.inputMode = new PatternSelectMode(context)
             }
             console.debug(`mode: ${this.context.modeName()}`)
         }
+        updateInputMode()
 
         this.with(this.transientEditing.addObserver(updateInputMode, false))
         this.with(this.context.machine.transport.addObserver(updateInputMode, false))
@@ -71,6 +76,12 @@ export default class extends Mode {
 
     name(): string {
         return `Pattern Write (${this.inputMode.name()} > ${TransientEditing[this.transientEditing.get()]})`
+    }
+}
+
+class Idle extends Mode {
+    name(): string {
+        return 'Idle'
     }
 }
 
@@ -166,9 +177,6 @@ class StepInputMode extends Mode {
                 }, true)
             return true
         }
-        if (label === FunctionKeyLabel.InstrumentSelect) {
-            // deactivate step-input
-        }
         return false
     }
 
@@ -252,6 +260,59 @@ class TapInputMode extends Mode {
 
     name(): string {
         return 'Tap'
+    }
+}
+
+class ShuffleFlamInput extends Mode {
+    private readonly subscriptions: Terminator = this.with(new Terminator())
+
+    constructor(context: MachineContext, readonly transientEditor: ObservableValue<TransientEditing>) {
+        super(context)
+
+        const state = this.context.machine.state
+        const update = (): void => {
+            context.mainKeys.deactivate()
+            const pattern = state.activePattern()
+            const shuffleIndex = pattern.shuffleIndex.get()
+            if (shuffleIndex >= 0 && shuffleIndex < 7) {
+                this.context.mainKeys.byIndex(shuffleIndex).setState(KeyState.On)
+            }
+            const flamIndex = pattern.flamIndex.get()
+            if (flamIndex >= 0 && flamIndex <= 7) {
+                this.context.mainKeys.byIndex(MainKeyIndex.Step9 + flamIndex).setState(KeyState.On)
+            }
+        }
+        const watch = (pattern: Pattern): void => {
+            this.subscriptions.terminate()
+            this.subscriptions.with(pattern.shuffleIndex.addObserver(() => update(), false))
+            this.subscriptions.with(pattern.flamIndex.addObserver(() => update(), false))
+            update()
+        }
+        this.with(state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => watch(pattern)))
+        watch(state.activePattern())
+    }
+
+    onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
+        if (label === FunctionKeyLabel.ShuffleFlam) {
+            this.transientEditor.set(TransientEditing.Off)
+        }
+    }
+
+    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+        const pattern = this.context.machine.state.activePattern()
+        if (keyIndex <= MainKeyIndex.Step7) {
+            pattern.shuffleIndex.set(keyIndex as ShuffleIndex)
+            return true
+        } else if (keyIndex >= MainKeyIndex.Step9 && keyIndex <= MainKeyIndex.Step16) {
+            const flamIndex = keyIndex - MainKeyIndex.Step9
+            pattern.flamIndex.set(flamIndex as FlamIndex)
+            return true
+        }
+        return false
+    }
+
+    name(): string {
+        return 'Shuffle/Flam'
     }
 }
 

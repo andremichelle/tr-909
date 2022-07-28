@@ -74,56 +74,44 @@ export class MachineContext implements Terminable {
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
-                if (this.shiftMode.get()) {
-                    this.activeLabels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex])
-                    if (this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex])) {
-                        return
-                    }
-                } else {
-                    const label = FunctionKeyLabel.NormalKeys[keyIndex]
-                    this.activeLabels[keyIndex].push(label)
-                    if (label === FunctionKeyLabel.Tempo) {
-                        this.display.show(this.machine.preset.tempo.get())
-                        return
-                    }
-                    if (this.mode.onFunctionKeyPress(label)) {
-                        return
-                    }
-                }
+                this.onFunctionKeyPress(keyIndex)
             }))
-            this.terminator.with(key.bind('pointerup', () => this.releaseFunctionKey(keyIndex)))
+            this.terminator.with(key.bind('pointerup', () => this.onFunctionKeyRelease(keyIndex)))
         })
         this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
             this.shiftKey.setPointerCapture(event.pointerId)
             this.shiftMode.set(true)
         }))
         this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
+
         this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
+            if (event.repeat) {
+                return
+            }
             const code = event.code
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
+                this.shiftKey.setPressed(true)
                 this.shiftMode.set(true)
+            } else {
+                ifDefined(FunctionKeyboardShortcuts.get(code),
+                    (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
             }
-            ifDefined(FunctionKeyboardShortcuts.get(code),
-                (keyIndex: FunctionKeyIndex) => {
-                    const label = this.shiftMode.get()
-                        ? FunctionKeyLabel.ShiftKeys[keyIndex]
-                        : FunctionKeyLabel.NormalKeys[keyIndex]
-                    this.activeLabels[keyIndex].push(label)
-                    this.mode.onFunctionKeyPress(label)
-                })
         }))
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
             const code = event.code
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
+                this.shiftKey.setPressed(false)
                 this.shiftMode.set(false)
+            } else {
+                ifDefined(FunctionKeyboardShortcuts.get(code),
+                    (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
             }
-            ifDefined(FunctionKeyboardShortcuts.get(code), (keyIndex: FunctionKeyIndex) => this.releaseFunctionKey(keyIndex))
         }))
         this.terminator.with(this.machine.state.cycleGuideMode
             .addObserver(mode => this.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
                 .setState(mode ? KeyState.On : KeyState.Off), true))
 
-        console.log(`mode: ${this.modeName()}`)
+        console.debug(`mode: ${this.modeName()}`)
     }
 
     modeName(): string {
@@ -186,7 +174,7 @@ export class MachineContext implements Terminable {
         state.changeNotification.unmute()
         state.changeNotification.notify()
         this.mode = new TrackPlayMode(this)
-        console.log(`mode: ${this.modeName()}`)
+        console.debug(`mode: ${this.modeName()}`)
     }
 
     switchToTrackWriteMode(trackIndex: TrackIndex) {
@@ -199,7 +187,7 @@ export class MachineContext implements Terminable {
         state.changeNotification.unmute()
         state.changeNotification.notify()
         this.mode = new TrackWriteMode(this)
-        console.log(`mode: ${this.modeName()}`)
+        console.debug(`mode: ${this.modeName()}`)
     }
 
     switchToPatternPlayMode(patternGroupIndex: PatternGroupIndex): void {
@@ -212,7 +200,7 @@ export class MachineContext implements Terminable {
         state.changeNotification.unmute()
         state.changeNotification.notify()
         this.mode = new PatternPlayMode(this)
-        console.log(`mode: ${this.modeName()}`)
+        console.debug(`mode: ${this.modeName()}`)
     }
 
     switchToPatternWriteMode(patternGroupIndex: PatternGroupIndex): void {
@@ -225,7 +213,7 @@ export class MachineContext implements Terminable {
         state.changeNotification.unmute()
         state.changeNotification.notify()
         this.mode = new PatternWriteMode(this)
-        console.log(`mode: ${this.modeName()}`)
+        console.debug(`mode: ${this.modeName()}`)
     }
 
     resetMainKeys(): void {
@@ -331,7 +319,30 @@ export class MachineContext implements Terminable {
         this.terminator.terminate()
     }
 
-    private releaseFunctionKey(keyIndex: FunctionKeyIndex): void {
+    private onFunctionKeyPress(keyIndex: FunctionKeyIndex): void {
+        console.debug(`onFunctionKeyPress(${FunctionKeyIndex[keyIndex]})`)
+        this.functionKeys.byIndex(keyIndex).setPressed(true)
+        if (this.shiftMode.get()) {
+            this.activeLabels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex])
+            if (this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex])) {
+                return
+            }
+        } else {
+            const label = FunctionKeyLabel.NormalKeys[keyIndex]
+            this.activeLabels[keyIndex].push(label)
+            if (label === FunctionKeyLabel.Tempo) {
+                this.display.show(this.machine.preset.tempo.get())
+                return
+            }
+            if (this.mode.onFunctionKeyPress(label)) {
+                return
+            }
+        }
+    }
+
+    private onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
+        console.debug(`onFunctionKeyRelease(${FunctionKeyIndex[keyIndex]})`)
+        this.functionKeys.byIndex(keyIndex).setPressed(false)
         const labels = this.activeLabels[keyIndex]
         labels.splice(0, labels.length).forEach((label: FunctionKeyLabel<any>) => {
             if (label === FunctionKeyLabel.Tempo) {

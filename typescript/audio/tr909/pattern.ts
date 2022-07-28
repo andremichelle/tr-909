@@ -5,9 +5,8 @@ import {
     ObservableValueImpl,
     Observer,
     Terminable,
-    TerminableVoid
+    Terminator
 } from "../../lib/common.js"
-import {Groove, GrooveFormat, GrooveIdentity, Grooves} from "../grooves.js"
 import {Scale} from "./scale.js"
 
 /**
@@ -18,7 +17,9 @@ export enum Step {
     None = 0, Weak = 1, Full = 2, Extra
 }
 
+export type ScaleIndex = 0 | 1 | 2 | 3
 export type ShuffleIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6
+export type FlamIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
 
 export enum ChannelIndex {
     Bassdrum, Snaredrum,
@@ -31,38 +32,44 @@ export enum ChannelIndex {
 export interface PatternFormat {
     steps: Step[][]
     totalAccents: boolean[]
-    scale: number
-    flamDelay: number
     lastStep: number
-    groove: GrooveFormat
+    scaleIndex: ScaleIndex
+    shuffleIndex: ShuffleIndex
+    flamIndex: FlamIndex
 }
 
 export class Pattern implements Observable<void> {
+    // https://www.kvraudio.com/forum/viewtopic.php?p=3740195&sid=89d14cd241a916781a274f424c4d92a0#p3740195
+    // aM: However from my hearing we multiply by 3 and not 2 (too less shuffle)
+    static readonly ShuffleDelays = ArrayUtils.fill(7, index => index * 3 / 96)
+
     // http://www.e-licktronic.com/forum/viewtopic.php?f=25&t=1430
     static readonly FlamDelays = ArrayUtils.fill(8, index => 10 + index * 4)
 
-    // https://www.kvraudio.com/forum/viewtopic.php?p=3740195&sid=89d14cd241a916781a274f424c4d92a0#p3740195
-    static readonly ShuffleDelays = ArrayUtils.fill(7, index => index * 2 / 96)
+    private readonly terminator: Terminator = new Terminator()
 
     readonly scale = new ObservableValueImpl<Scale>(Scale.D16)
-    readonly flamDelay = new ObservableValueImpl<number>(Pattern.FlamDelays[0])
     readonly lastStep = new ObservableValueImpl<number>(16)
-    readonly groove = new ObservableValueImpl<Groove>(GrooveIdentity)
+    readonly flamIndex = new ObservableValueImpl<FlamIndex>(0)
+    readonly shuffleIndex = new ObservableValueImpl<ShuffleIndex>(0)
 
-    private readonly listener: () => void = () => this.observable.notify()
-    private readonly observable = new ObservableImpl<void>()
-    private readonly steps: Step[][] = ArrayUtils.fill(ChannelIndex.End, () => ArrayUtils.fill(16, () => Step.None))
-    private readonly totalAccents: boolean[] = ArrayUtils.fill(16, () => false)
-    private readonly scaleSubscription = this.scale.addObserver(this.listener, false)
-    private readonly flamDelaySubscription = this.flamDelay.addObserver(this.listener, false)
-    private readonly lastStepSubscription = this.lastStep.addObserver(this.listener, false)
-    private grooveSubscription = TerminableVoid
-    private readonly grooveFieldSubscription = this.groove.addObserver((groove: Groove) => {
-        this.grooveSubscription.terminate()
-        this.grooveSubscription = groove.addObserver(this.listener, true)
-    }, false)
+    private readonly observable
+    private readonly listener: () => void
+    private readonly steps: Step[][]
+    private readonly totalAccents: boolean[]
+    private readonly shuffle: Shuffle
 
     constructor() {
+        this.observable = this.terminator.with(new ObservableImpl<void>())
+        this.listener = () => this.observable.notify()
+        this.steps = ArrayUtils.fill(ChannelIndex.End, () => ArrayUtils.fill(16, () => Step.None))
+        this.totalAccents = ArrayUtils.fill(16, () => false)
+        this.shuffle = this.terminator.with(new Shuffle(this.shuffleIndex, this.scale))
+
+        this.terminator.with(this.scale.addObserver(this.listener, false))
+        this.terminator.with(this.lastStep.addObserver(this.listener, false))
+        this.terminator.with(this.flamIndex.addObserver(this.listener, false))
+        this.terminator.with(this.shuffleIndex.addObserver(this.listener, false))
     }
 
     testA() {
@@ -130,11 +137,11 @@ export class Pattern implements Observable<void> {
         console.debug('Clear pattern')
         this.observable.mute()
         this.steps.forEach(steps => steps.fill(Step.None))
-        this.scale.set(Scale.D16)
-        this.groove.set(GrooveIdentity)
-        this.lastStep.set(16)
-        this.flamDelay.set(Pattern.FlamDelays[4])
         this.totalAccents.fill(false)
+        this.scale.set(Scale.D16)
+        this.lastStep.set(16)
+        this.shuffleIndex.set(0)
+        this.flamIndex.set(0)
         this.observable.unmute()
         this.observable.notify()
     }
@@ -144,10 +151,10 @@ export class Pattern implements Observable<void> {
         return {
             steps: this.steps,
             totalAccents: this.totalAccents,
-            scale: this.scale.get().index(),
-            flamDelay: this.flamDelay.get(),
+            scaleIndex: this.scale.get().index(),
+            flamIndex: this.flamIndex.get(),
             lastStep: this.lastStep.get(),
-            groove: this.groove.get().serialize()
+            shuffleIndex: this.shuffleIndex.get()
         }
     }
 
@@ -159,9 +166,9 @@ export class Pattern implements Observable<void> {
                 this.steps[channel][stepIndex] = step))
         this.totalAccents.splice(0, 16, ...format.totalAccents)
         this.lastStep.set(format.lastStep)
-        this.scale.set(Scale.getByIndex(format.scale))
-        this.flamDelay.set(format.flamDelay)
-        this.groove.set(Grooves.deserialize(format.groove))
+        this.scale.set(Scale.getByIndex(format.scaleIndex))
+        this.flamIndex.set(format.flamIndex)
+        this.shuffleIndex.set(format.shuffleIndex)
         this.observable.unmute()
         this.observable.notify()
     }
@@ -175,12 +182,77 @@ export class Pattern implements Observable<void> {
         return this.observable.removeObserver(observer)
     }
 
+
+    inverse(position: number): number {
+        return this.shuffle.inverse(position)
+    }
+
+    transform(position: number): number {
+        return this.shuffle.transform(position)
+    }
+
     terminate(): void {
-        this.observable.terminate()
-        this.scaleSubscription.terminate()
-        this.flamDelaySubscription.terminate()
-        this.lastStepSubscription.terminate()
-        this.grooveSubscription.terminate()
-        this.grooveFieldSubscription.terminate()
+        this.terminator.terminate()
+    }
+}
+
+class Shuffle implements Terminable {
+    static computeExponent(shuffleIndex: ObservableValueImpl<ShuffleIndex>): number {
+        return Math.log(0.5) / Math.log(0.5 + Pattern.ShuffleDelays[shuffleIndex.get()])
+    }
+
+    private readonly terminator: Terminator = new Terminator()
+
+    private enabled: boolean = false
+    private exponent: number = 1.0
+    private duration: number = 1.0 / 8.0
+
+    constructor(shuffleIndex: ObservableValueImpl<ShuffleIndex>,
+                scale: ObservableValueImpl<Scale>) {
+        const update = () => {
+            switch (scale.get()) {
+                case Scale.N3D8:
+                case Scale.N6D16: {
+                    this.enabled = false
+                    this.exponent = 1.0
+                    this.duration = 1.0 / 8.0
+                    return
+                }
+                case Scale.D16: {
+                    this.enabled = true
+                    this.exponent = Shuffle.computeExponent(shuffleIndex)
+                    this.duration = 1.0 / 8.0
+                    return
+                }
+                case Scale.D32: {
+                    this.enabled = true
+                    this.exponent = Shuffle.computeExponent(shuffleIndex)
+                    this.duration = 1.0 / 16.0 // TODO Verify on original machine
+                    return
+                }
+            }
+        }
+        this.terminator.with(shuffleIndex.addObserver(update, false))
+        this.terminator.with(scale.addObserver(update, false))
+    }
+
+    inverse(position: number): number {
+        return this.enabled ? this.map(position, this.exponent) : position
+    }
+
+    transform(position: number): number {
+        return this.enabled ? this.map(position, 1.0 / this.exponent) : position
+    }
+
+    terminate() {
+        this.terminator.terminate()
+    }
+
+    map(position: number, exponent: number): number {
+        const duration = this.duration
+        const start = Math.floor(position / duration) * duration
+        const normalized = (position - start) / duration
+        const transformed = Math.pow(normalized, exponent)
+        return start + transformed * duration
     }
 }
