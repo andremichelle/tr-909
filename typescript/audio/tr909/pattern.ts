@@ -40,8 +40,8 @@ export interface PatternFormat {
 
 export class Pattern implements Observable<void> {
     // https://www.kvraudio.com/forum/viewtopic.php?p=3740195&sid=89d14cd241a916781a274f424c4d92a0#p3740195
-    // aM: However from my hearing we multiply by 3 and not 2 (too less shuffle)
-    static readonly ShuffleDelays = ArrayUtils.fill(7, index => index * 3 / 96)
+    // aM: However from my hearing we divide by 32 and not multiply by 2/96 (too less shuffle)
+    static readonly ShuffleDelays = ArrayUtils.fill(7, index => index / 32)
 
     // http://www.e-licktronic.com/forum/viewtopic.php?f=25&t=1430
     static readonly FlamDelays = ArrayUtils.fill(8, index => 10 + index * 4)
@@ -138,7 +138,7 @@ export class Pattern implements Observable<void> {
     }
 
     clear() {
-        console.debug('Clear pattern')
+        console.debug('clear pattern')
         this.observable.mute()
         this.steps.forEach(steps => steps.fill(Step.None))
         this.totalAccents.fill(false)
@@ -151,7 +151,7 @@ export class Pattern implements Observable<void> {
     }
 
     serialize(): PatternFormat {
-        console.debug('Serialize pattern')
+        console.debug('serialize pattern')
         return {
             steps: this.steps,
             totalAccents: this.totalAccents,
@@ -163,7 +163,7 @@ export class Pattern implements Observable<void> {
     }
 
     deserialize(format: PatternFormat): void {
-        console.debug('Deserialize pattern')
+        console.debug('deserialize pattern')
         this.observable.mute()
         format.steps.forEach((steps: Step[], channel: number) =>
             steps.forEach((step: Step, stepIndex: number) =>
@@ -186,12 +186,11 @@ export class Pattern implements Observable<void> {
         return this.observable.removeObserver(observer)
     }
 
-
-    inverse(position: number): number {
+    shuffleInverse(position: number): number {
         return this.shuffle.inverse(position)
     }
 
-    transform(position: number): number {
+    shuffleTransform(position: number): number {
         return this.shuffle.transform(position)
     }
 

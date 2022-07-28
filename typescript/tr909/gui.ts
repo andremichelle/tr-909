@@ -23,11 +23,9 @@ export class GUI {
 
     private readonly terminator: Terminator = new Terminator()
 
-    readonly machineContext: MachineContext
-
-    constructor(private readonly parentNode: ParentNode,
-                private readonly machine: Machine,
-                private readonly context: MachineContext) {
+    constructor(readonly parentNode: ParentNode,
+                readonly machine: Machine,
+                readonly context: MachineContext) {
         this.installKnobs()
         this.installTransport()
         this.installAnimationSynchronizer()
