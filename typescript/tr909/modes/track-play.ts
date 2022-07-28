@@ -9,8 +9,8 @@ export default class extends Mode {
 
         this.with(this.context.startStepRunningAnimation())
         this.with({terminate: () => this.context.functionKeys.deactivate(ZeroBasedIndices.TrackKeys)})
-        this.with(this.context.machine.state.trackIndex.addObserver(() => this.initButtons(), false))
-        this.with(this.context.machine.state.bankGroupIndex
+        this.with(this.context.memoryState().trackIndex.addObserver(() => this.initButtons(), false))
+        this.with(this.context.memoryState().bankGroupIndex
             .addObserver((bankGroupIndex: BankGroupIndex) => {
                 this.context.updateBankGroupKeys(bankGroupIndex)
                 this.initButtons()
@@ -33,7 +33,7 @@ export default class extends Mode {
         if (this.context.maySwitchToPatternWriteMode(label)) {
             return true
         }
-        if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.machine.state.cycleGuideMode)) {
+        if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.memoryState().cycleGuideMode)) {
             return true
         }
         return false
@@ -48,7 +48,7 @@ export default class extends Mode {
     }
 
     getDisplayValue(): number | 'none' {
-        return this.context.machine.state.activeTrack().isEmpty() ? 0 : this.context.machine.processorTrackMeasure.get()
+        return this.context.memoryState().activeTrack().isEmpty() ? 0 : this.context.machine.processorTrackMeasure.get()
     }
 
     name(): string {
@@ -56,8 +56,8 @@ export default class extends Mode {
     }
 
     private initButtons() {
-        const trackIndex: TrackIndex = this.context.machine.state.trackIndex.get()
-        const track = this.context.machine.state.activeTrack()
+        const trackIndex: TrackIndex = this.context.memoryState().trackIndex.get()
+        const track = this.context.memoryState().activeTrack()
         if (track.isEmpty()) {
             this.context.updatePatternGroupKeys(0, false)
             this.context.mainKeys.byIndex(0).setState(KeyState.Blink)

@@ -1,5 +1,6 @@
 import {ArrayUtils} from "../../lib/common.js"
 import {Pattern} from "./pattern.js"
+import {State} from "./state.js"
 import {Track} from "./track.js"
 
 export enum BankGroupIndex {I, II}
@@ -16,9 +17,20 @@ export enum PatternIndex {
     Pattern13, Pattern14, Pattern15, Pattern16,
 }
 
-export type Memory = [MemoryBank, MemoryBank]
-
 export type PatternLocation = { patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex }
+
+export class Memory {
+    private static readonly MAX_MEASURES = 896
+
+    readonly banks: [MemoryBank, MemoryBank] = [new MemoryBank(), new MemoryBank()]
+
+    readonly state: State = new State(this)
+
+    availableMeasures(): number {
+        return Memory.MAX_MEASURES - this.banks.reduce((count: number, bank: MemoryBank) =>
+            count + bank.tracks.reduce((count: number, track: Track) => count + track.size(), 0), 0)
+    }
+}
 
 export class MemoryBank {
     static readonly NUM_TRACKS = 4

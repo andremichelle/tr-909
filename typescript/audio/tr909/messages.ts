@@ -6,7 +6,7 @@ import {TrackFormat} from "./track.js"
 
 export type ToWorkletMessage =
     | { type: "update-parameter", path: string[], unipolar: number }
-    | { type: "update-state", format: StateFormat }
+    | { type: "update-memory-state", format: StateFormat }
     | { type: "update-track", bankGroupIndex: BankGroupIndex, arrayIndex: number, format: TrackFormat }
     | { type: "update-pattern", bankGroupIndex: BankGroupIndex, arrayIndex: number, format: PatternFormat }
     | { type: "play-channel", channelIndex: ChannelIndex, step: Step }

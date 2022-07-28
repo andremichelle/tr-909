@@ -1,5 +1,6 @@
 import {PatternGroupIndex, PatternIndex} from "../../audio/tr909/memory.js"
 import {MachineContext} from "../context.js"
+import {DisplayValue} from "../display.js"
 import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
 import {consumed, Mode} from "../mode.js"
 
@@ -7,12 +8,12 @@ export default class extends Mode {
     constructor(context: MachineContext) {
         super(context)
 
-        this.context.updateBankGroupKeys(this.context.machine.state.bankGroupIndex.get())
-        this.context.updateTrackKeys(this.context.machine.state.trackIndex.get(), true)
+        this.context.updateBankGroupKeys(this.context.memoryState().bankGroupIndex.get())
+        this.context.updateTrackKeys(this.context.memoryState().trackIndex.get(), true)
         this.with(this.context.startStepRunningAnimation())
         this.with(this.context.watchPatternLocationKeys())
 
-        this.with(this.context.machine.state.patternGroupIndex
+        this.with(this.context.memoryState().patternGroupIndex
             .addObserver((patternGroupIndex: PatternGroupIndex) =>
                 this.context.updatePatternGroupKeys(patternGroupIndex, false), true))
     }
@@ -25,7 +26,7 @@ export default class extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.AvailableMeasures) {
-            this.context.display.show(this.context.machine.state.activeTrack().remaining())
+            this.context.display.show(this.context.machine.memory.availableMeasures())
             return true
         }
         return false
@@ -41,10 +42,14 @@ export default class extends Mode {
         if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             // TODO Enter
         } else {
-            this.context.machine.state.patternIndex.set(keyIndex as number as PatternIndex)
+            this.context.memoryState().patternIndex.set(keyIndex as number as PatternIndex)
             return true
         }
         return false
+    }
+
+    getDisplayValue(): DisplayValue {
+        return 0
     }
 
     name(): string {

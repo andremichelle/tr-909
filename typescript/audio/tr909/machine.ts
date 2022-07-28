@@ -6,7 +6,6 @@ import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {ChannelIndex, Pattern, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
-import {State} from "./state.js"
 import {Track} from "./track.js"
 
 export class Machine implements Terminable {
@@ -19,7 +18,6 @@ export class Machine implements Terminable {
     private running: boolean = true
 
     readonly worklet: AudioWorkletNode
-    readonly state: State
     readonly preset: Preset
     readonly memory: Memory
     readonly transport: Transport
@@ -40,8 +38,7 @@ export class Machine implements Terminable {
             processorOptions: {resources} as ProcessorOptions
         })
         this.preset = new Preset()
-        this.memory = [new MemoryBank(), new MemoryBank()]
-        this.state = new State(this.memory)
+        this.memory = new Memory()
         this.transport = new Transport()
         this.transport.addObserver(message => this.worklet.port.postMessage(message), false)
         this.meterWorklet = new MeterWorklet(context, 10, 1)
@@ -57,11 +54,11 @@ export class Machine implements Terminable {
                 unipolar: parameter.getUnipolar()
             } as ToWorkletMessage)
         }))
-        this.terminator.with(this.state.changeNotification.addObserver(() => this.worklet.port.postMessage({
-            type: 'update-state',
-            format: this.state.serialize()
+        this.terminator.with(this.memory.state.changeNotification.addObserver(() => this.worklet.port.postMessage({
+            type: 'update-memory-state',
+            format: this.memory.state.serialize()
         } as ToWorkletMessage)))
-        this.terminator.merge(this.memory
+        this.terminator.merge(this.memory.banks
             .map((bank: MemoryBank, bankGroupIndex: BankGroupIndex) => {
                 return [
                     ...bank.tracks
@@ -86,9 +83,9 @@ export class Machine implements Terminable {
         this.startScheduler()
 
         // TODO > Test Data < REMOVE WHEN DONE TESTING
-        this.state.patternBy(0, 0).testA()
-        this.state.patternBy(0, 1).testB()
-        this.state.activeBank().tracks[1].insert(0, 1, 0, 1)
+        this.memory.state.patternBy(0, 0).testA()
+        this.memory.state.patternBy(0, 1).testB()
+        this.memory.state.activeBank().tracks[1].insert(0, 1, 0, 1)
     }
 
     play(channelIndex: ChannelIndex, step: Step) {

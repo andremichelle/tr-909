@@ -7,12 +7,12 @@ import {Channel, VoiceFactory} from "./dsp/channel.js"
 import {PatternProvider, TrackPatternPlay, UserPatternSelect} from "./dsp/pattern.js"
 import {SnaredrumVoice} from "./dsp/snaredrum.js"
 import {Voice} from "./dsp/voice.js"
-import {Memory, MemoryBank} from "./memory.js"
+import {Memory} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {ChannelIndex, Pattern, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
-import {PlayMode, State} from "./state.js"
+import {PlayMode} from "./state.js"
 
 const LevelMapping = new Linear(-18.0, 0.0) // min active, half accent, full, accent + total accent
 
@@ -20,7 +20,6 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     private readonly resources: Resources
     private readonly preset: Preset
     private readonly memory: Memory
-    private readonly state: State
     private readonly channels: Channel[]
 
     private patternProvider: PatternProvider = null
@@ -39,25 +38,24 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             this.bpm = bpm
             this.barIncrement = numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
         }, true)
-        this.memory = [new MemoryBank(), new MemoryBank()]
-        this.state = new State(this.memory)
-        this.state.playMode.addObserver(mode => mode === PlayMode.Track
-            ? this.patternProvider = new TrackPatternPlay(this.state)
-            : this.patternProvider = new UserPatternSelect(this.state, () => this.moving), true)
+        this.memory = new Memory()
+        this.memory.state.playMode.addObserver(mode => mode === PlayMode.Track
+            ? this.patternProvider = new TrackPatternPlay(this.memory.state)
+            : this.patternProvider = new UserPatternSelect(this.memory.state, () => this.moving), true)
         this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
 
         this.port.onmessage = (event: MessageEvent) => {
             const message: ToWorkletMessage | TransportMessage = event.data
             if (message.type === 'update-parameter') {
                 this.preset.find(message.path).get().setUnipolar(message.unipolar)
-            } else if (message.type === 'update-state') {
-                this.state.deserialize(message.format)
+            } else if (message.type === 'update-memory-state') {
+                this.memory.state.deserialize(message.format)
                 this.patternProvider.reevaluate()
             } else if (message.type === 'update-track') {
-                this.memory[message.bankGroupIndex].tracks[message.arrayIndex].deserialize(message.format)
+                this.memory.banks[message.bankGroupIndex].tracks[message.arrayIndex].deserialize(message.format)
                 this.patternProvider.reevaluate()
             } else if (message.type === 'update-pattern') {
-                this.memory[message.bankGroupIndex].patterns[message.arrayIndex].deserialize(message.format)
+                this.memory.banks[message.bankGroupIndex].patterns[message.arrayIndex].deserialize(message.format)
             } else if (message.type === "transport-play") {
                 this.moving = true
             } else if (message.type === "transport-pause") {
@@ -87,7 +85,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         if (pattern === null) {
             return
         }
-        const cycleGuideMode = this.state.cycleGuideMode.get()
+        const cycleGuideMode = this.memory.state.cycleGuideMode.get()
         const scale = pattern.scale.get().value()
         const b0 = this.bar
         const b1 = b0 + this.barIncrement

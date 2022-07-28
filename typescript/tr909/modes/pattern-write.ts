@@ -18,7 +18,7 @@ export default class extends Mode {
         super(context)
 
         this.context.updateDisplay('none')
-        this.context.updatePatternGroupKeys(this.context.machine.state.patternGroupIndex.get(), true)
+        this.context.updatePatternGroupKeys(this.context.memoryState().patternGroupIndex.get(), true)
 
         this.inputMode = new Idle(context)
 
@@ -92,7 +92,7 @@ class PatternSelectMode extends Mode {
         super(context)
 
         console.assert(!context.machine.transport.isPlaying())
-        this.with(this.context.machine.state.patternIndex
+        this.with(this.context.memoryState().patternIndex
             .addObserver((patternIndex) => this.context.mainKeys
                 .activate(index => patternIndex === index
                     ? KeyState.Blink
@@ -129,9 +129,9 @@ class PatternSelectMode extends Mode {
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) return false
-        this.context.machine.state.patternIndex.set(keyIndex as number)
+        this.context.memoryState().patternIndex.set(keyIndex as number)
         if (this.clear) {
-            this.context.machine.state.activePattern().clear()
+            this.context.memoryState().activePattern().clear()
         }
         return true
     }
@@ -161,7 +161,7 @@ class StepInputMode extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.Scale) {
-            this.context.machine.state.activePattern().cycleToNextScale()
+            this.context.memoryState().activePattern().cycleToNextScale()
             return true
         }
         if (label === FunctionKeyLabel.ShuffleFlam) {
@@ -176,7 +176,7 @@ class StepInputMode extends Mode {
             this.clearSubscription = this.context.machine.processorStepIndex
                 .addObserver(stepIndex => {
                     const instrumentMode = this.context.instrumentMode.get()
-                    const pattern = this.context.machine.state.activePattern()
+                    const pattern = this.context.memoryState().activePattern()
                     Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
                 }, true)
             return true
@@ -192,7 +192,7 @@ class StepInputMode extends Mode {
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
-            const pattern = this.context.machine.state.activePattern()
+            const pattern = this.context.memoryState().activePattern()
             const instrumentMode = this.context.instrumentMode.get()
             Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
             return true
@@ -222,7 +222,7 @@ class TapInputMode extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.Scale) {
-            this.context.machine.state.activePattern().cycleToNextScale()
+            this.context.memoryState().activePattern().cycleToNextScale()
             return true
         }
         if (label === FunctionKeyLabel.Clear) {
@@ -232,12 +232,12 @@ class TapInputMode extends Mode {
                 if (instrumentMode === InstrumentMode.None || instrumentMode === InstrumentMode.TotalAccent) {
                     return
                 }
-                const pattern = this.context.machine.state.activePattern()
+                const pattern = this.context.memoryState().activePattern()
                 Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
             }, true)
             return true
         }
-        if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.machine.state.cycleGuideMode)) {
+        if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.memoryState().cycleGuideMode)) {
             return true
         }
         return false
@@ -258,7 +258,7 @@ class TapInputMode extends Mode {
             const step = playInstrument.step
             machine.play(channelIndex, step)
             if (machine.transport.isPlaying()) {
-                machine.state.activePattern()
+                this.context.memoryState().activePattern()
                     .setStep(channelIndex, machine.processorStepIndex.get(), step ? Step.Full : Step.Weak)
             }
             return true
@@ -277,7 +277,7 @@ class ShuffleFlamInput extends Mode {
     constructor(context: MachineContext, readonly transientEditor: ObservableValue<TransientEditing>) {
         super(context)
 
-        const state = this.context.machine.state
+        const state = this.context.memoryState()
         const update = (): void => {
             context.mainKeys.deactivate()
             const pattern = state.activePattern()
@@ -307,7 +307,7 @@ class ShuffleFlamInput extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        const pattern = this.context.machine.state.activePattern()
+        const pattern = this.context.memoryState().activePattern()
         if (keyIndex <= MainKeyIndex.Step7) {
             pattern.shuffleIndex.set(keyIndex as ShuffleIndex)
             return true

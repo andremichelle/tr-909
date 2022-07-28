@@ -2,7 +2,7 @@ import {Machine} from "../audio/tr909/machine.js"
 import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
 import {Scale} from "../audio/tr909/scale.js"
-import {PlayMode} from "../audio/tr909/state.js"
+import {PlayMode, State} from "../audio/tr909/state.js"
 import {
     ArrayUtils,
     Events,
@@ -98,7 +98,7 @@ export class MachineContext implements Terminable {
         //
         // Key states for all modes...
         //
-        this.terminator.with(this.machine.state.cycleGuideMode
+        this.terminator.with(this.machine.memory.state.cycleGuideMode
             .addObserver(mode => this.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
                 .setState(mode ? KeyState.On : KeyState.Off), true))
 
@@ -110,8 +110,8 @@ export class MachineContext implements Terminable {
                 indicator.y.baseVal.value = scale === Scale.N6D16
                     ? 0 : scale === Scale.N3D8 ? 16 : scale === Scale.D32 ? 32 : 48, true))
         }
-        this.terminator.with(this.machine.state.patternIndicesChangeNotification.addObserver(activePatternObserver))
-        activePatternObserver(this.machine.state.activePattern())
+        this.terminator.with(this.machine.memory.state.patternIndicesChangeNotification.addObserver(activePatternObserver))
+        activePatternObserver(this.machine.memory.state.activePattern())
 
         console.debug(`mode: ${this.modeName()}`)
     }
@@ -122,6 +122,10 @@ export class MachineContext implements Terminable {
 
     isPlaying(): boolean {
         return this.machine.transport.isPlaying()
+    }
+
+    memoryState(): State {
+        return this.machine.memory.state
     }
 
     maySwitchToTrackPlayMode(label: FunctionKeyLabel<any>): boolean {
@@ -141,15 +145,15 @@ export class MachineContext implements Terminable {
     }
 
     maySwitchTrackIndex(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.machine.state.trackIndex.set(index))
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.machine.memory.state.trackIndex.set(index))
     }
 
     maySwitchBankGroupIndex(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.BankGroup, index => this.machine.state.bankGroupIndex.set(index))
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.BankGroup, index => this.machine.memory.state.bankGroupIndex.set(index))
     }
 
     maySwitchPatternGroupIndex(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.machine.state.patternGroupIndex.set(index))
+        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.machine.memory.state.patternGroupIndex.set(index))
     }
 
     maySwitchPatternEditMode(label: FunctionKeyLabel<any>): boolean {
@@ -169,7 +173,7 @@ export class MachineContext implements Terminable {
     switchToTrackPlayMode(trackIndex: TrackIndex): void {
         this.resetMainKeys()
         this.mode.terminate()
-        const state = this.machine.state
+        const state = this.machine.memory.state
         state.changeNotification.mute()
         state.trackIndex.set(trackIndex)
         state.playMode.set(PlayMode.Track)
@@ -182,7 +186,7 @@ export class MachineContext implements Terminable {
     switchToTrackWriteMode(trackIndex: TrackIndex) {
         this.resetMainKeys()
         this.mode.terminate()
-        const state = this.machine.state
+        const state = this.machine.memory.state
         state.changeNotification.mute()
         state.trackIndex.set(trackIndex)
         state.playMode.set(PlayMode.Pattern)
@@ -195,7 +199,7 @@ export class MachineContext implements Terminable {
     switchToPatternPlayMode(patternGroupIndex: PatternGroupIndex): void {
         this.resetMainKeys()
         this.mode.terminate()
-        const state = this.machine.state
+        const state = this.machine.memory.state
         state.changeNotification.mute()
         state.patternGroupIndex.set(patternGroupIndex)
         state.playMode.set(PlayMode.Pattern)
@@ -208,7 +212,7 @@ export class MachineContext implements Terminable {
     switchToPatternWriteMode(patternGroupIndex: PatternGroupIndex): void {
         this.resetMainKeys()
         this.mode.terminate()
-        const state = this.machine.state
+        const state = this.machine.memory.state
         state.changeNotification.mute()
         state.patternGroupIndex.set(patternGroupIndex)
         state.playMode.set(PlayMode.Pattern)
@@ -228,7 +232,7 @@ export class MachineContext implements Terminable {
 
     updatePatternLocationKeys(pattern: Pattern | number): void {
         console.debug(`activatePatternLocationKeys(arrayIndex: ${pattern})`)
-        const location = this.machine.state.activeBank().toLocation(pattern)
+        const location = this.machine.memory.state.activeBank().toLocation(pattern)
         this.updatePatternGroupKeys(location.patternGroupIndex, false)
         this.mainKeys.deactivate()
         this.mainKeys.byIndex(location.patternIndex as number).setState(KeyState.Blink)
@@ -265,16 +269,16 @@ export class MachineContext implements Terminable {
     }
 
     watchPatternLocationKeys(): Terminable {
-        this.updatePatternLocationKeys(this.machine.state.activePattern())
-        return this.machine.state.patternIndicesChangeNotification
+        this.updatePatternLocationKeys(this.machine.memory.state.activePattern())
+        return this.machine.memory.state.patternIndicesChangeNotification
             .addObserver(pattern => this.updatePatternLocationKeys(pattern))
     }
 
     watchPatternStepsKeys(): Terminable {
         const terminator = new Terminator()
-        const state = this.machine.state
+        const state = this.machine.memory.state
         const updateKeys = () => {
-            const pattern: Pattern = this.machine.state.activePattern()
+            const pattern: Pattern = this.machine.memory.state.activePattern()
             const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
             this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) =>
                 key.setState(keyIndex === MainKeyIndex.CartridgeEnterTotalAccent ? KeyState.Off : mapping(pattern, keyIndex)))

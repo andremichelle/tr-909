@@ -62,7 +62,7 @@ export class State implements Serializer<StateFormat>, Terminable {
     }
 
     activeBank(): MemoryBank {
-        return this.memory[this.bankGroupIndex.get()]
+        return this.memory.banks[this.bankGroupIndex.get()]
     }
 
     activeTrack(): Track {
