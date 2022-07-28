@@ -9,6 +9,7 @@ export enum TrackIndex {I, II, III, IV} // times 2 for each bank
 export enum PatternGroupIndex {I, II, III} // times 2 for each bank
 
 export enum PatternIndex {
+    // noinspection JSUnusedGlobalSymbols
     Pattern1, Pattern2, Pattern3, Pattern4,
     Pattern5, Pattern6, Pattern7, Pattern8,
     Pattern9, Pattern10, Pattern11, Pattern12,

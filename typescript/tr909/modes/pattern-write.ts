@@ -128,7 +128,7 @@ class PatternSelectMode extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        if (keyIndex === MainKeyIndex.TotalAccent) return false
+        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) return false
         this.context.machine.state.patternIndex.set(keyIndex as number)
         if (this.clear) {
             this.context.machine.state.activePattern().clear()
@@ -191,7 +191,7 @@ class StepInputMode extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        if (keyIndex !== MainKeyIndex.TotalAccent) {
+        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const pattern = this.context.machine.state.activePattern()
             const instrumentMode = this.context.instrumentMode.get()
             Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
@@ -251,7 +251,7 @@ class TapInputMode extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        if (!this.clearPressed && keyIndex !== MainKeyIndex.TotalAccent) {
+        if (!this.clearPressed && keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const machine = this.context.machine
             const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.pressedMainKeys)
             const channelIndex = playInstrument.channelIndex

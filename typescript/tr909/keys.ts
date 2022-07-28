@@ -10,7 +10,7 @@ export enum MainKeyIndex {
     Step5, Step6, Step7, Step8,
     Step9, Step10, Step11, Step12,
     Step13, Step14, Step15, Step16,
-    TotalAccent
+    CartridgeEnterTotalAccent
 }
 
 export enum FunctionKeyIndex {

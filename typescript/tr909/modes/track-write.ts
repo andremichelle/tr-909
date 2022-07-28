@@ -38,7 +38,9 @@ export default class extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        if (keyIndex !== MainKeyIndex.TotalAccent) {
+        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+            // TODO Enter
+        } else {
             this.context.machine.state.patternIndex.set(keyIndex as number as PatternIndex)
             return true
         }

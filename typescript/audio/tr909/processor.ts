@@ -103,7 +103,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 const frameIndexDelayed = frameIndex + Pattern.FlamDelays[pattern.flamIndex.get()] / 1000.0 * sampleRate
                 const totalAccent: boolean = pattern.isTotalAccent(stepIndex)
                 for (let channelIndex = 0; channelIndex < ChannelIndex.End; channelIndex++) {
-                    if (cycleGuideMode && channelIndex === ChannelIndex.Rim && stepIndex % 4 === 0) {
+                    if (cycleGuideMode && channelIndex === ChannelIndex.Rim && stepIndex % 4 === 0) { // TODO Only when pattern-write tap-mode
                         this.schedulePlay(channelIndex, frameIndex, stepIndex === 0
                             ? Step.Full
                             : Step.Weak, totalAccent)

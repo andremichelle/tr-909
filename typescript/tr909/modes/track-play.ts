@@ -40,7 +40,7 @@ export default class extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        if (keyIndex !== MainKeyIndex.TotalAccent) {
+        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             this.context.playInstrument(keyIndex)
             return true
         }

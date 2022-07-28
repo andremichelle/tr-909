@@ -33,15 +33,6 @@ import TrackWriteMode from "./modes/track-write.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 export class MachineContext implements Terminable {
-    static create(machine: Machine, parentNode: ParentNode): MachineContext {
-        return new MachineContext(machine, new Display(HTML.query('svg[data-display=led-display]', parentNode)), new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
-            HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
-            HTML.query('[data-control=main-key][data-parameter=total-accent]')]
-            .map((element: HTMLButtonElement) => new Key(element))
-        ), new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
-            .map((element: HTMLButtonElement) => new Key(element))), new Key(HTML.query('[data-button=shift-key]')))
-    }
-
     private readonly terminator = new Terminator()
 
     readonly instrumentMode: ObservableValueImpl<InstrumentMode> = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
@@ -286,7 +277,7 @@ export class MachineContext implements Terminable {
             const pattern: Pattern = this.machine.state.activePattern()
             const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
             this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) =>
-                key.setState(keyIndex === MainKeyIndex.TotalAccent ? KeyState.Off : mapping(pattern, keyIndex)))
+                key.setState(keyIndex === MainKeyIndex.CartridgeEnterTotalAccent ? KeyState.Off : mapping(pattern, keyIndex)))
         }
         let patternSubscription = state.activePattern().addObserver(() => updateKeys(), true)
         terminator.with({terminate: () => patternSubscription.terminate()})
@@ -319,7 +310,7 @@ export class MachineContext implements Terminable {
     }
 
     playInstrument(keyIndex: MainKeyIndex): void {
-        if (keyIndex === MainKeyIndex.TotalAccent) return
+        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) return
         const instrument = Utils.keyIndexToPlayInstrument(keyIndex, this.pressedMainKeys)
         const channelIndex = instrument.channelIndex
         const step = instrument.step

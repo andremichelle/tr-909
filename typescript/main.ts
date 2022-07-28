@@ -1,13 +1,10 @@
 import {LimiterWorklet} from "./audio/limiter/worklet.js"
 import {MeterWorklet, StereoMeterWorklet} from "./audio/meter/worklet.js"
-import {MetronomeWorklet} from "./audio/metronome/worklet.js"
 import {Machine} from "./audio/tr909/machine.js"
-import {Pattern} from "./audio/tr909/pattern.js"
 import {loadResources} from "./audio/tr909/resources.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
-import {PowInjective} from "./lib/injective.js"
 import {GUI} from "./tr909/gui.js"
 
 const showProgress = (() => {
@@ -28,7 +25,6 @@ const showProgress = (() => {
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
     boot.registerProcess(LimiterWorklet.loadModule(context))
     boot.registerProcess(MeterWorklet.loadModule(context))
-    boot.registerProcess(MetronomeWorklet.loadModule(context))
     boot.registerProcess(Machine.loadModule(context))
     const getResources = loadResources(boot)
     await boot.waitForCompletion()
@@ -74,7 +70,7 @@ const showProgress = (() => {
     meter.domElement.classList.add('meter')
     HTML.query('body').appendChild(meter.domElement)
 
-    const gui = new GUI(parentNode, machine)
+    const gui = GUI.create(parentNode, machine)
 
     // debugging
     const run = () => {

@@ -40,6 +40,7 @@ registerProcessor("limiter-processor", class extends AudioWorkletProcessor {
         this.envelope = 0.0
     }
 
+    // noinspection JSUnusedGlobalSymbols
     process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
         const buffer = this.buffer
         if (null === buffer) {

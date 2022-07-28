@@ -1,6 +1,6 @@
 import {ChannelIndex, Pattern, Step} from "../audio/tr909/pattern.js"
 import {elseIfUndefined} from "../lib/common.js"
-import {FunctionKeyIndex, KeyState, MainKeyIndex} from "./keys.js"
+import {KeyState, MainKeyIndex} from "./keys.js"
 
 interface StepModifier {
     weakFull(step: Step): Step
@@ -61,7 +61,7 @@ export class Utils {
             complex(MainKeyIndex.Step13, MainKeyIndex.Step14, InstrumentMode.HihatClosed, InstrumentMode.HihatOpened),
             simple(MainKeyIndex.Step15, InstrumentMode.Crash),
             simple(MainKeyIndex.Step16, InstrumentMode.Ride),
-            simple(MainKeyIndex.TotalAccent, InstrumentMode.TotalAccent)
+            simple(MainKeyIndex.CartridgeEnterTotalAccent, InstrumentMode.TotalAccent)
         ]
         return (keyIndices: Set<MainKeyIndex>) => elseIfUndefined(checks.map(check => check(keyIndices))
             .find(mode => mode != InstrumentMode.None), InstrumentMode.None)
@@ -100,7 +100,7 @@ export class Utils {
             return {channelIndex: ChannelIndex.Crash, step: Step.Full}
         } else if (keyIndex === MainKeyIndex.Step16) {
             return {channelIndex: ChannelIndex.Ride, step: Step.Full}
-        } else if (keyIndex === MainKeyIndex.TotalAccent) {
+        } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             throw new Error(`Total Accent cannot be played`)
         }
         throw new Error(`Unknown index(${keyIndex})`)
@@ -252,22 +252,10 @@ export class Utils {
             } else if (instrumentMode === InstrumentMode.Ride) {
                 return simple(keyIndex, MainKeyIndex.Step16)
             } else if (instrumentMode === InstrumentMode.TotalAccent) {
-                return simple(keyIndex, MainKeyIndex.TotalAccent)
+                return simple(keyIndex, MainKeyIndex.CartridgeEnterTotalAccent)
             } else {
                 throw new Error(`Unknown instrumentMode(${instrumentMode})`)
             }
-        }
-    }
-
-    static maySwitchToMode<T>(keyIndex: FunctionKeyIndex,
-                              zeroBasedIndices: FunctionKeyIndex[],
-                              switchMode: (index: number) => void): boolean {
-        const index: T | number = zeroBasedIndices.indexOf(keyIndex)
-        if (index === -1) {
-            return false
-        } else {
-            switchMode(index)
-            return true
         }
     }
 }

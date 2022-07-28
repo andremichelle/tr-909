@@ -1,24 +1,34 @@
 import {secondsToBars} from "../audio/common.js"
 import {Machine} from "../audio/tr909/machine.js"
-import {Pattern} from "../audio/tr909/pattern.js"
-import {Scale} from "../audio/tr909/scale.js"
-import {Events, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
+import {Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {MachineContext} from "./context.js"
+import {Display} from "./display.js"
+import {FunctionKeyIndex, Key, KeyGroup, MainKeyIndex} from "./keys.js"
 import {Knob} from "./knobs.js"
 
 export class GUI {
-    private readonly terminator
+    static create(parentNode: ParentNode, machine: Machine): GUI {
+        return new GUI(parentNode, machine, new MachineContext(machine,
+            new Display(HTML.query('svg[data-display=led-display]', parentNode)),
+            new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
+                HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
+                HTML.query('[data-control=main-key][data-parameter=total-accent]')]
+                .map((element: HTMLButtonElement) => new Key(element))
+            ),
+            new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
+                .map((element: HTMLButtonElement) => new Key(element))),
+            new Key(HTML.query('[data-button=shift-key]'))))
+    }
+
+    private readonly terminator: Terminator = new Terminator()
 
     readonly machineContext: MachineContext
 
     constructor(private readonly parentNode: ParentNode,
-                private readonly machine: Machine) {
-        this.terminator = new Terminator()
-        this.machineContext = MachineContext.create(machine, parentNode)
-
+                private readonly machine: Machine,
+                private readonly context: MachineContext) {
         this.installKnobs()
-        // this.installScale()
         this.installTransport()
         this.installAnimationSynchronizer()
     }
