@@ -36,6 +36,7 @@ export interface PatternFormat {
     scaleIndex: ScaleIndex
     shuffleIndex: ShuffleIndex
     flamIndex: FlamIndex
+    chained: boolean
 }
 
 export class Pattern implements Observable<void> {
@@ -52,6 +53,7 @@ export class Pattern implements Observable<void> {
     readonly lastStep = new ObservableValueImpl<number>(16)
     readonly flamIndex = new ObservableValueImpl<FlamIndex>(0)
     readonly shuffleIndex = new ObservableValueImpl<ShuffleIndex>(0)
+    readonly chained = new ObservableValueImpl<boolean>(false)
 
     private readonly observable
     private readonly listener: () => void
@@ -70,6 +72,7 @@ export class Pattern implements Observable<void> {
         this.terminator.with(this.lastStep.addObserver(this.listener, false))
         this.terminator.with(this.flamIndex.addObserver(this.listener, false))
         this.terminator.with(this.shuffleIndex.addObserver(this.listener, false))
+        this.terminator.with(this.chained.addObserver(this.listener, false))
     }
 
     testA() {
@@ -189,7 +192,8 @@ export class Pattern implements Observable<void> {
             scaleIndex: this.scale.get().index(),
             flamIndex: this.flamIndex.get(),
             lastStep: this.lastStep.get(),
-            shuffleIndex: this.shuffleIndex.get()
+            shuffleIndex: this.shuffleIndex.get(),
+            chained: this.chained.get()
         }
     }
 
@@ -204,6 +208,7 @@ export class Pattern implements Observable<void> {
         this.scale.set(Scale.getByIndex(format.scaleIndex))
         this.flamIndex.set(format.flamIndex)
         this.shuffleIndex.set(format.shuffleIndex)
+        this.chained.set(format.chained)
         this.observable.unmute()
         this.observable.notify()
     }

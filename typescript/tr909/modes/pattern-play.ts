@@ -29,11 +29,23 @@ export default class extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
-            this.context.memoryState().patternIndex.set(keyIndex as number as PatternIndex)
-            return true
+        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+            return false
         }
-        return false
+        if (this.context.pressedMainKeys.size === 1) {
+            this.context.memoryState().patternIndex.set(keyIndex as number as PatternIndex)
+        } else if (this.context.pressedMainKeys.size === 2) {
+            const tuple: MainKeyIndex[] = [...this.context.pressedMainKeys]
+            const start = Math.min(tuple[0], tuple[1])
+            const end = Math.max(tuple[0], tuple[1]) - 1
+            for (let index = start; index < end; index++) {
+                this.context.activeBank().patterns[index].chained.set(true)
+            }
+            this.context.memoryState().patternIndex.set(start as number as PatternIndex)
+        } else {
+            return false
+        }
+        return true
     }
 
     name(): string {

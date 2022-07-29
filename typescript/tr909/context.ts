@@ -35,6 +35,8 @@ import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
+type HoldKey = { type: 'main' | 'function', keyIndex: number }
+
 export class UIContext implements Terminable {
     private readonly terminator = new Terminator()
 
@@ -51,8 +53,7 @@ export class UIContext implements Terminable {
 
     readonly displayInput: Uint8Array
 
-    private readonly holdingKeys: Key[] = []
-    private emulateMultiKeys: boolean = false
+    readonly holdingKeys: Set<HoldKey> = new Set<HoldKey>()
 
     private mode: NonNullable<Mode>
 
@@ -77,6 +78,7 @@ export class UIContext implements Terminable {
         this.mode = new TrackPlayMode(this)
 
         this.installKeys()
+        this.installKeyboard()
         this.installKnobs()
         this.installTransport()
         this.installAnimationSynchronizer()
@@ -349,9 +351,6 @@ export class UIContext implements Terminable {
     }
 
     private onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
-        if (this.emulateMultiKeys) {
-            return
-        }
         console.debug(`onFunctionKeyRelease(${FunctionKeyIndex[keyIndex]})`)
         this.functionKeys.byIndex(keyIndex).setPressed(false)
         const labels = this.activeLabels[keyIndex]
@@ -391,21 +390,35 @@ export class UIContext implements Terminable {
                     this.mode.onMainKeyPress(keyIndex)
                 }
             }))
-            this.terminator.with(key.bind('pointerup', () => this.pressedMainKeys.delete(keyIndex)))
+            this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
+                if (event.altKey) {
+                    this.holdingKeys.add({type: 'main', keyIndex})
+                } else {
+                    this.pressedMainKeys.delete(keyIndex)
+                }
+            }))
         })
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
                 this.onFunctionKeyPress(keyIndex)
             }))
-            this.terminator.with(key.bind('pointerup', () => this.onFunctionKeyRelease(keyIndex)))
+            this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
+                if (event.altKey) {
+                    this.holdingKeys.add({type: 'function', keyIndex})
+                } else {
+                    this.onFunctionKeyRelease(keyIndex)
+                }
+            }))
         })
         this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
             this.shiftKey.setPointerCapture(event.pointerId)
             this.shiftMode.set(true)
         }))
         this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
+    }
 
+    private installKeyboard() {
         this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
             if (event.repeat) {
                 return
@@ -414,29 +427,31 @@ export class UIContext implements Terminable {
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftKey.setPressed(true)
                 this.shiftMode.set(true)
-            } else if (code === 'Tab') {
-                event.preventDefault()
-                this.emulateMultiKeys = true
             } else {
                 ifDefined(FunctionKeyboardShortcuts.get(code),
                     (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
             }
         }))
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
-            const code = event.code
-            if (code === 'ShiftLeft' || code === 'ShiftRight') {
-                this.shiftKey.setPressed(false)
-                this.shiftMode.set(false)
-                this.displayInput.fill(0)
-            } else if (code === 'Tab') {
-                if (this.emulateMultiKeys) {
-                    // TODO
-                    console.log(this.pressedMainKeys)
-                    this.emulateMultiKeys = false
-                }
+            if (!event.altKey && this.holdingKeys.size > 0) {
+                this.holdingKeys.forEach((hold: HoldKey) => {
+                    if (hold.type === 'main') {
+                        this.pressedMainKeys.delete(hold.keyIndex)
+                    } else if (hold.type === 'function') {
+                        this.onFunctionKeyRelease(hold.keyIndex)
+                    }
+                })
+                this.holdingKeys.clear()
             } else {
-                ifDefined(FunctionKeyboardShortcuts.get(code),
-                    (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
+                const code = event.code
+                if (code === 'ShiftLeft' || code === 'ShiftRight') {
+                    this.shiftKey.setPressed(false)
+                    this.shiftMode.set(false)
+                    this.displayInput.fill(0)
+                } else {
+                    ifDefined(FunctionKeyboardShortcuts.get(code),
+                        (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
+                }
             }
         }))
     }
