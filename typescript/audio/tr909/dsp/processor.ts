@@ -130,27 +130,38 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
         console.assert(step !== Step.None)
         switch (channelIndex) {
             case ChannelIndex.Bassdrum:
-                return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, this.resolveLevel(step, totalAccent))
+                return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate,
+                    this.resolveLevel(step, totalAccent))
             case ChannelIndex.Snaredrum:
-                return new SnaredrumVoice(this.resources, this.preset.snaredrum, sampleRate, this.resolveLevel(step, totalAccent))
+                return new SnaredrumVoice(this.resources, this.preset.snaredrum, sampleRate,
+                    this.resolveLevel(step, totalAccent))
             case ChannelIndex.TomLow:
-                return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, sampleRate, this.resolveLevel(step, totalAccent))
+                return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, sampleRate,
+                    0.030, this.resolveLevel(step, totalAccent))
             case ChannelIndex.TomMid:
-                return new BasicTuneDecayVoice(this.resources.tomMid, this.preset.tomMid, sampleRate, this.resolveLevel(step, totalAccent))
+                return new BasicTuneDecayVoice(this.resources.tomMid, this.preset.tomMid, sampleRate,
+                    0.030, this.resolveLevel(step, totalAccent))
             case ChannelIndex.TomHi:
-                return new BasicTuneDecayVoice(this.resources.tomHi, this.preset.tomHi, sampleRate, this.resolveLevel(step, totalAccent))
+                return new BasicTuneDecayVoice(this.resources.tomHi, this.preset.tomHi, sampleRate,
+                    0.030, this.resolveLevel(step, totalAccent))
             case ChannelIndex.Rim:
-                return new BasicTuneDecayVoice(this.resources.rim, this.preset.rim, sampleRate, this.resolveLevel(step, totalAccent))
+                return new BasicTuneDecayVoice(this.resources.rim, this.preset.rim, sampleRate,
+                    0, this.resolveLevel(step, totalAccent))
             case ChannelIndex.Clap:
-                return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, sampleRate, this.resolveLevel(step, totalAccent))
+                return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, sampleRate,
+                    0, this.resolveLevel(step, totalAccent))
             case ChannelIndex.Hihat:
                 return step === Step.Extra
-                    ? new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, sampleRate, this.resolveLevel(step, totalAccent))
-                    : new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, sampleRate, this.resolveLevel(step, totalAccent))
+                    ? new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, sampleRate,
+                        0.012, this.resolveLevel(step, totalAccent))
+                    : new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, sampleRate,
+                        0.006, this.resolveLevel(step, totalAccent))
             case ChannelIndex.Crash:
-                return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, sampleRate, this.resolveLevel(step, totalAccent))
+                return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, sampleRate,
+                    0, this.resolveLevel(step, totalAccent))
             case ChannelIndex.Ride:
-                return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, sampleRate, this.resolveLevel(step, totalAccent))
+                return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, sampleRate,
+                    0, this.resolveLevel(step, totalAccent))
         }
         throw new Error(`${channelIndex} not found.`)
     }

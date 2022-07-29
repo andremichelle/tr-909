@@ -4,32 +4,38 @@ import {ResourceSampleRate} from "../resources.js"
 import {isRunning, Voice} from "./voice.js"
 
 export class BasicTuneDecayVoice extends Voice {
-    private readonly rate: number
+    private readonly releaseStartFrame: number
     private readonly gainInterpolator: Interpolator
 
     private position: number
-    private gain: number
-    private gainCoefficient: number
+    private frame: number
+    private rate: number
+    private envelope: number
+    private envelopeCoefficient: number
 
     constructor(private readonly array: Float32Array,
                 preset: TomPreset | RimOrClapPreset | HihatPreset | CrashOrRidePreset,
                 sampleRate: number,
+                releaseStartTime: number,
                 level: decibel) {
         super(sampleRate)
 
+        this.releaseStartFrame = (releaseStartTime * sampleRate) | 0
         this.gainInterpolator = new Interpolator(sampleRate)
+        this.position = 0.0
+        this.frame = 0 | 0
+        this.rate = ResourceSampleRate / sampleRate
+        this.envelope = 1.0
+        this.envelopeCoefficient = 1.0
         this.terminator.with(preset.level.addObserver(value =>
             this.gainInterpolator.set(dbToGain(value + level), true), true))
-        this.gain = 1.0
-        this.gainCoefficient = 1.0
-        this.position = 0.0
-        this.rate = ResourceSampleRate / sampleRate
         if ('tune' in preset) {
-            this.rate *= Math.pow(2.0, preset.tune.get())
+            this.terminator.with(preset.tune.addObserver(value =>
+                this.rate = ResourceSampleRate / sampleRate * Math.pow(2.0, value), true))
         }
         if ('decay' in preset) {
             this.terminator.with(preset.decay.addObserver(value =>
-                this.gainCoefficient = Math.exp(-1.0 / (sampleRate * value)), true))
+                this.envelopeCoefficient = Math.exp(-1.0 / (sampleRate * value)), true))
         }
     }
 
@@ -44,10 +50,13 @@ export class BasicTuneDecayVoice extends Voice {
             if (pi >= this.array.length - 1) {
                 return false
             }
-            const p0 = this.array[pi]
-            output[i] += (p0 + (this.position - pi) * (this.array[pi + 1] - p0))
-                * this.gain * this.gainInterpolator.moveAndGet()
-            this.gain *= this.gainCoefficient
+            if (this.frame++ >= this.releaseStartFrame) {
+                this.envelope *= this.envelopeCoefficient
+            }
+            const v0 = this.array[pi]
+            const v1 = this.array[pi + 1]
+            const alpha = this.position - pi
+            output[i] += (v0 + alpha * (v1 - v0)) * this.envelope * this.gainInterpolator.moveAndGet()
             this.position += this.rate
         }
         return !this.gainInterpolator.equals(0.0)

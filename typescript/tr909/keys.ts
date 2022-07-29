@@ -30,6 +30,7 @@ export const FunctionKeyboardShortcuts = new Map<string, FunctionKeyIndex>([
     ['Digit6', FunctionKeyIndex.PatternGroup2],
     ['Digit7', FunctionKeyIndex.PatternGroup3],
     ['Digit8', FunctionKeyIndex.EmptyExtInst],
+    ['KeyT', FunctionKeyIndex.TempoStep],
     ['KeyL', FunctionKeyIndex.LastStep],
     ['KeyS', FunctionKeyIndex.ShuffleFlam],
     ['KeyC', FunctionKeyIndex.Clear],
