@@ -28,11 +28,11 @@ export class Track implements Serializer<TrackFormat>, Observable<void> {
         }
     }
 
-    insert(index: number, position: number = Number.MAX_SAFE_INTEGER): void {
-        if (position >= this.sequence.length) {
-            this.sequence.push(index)
+    writeInto(measure: number, index: number = Number.MAX_SAFE_INTEGER): void {
+        if (index >= this.sequence.length) {
+            this.sequence.push(measure)
         } else {
-            this.sequence[position] = index
+            this.sequence[index] = measure
         }
         this.observable.notify()
     }

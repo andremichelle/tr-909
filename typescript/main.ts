@@ -79,10 +79,10 @@ const showProgress = (() => {
     state.patternBy(0, 2).testC()
     state.patternBy(0, 3).testD()
     const track = state.activeBank().tracks[1]
-    track.insert(0)
-    track.insert(1)
-    track.insert(0)
-    track.insert(1)
+    track.writeInto(0)
+    track.writeInto(1)
+    track.writeInto(0)
+    track.writeInto(1)
 
     // debugging
     const run = () => {
