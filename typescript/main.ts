@@ -43,7 +43,7 @@ const showProgress = (() => {
     document.addEventListener('contextmenu', event => event.preventDefault())
     const resize = () => {
         document.body.style.height = `${window.innerHeight}px`
-        const padding = 16
+        const padding = 96
         let scale = Math.min(
             window.innerWidth / (parentNode.clientWidth + padding),
             window.innerHeight / (parentNode.clientHeight + padding))

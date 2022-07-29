@@ -75,7 +75,7 @@ export default class extends Mode {
     }
 
     name(): string {
-        return `Pattern Write (${this.inputMode.name()} > ${TransientEditing[this.transientEditing.get()]})`
+        return `Pattern Write (${this.inputMode.name()})`
     }
 }
 
@@ -137,7 +137,7 @@ class PatternSelectMode extends Mode {
     }
 
     name(): string {
-        return 'Pattern Select/Clear'
+        return 'Select/Clear'
     }
 }
 
