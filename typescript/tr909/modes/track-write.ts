@@ -1,4 +1,4 @@
-import {PatternGroupIndex, PatternIndex} from "../../audio/tr909/memory.js"
+import {PatternIndex} from "../../audio/tr909/memory.js"
 import {MachineContext} from "../context.js"
 import {DisplayValue} from "../display.js"
 import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
@@ -12,12 +12,9 @@ export default class extends Mode {
 
         this.context.updateBankGroupKeys(this.context.memoryState().bankGroupIndex.get())
         this.context.updateTrackKeys(this.context.memoryState().trackIndex.get(), true)
+        this.context.updateDisplay(this.getDisplayValue())
         this.with(this.context.startStepRunningAnimation())
         this.with(this.context.watchPatternLocationKeys())
-
-        this.with(this.context.memoryState().patternGroupIndex
-            .addObserver((patternGroupIndex: PatternGroupIndex) =>
-                this.context.updatePatternGroupKeys(patternGroupIndex, false), true))
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
@@ -34,13 +31,15 @@ export default class extends Mode {
         if (label == FunctionKeyLabel.Back) {
             if (this.writeIndex > 0) {
                 this.writeIndex--
+                this.context.updatePatternLocationKeys(this.context.memoryState().activeTrack().get(this.writeIndex))
                 this.context.updateDisplay()
                 return true
             }
         }
         if (label == FunctionKeyLabel.Forward) {
-            if (this.writeIndex > 0) {
-                this.writeIndex--
+            if (this.writeIndex < this.context.memoryState().activeTrack().size() - 1) {
+                this.writeIndex++
+                this.context.updatePatternLocationKeys(this.context.memoryState().activeTrack().get(this.writeIndex))
                 this.context.updateDisplay()
                 return true
             }
@@ -65,7 +64,7 @@ export default class extends Mode {
     }
 
     getDisplayValue(): DisplayValue {
-        return this.writeIndex
+        return this.writeIndex + 1
     }
 
     name(): string {
