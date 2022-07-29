@@ -137,6 +137,10 @@ export class Pattern implements Observable<void> {
         this.scale.set(this.scale.get().cycleNext())
     }
 
+    duration(): number {
+        return this.lastStep.get() * this.scale.get().value()
+    }
+
     clear() {
         console.debug('clear pattern')
         this.observable.mute()

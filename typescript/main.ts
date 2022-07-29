@@ -1,7 +1,9 @@
 import {LimiterWorklet} from "./audio/limiter/worklet.js"
 import {MeterWorklet, StereoMeterWorklet} from "./audio/meter/worklet.js"
 import {Machine} from "./audio/tr909/machine.js"
+import {Pattern} from "./audio/tr909/pattern.js"
 import {loadResources} from "./audio/tr909/resources.js"
+import {StepSequencer} from "./audio/tr909/sequencer.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
@@ -71,6 +73,18 @@ const showProgress = (() => {
     HTML.query('body').appendChild(meter.domElement)
 
     const gui = GUI.create(parentNode, machine)
+
+    /*const sequencer = new StepSequencer({
+        nextPattern(): Pattern | null {
+            console.log('nextPattern')
+            return null
+        },
+        onStep(stepIndex: number, position: number): void {
+            console.log(`onStep: (${stepIndex}, ${position})`)
+        }
+    })
+    sequencer.sequence(1.7)
+    // sequencer.sequence(0.7)*/
 
     // debugging
     const run = () => {

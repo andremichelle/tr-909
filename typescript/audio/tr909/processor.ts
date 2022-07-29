@@ -80,6 +80,10 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         return true
     }
 
+    // Patterns in TR-909 are always starting from phase zero
+    // 0 > next pattern
+    // index % lastStep === 0 > next pattern
+
     sequence(): void {
         const pattern: Pattern = this.patternProvider.pattern()
         if (pattern === null) {
@@ -119,15 +123,15 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 }
                 this.port.postMessage({type: "update-step", stepIndex: stepIndex} as ToMainMessage)
                 if (stepIndex + 1 === pattern.lastStep.get()) {
-                    this.patternProvider.onPatterComplete()
+                    this.patternProvider.nextPattern()
                 }
             }
             search = ++index * scale
         }
     }
 
-    schedulePlay(channelIndex: ChannelIndex, time: number, step: Step, totalAccent: boolean): void {
-        this.channels[channelIndex].schedulePlay(time, step, totalAccent)
+    schedulePlay(channelIndex: ChannelIndex, frameIndex: number, step: Step, totalAccent: boolean): void {
+        this.channels[channelIndex].schedulePlay(frameIndex, step, totalAccent)
     }
 
     advance() {

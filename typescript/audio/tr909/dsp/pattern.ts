@@ -7,7 +7,7 @@ export interface PatternProvider {
 
     pattern(): Pattern | null
 
-    onPatterComplete(): void
+    nextPattern(): void
 
     reevaluate(): void
 }
@@ -32,7 +32,7 @@ export class UserPatternSelect implements PatternProvider {
         return this.current
     }
 
-    onPatterComplete(): void {
+    nextPattern(): void {
         if (this.waiting === null) return
         this.current = this.waiting
         this.waiting = null
@@ -55,7 +55,7 @@ export class TrackPatternPlay implements PatternProvider {
         return this.current
     }
 
-    onPatterComplete(): void {
+    nextPattern(): void {
         const track: Track = this.state.activeTrack()
         if (++this.index >= track.size()) {
             if (this.state.cycleGuideMode.get()) {
