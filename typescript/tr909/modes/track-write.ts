@@ -25,21 +25,21 @@ export default class extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.AvailableMeasures) {
-            this.context.display.show(this.context.machine.memory.availableMeasures())
+            this.context.display.show(this.context.memory().availableMeasures())
             return true
         }
         if (label == FunctionKeyLabel.Back) {
             if (this.writeIndex > 0) {
                 this.writeIndex--
-                this.context.updatePatternLocationKeys(this.context.memoryState().activeTrack().get(this.writeIndex))
+                this.context.updatePatternLocationKeys(this.context.activeTrack().get(this.writeIndex))
                 this.context.updateDisplay()
                 return true
             }
         }
         if (label == FunctionKeyLabel.Forward) {
-            if (this.writeIndex < this.context.memoryState().activeTrack().size() - 1) {
+            if (this.writeIndex < this.context.activeTrack().size() - 1) {
                 this.writeIndex++
-                this.context.updatePatternLocationKeys(this.context.memoryState().activeTrack().get(this.writeIndex))
+                this.context.updatePatternLocationKeys(this.context.activeTrack().get(this.writeIndex))
                 this.context.updateDisplay()
                 return true
             }
@@ -55,12 +55,18 @@ export default class extends Mode {
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-            this.context.memoryState().activeTrack().insert(this.context.memoryState().patternIndex.get(), this.writeIndex++)
+            this.context.activeTrack().insert(this.context.memoryState().patternIndex.get(), this.writeIndex++)
             this.context.updateDisplay()
         } else {
             this.context.memoryState().patternIndex.set(keyIndex as number as PatternIndex)
         }
         return true
+    }
+
+    setMainKeyValue(value: number) {
+        if (value === 0) return
+        this.writeIndex = Math.min(value - 1, this.context.activeTrack().size() - 1)
+        this.context.updateDisplay()
     }
 
     getDisplayValue(): DisplayValue {

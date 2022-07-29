@@ -1,8 +1,9 @@
 import {Machine} from "../audio/tr909/machine.js"
-import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
+import {BankGroupIndex, Memory, MemoryBank, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
 import {Scale} from "../audio/tr909/scale.js"
 import {PlayMode, State} from "../audio/tr909/state.js"
+import {Track} from "../audio/tr909/track.js"
 import {
     ArrayUtils,
     Events,
@@ -41,6 +42,8 @@ export class MachineContext implements Terminable {
     readonly activeLabels: FunctionKeyLabel<any>[][] = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
     readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
 
+    readonly displayInput: Uint8Array = new Uint8Array(3)
+
     private mode: NonNullable<Mode> = new TrackPlayMode(this)
 
     constructor(readonly machine: Machine,
@@ -51,8 +54,20 @@ export class MachineContext implements Terminable {
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
-                this.pressedMainKeys.add(keyIndex)
-                this.mode.onMainKeyPress(keyIndex)
+                if (this.shiftMode.get()) {
+                    if (keyIndex <= MainKeyIndex.Step10) {
+                        this.displayInput[0] = this.displayInput[1]
+                        this.displayInput[1] = this.displayInput[2]
+                        this.displayInput[2] = (keyIndex + 1) % 10
+                        this.updateDisplay(this.displayInputValue())
+                    } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+                        this.mode.setMainKeyValue(this.displayInputValue())
+                        this.displayInput.fill(0)
+                    }
+                } else {
+                    this.pressedMainKeys.add(keyIndex)
+                    this.mode.onMainKeyPress(keyIndex)
+                }
             }))
             this.terminator.with(key.bind('pointerup', () => this.pressedMainKeys.delete(keyIndex)))
         })
@@ -87,6 +102,7 @@ export class MachineContext implements Terminable {
             if (code === 'ShiftLeft' || code === 'ShiftRight') {
                 this.shiftKey.setPressed(false)
                 this.shiftMode.set(false)
+                this.displayInput.fill(0)
             } else {
                 ifDefined(FunctionKeyboardShortcuts.get(code),
                     (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
@@ -121,8 +137,24 @@ export class MachineContext implements Terminable {
         return this.machine.transport.isPlaying()
     }
 
+    memory(): Memory {
+        return this.machine.memory
+    }
+
     memoryState(): State {
-        return this.machine.memory.state
+        return this.memory().state
+    }
+
+    activeBank(): MemoryBank {
+        return this.memoryState().activeBank()
+    }
+
+    activeTrack(): Track {
+        return this.memoryState().activeTrack()
+    }
+
+    activePattern(): Pattern {
+        return this.memoryState().activePattern()
     }
 
     maySwitchToTrackPlayMode(label: FunctionKeyLabel<any>): boolean {
@@ -363,4 +395,6 @@ export class MachineContext implements Terminable {
         exec(choices[index].value)
         return true
     }
+
+    private readonly displayInputValue = (): number => this.displayInput[0] * 100 + this.displayInput[1] * 10 + this.displayInput[2]
 }

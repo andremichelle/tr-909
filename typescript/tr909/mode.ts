@@ -22,6 +22,9 @@ export abstract class Mode implements Terminable {
         return false
     }
 
+    setMainKeyValue(value: number): void {
+    }
+
     getDisplayValue(): DisplayValue {
         return 'none'
     }
