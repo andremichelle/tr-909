@@ -1,5 +1,5 @@
 import {Terminable, Terminator} from "../lib/common.js"
-import {MachineContext} from "./context.js"
+import {UIContext} from "./context.js"
 import {DisplayValue} from "./display.js"
 import {FunctionKeyLabel, MainKeyIndex} from "./keys.js"
 
@@ -8,7 +8,7 @@ export type consumed = boolean
 export abstract class Mode implements Terminable {
     private readonly terminator: Terminator = new Terminator()
 
-    protected constructor(readonly context: MachineContext) {
+    protected constructor(readonly context: UIContext) {
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {

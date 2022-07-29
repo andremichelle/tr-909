@@ -5,7 +5,7 @@ import {loadResources} from "./audio/tr909/resources.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
-import {GUI} from "./tr909/gui.js"
+import {UIContext} from "./tr909/context.js"
 
 const showProgress = (() => {
         const progress: SVGSVGElement = document.querySelector("svg.preloader")
@@ -63,14 +63,13 @@ const showProgress = (() => {
     console.debug("boot complete.")
 
     const machine = new Machine(context, getResources())
+    const interfaceContext: UIContext = new UIContext(machine, parentNode)
 
     const meter = new StereoMeterWorklet(context)
     machine.master.connect(meter).connect(context.destination)
 
     meter.domElement.classList.add('meter')
     HTML.query('body').appendChild(meter.domElement)
-
-    const gui = GUI.create(parentNode, machine)
 
     // TODO > Test Data < REMOVE WHEN DONE TESTING
     const state = machine.memory.state
@@ -86,9 +85,9 @@ const showProgress = (() => {
 
     // debugging
     const run = () => {
-        debugMode.textContent = gui.context.modeName()
+        debugMode.textContent = interfaceContext.modeName()
         debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
-        debugInstrument.textContent = gui.context.instrumentMode.get().name
+        debugInstrument.textContent = interfaceContext.instrumentMode.get().name
         requestAnimationFrame(run)
     }
     requestAnimationFrame(run)

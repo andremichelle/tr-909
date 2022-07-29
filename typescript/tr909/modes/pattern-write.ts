@@ -1,6 +1,6 @@
 import {FlamIndex, Pattern, ShuffleIndex, Step} from "../../audio/tr909/pattern.js"
 import {ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
-import {MachineContext} from "../context.js"
+import {UIContext} from "../context.js"
 import {FunctionKeyLabel, Key, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"
 import {consumed, Mode} from "../mode.js"
 import {InstrumentMode, Utils} from "../utils.js"
@@ -14,7 +14,7 @@ export default class extends Mode {
 
     private inputMode: NonNullable<Mode>
 
-    constructor(context: MachineContext) {
+    constructor(context: UIContext) {
         super(context)
 
         this.context.updateDisplay('none')
@@ -88,7 +88,7 @@ class Idle extends Mode {
 class PatternSelectMode extends Mode {
     private clear: boolean = false
 
-    constructor(context: MachineContext) {
+    constructor(context: UIContext) {
         super(context)
 
         console.assert(!context.machine.transport.isPlaying())
@@ -145,7 +145,7 @@ class StepInputMode extends Mode {
     private editLastStep: boolean = false
     private clearSubscription: Terminable = TerminableVoid
 
-    constructor(context: MachineContext, readonly transientEdit: ObservableValue<TransientEditing>) {
+    constructor(context: UIContext, readonly transientEdit: ObservableValue<TransientEditing>) {
         super(context)
 
         this.with(this.context.watchPatternStepsKeys())
@@ -216,7 +216,7 @@ class TapInputMode extends Mode {
     private clearPressed: boolean = false
     private clearSubscription: Terminable = TerminableVoid
 
-    constructor(context: MachineContext, readonly transientEdit: ObservableValue<TransientEditing>) {
+    constructor(context: UIContext, readonly transientEdit: ObservableValue<TransientEditing>) {
         super(context)
 
         this.context.resetMainKeys()
@@ -281,7 +281,7 @@ class TapInputMode extends Mode {
 class ShuffleFlamInput extends Mode {
     private readonly subscriptions: Terminator = this.with(new Terminator())
 
-    constructor(context: MachineContext, readonly transientEditor: ObservableValue<TransientEditing>) {
+    constructor(context: UIContext, readonly transientEditor: ObservableValue<TransientEditing>) {
         super(context)
 
         const state = this.context.memoryState()
@@ -332,7 +332,7 @@ class ShuffleFlamInput extends Mode {
 }
 
 class InstrumentSelectInput extends Mode {
-    constructor(context: MachineContext, readonly transientEditor: ObservableValue<TransientEditing>) {
+    constructor(context: UIContext, readonly transientEditor: ObservableValue<TransientEditing>) {
         super(context)
 
         this.with(this.context.instrumentMode.addObserver((instrumentMode: InstrumentMode) => {

@@ -1,3 +1,4 @@
+import {secondsToBars} from "../audio/common.js"
 import {Machine} from "../audio/tr909/machine.js"
 import {BankGroupIndex, Memory, MemoryBank, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
@@ -26,6 +27,7 @@ import {
     PatternEditMode,
     ZeroBasedIndices
 } from "./keys.js"
+import {Knob} from "./knobs.js"
 import {Mode} from "./mode.js"
 import PatternPlayMode from "./modes/pattern-play.js"
 import PatternWriteMode from "./modes/pattern-write.js"
@@ -33,81 +35,52 @@ import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
-export class MachineContext implements Terminable {
+export class UIContext implements Terminable {
     private readonly terminator = new Terminator()
 
-    readonly instrumentMode: ObservableValueImpl<InstrumentMode> = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
-    readonly patternEditMode: ObservableValueImpl<PatternEditMode> = new ObservableValueImpl<PatternEditMode>(PatternEditMode.Step)
-    readonly pressedMainKeys: Set<MainKeyIndex> = new Set<MainKeyIndex>()
-    readonly activeLabels: FunctionKeyLabel<any>[][] = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
-    readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
+    readonly display: Display
+    readonly mainKeys: KeyGroup<MainKeyIndex>
+    readonly functionKeys: KeyGroup<FunctionKeyIndex>
+    readonly shiftKey: Key
 
-    readonly displayInput: Uint8Array = new Uint8Array(3)
+    readonly instrumentMode: ObservableValueImpl<InstrumentMode>
+    readonly patternEditMode: ObservableValueImpl<PatternEditMode>
+    readonly pressedMainKeys: Set<MainKeyIndex>
+    readonly activeLabels: FunctionKeyLabel<any>[][]
+    readonly shiftMode: ObservableValueImpl<boolean>
 
-    private mode: NonNullable<Mode> = new TrackPlayMode(this)
+    readonly displayInput: Uint8Array
+
+    private readonly holdingKeys: Key[] = []
+    private emulateMultiKeys: boolean = false
+
+    private mode: NonNullable<Mode>
 
     constructor(readonly machine: Machine,
-                readonly display: Display,
-                readonly mainKeys: KeyGroup<MainKeyIndex>,
-                readonly functionKeys: KeyGroup<FunctionKeyIndex>,
-                readonly shiftKey: Key) {
-        this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
-            this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
-                key.setPointerCapture(event.pointerId)
-                if (this.shiftMode.get()) {
-                    if (keyIndex <= MainKeyIndex.Step10) {
-                        this.displayInput[0] = this.displayInput[1]
-                        this.displayInput[1] = this.displayInput[2]
-                        this.displayInput[2] = (keyIndex + 1) % 10
-                        this.updateDisplay(this.displayInputValue())
-                    } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-                        this.mode.setMainKeyValue(this.displayInputValue())
-                        this.displayInput.fill(0)
-                    }
-                } else {
-                    this.pressedMainKeys.add(keyIndex)
-                    this.mode.onMainKeyPress(keyIndex)
-                }
-            }))
-            this.terminator.with(key.bind('pointerup', () => this.pressedMainKeys.delete(keyIndex)))
-        })
-        this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
-            this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
-                key.setPointerCapture(event.pointerId)
-                this.onFunctionKeyPress(keyIndex)
-            }))
-            this.terminator.with(key.bind('pointerup', () => this.onFunctionKeyRelease(keyIndex)))
-        })
-        this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
-            this.shiftKey.setPointerCapture(event.pointerId)
-            this.shiftMode.set(true)
-        }))
-        this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
+                readonly parentNode: ParentNode) {
+        this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode))
+        this.mainKeys = new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
+            HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
+            HTML.query('[data-control=main-key][data-parameter=total-accent]')]
+            .map((element: HTMLButtonElement) => new Key(element)))
+        this.functionKeys = new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
+            .map((element: HTMLButtonElement) => new Key(element)))
+        this.shiftKey = new Key(HTML.query('[data-button=shift-key]'))
 
-        this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
-            if (event.repeat) {
-                return
-            }
-            const code = event.code
-            if (code === 'ShiftLeft' || code === 'ShiftRight') {
-                this.shiftKey.setPressed(true)
-                this.shiftMode.set(true)
-            } else {
-                ifDefined(FunctionKeyboardShortcuts.get(code),
-                    (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
-            }
-        }))
-        this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
-            const code = event.code
-            if (code === 'ShiftLeft' || code === 'ShiftRight') {
-                this.shiftKey.setPressed(false)
-                this.shiftMode.set(false)
-                this.displayInput.fill(0)
-            } else {
-                ifDefined(FunctionKeyboardShortcuts.get(code),
-                    (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
-            }
-        }))
+        this.instrumentMode = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
+        this.patternEditMode = new ObservableValueImpl<PatternEditMode>(PatternEditMode.Step)
+        this.pressedMainKeys = new Set<MainKeyIndex>()
+        this.activeLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
+        this.shiftMode = new ObservableValueImpl<boolean>(false)
+        this.displayInput = new Uint8Array(3)
+
+        this.mode = new TrackPlayMode(this)
+
+        this.installKeys()
+        this.installKnobs()
+        this.installTransport()
+        this.installAnimationSynchronizer()
+
         //
         // Key states for all modes...
         //
@@ -158,35 +131,35 @@ export class MachineContext implements Terminable {
     }
 
     maySwitchToTrackPlayMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.switchToTrackPlayMode(index))
+        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.switchToTrackPlayMode(index))
     }
 
     maySwitchToTrackWriteMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.TrackWrite, index => this.switchToTrackWriteMode(index))
+        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.TrackWrite, index => this.switchToTrackWriteMode(index))
     }
 
     maySwitchToPatternPlayMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.switchToPatternPlayMode(index))
+        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.switchToPatternPlayMode(index))
     }
 
     maySwitchToPatternWriteMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternWrite, index => this.switchToPatternWriteMode(index))
+        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.PatternWrite, index => this.switchToPatternWriteMode(index))
     }
 
     maySwitchTrackIndex(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.machine.memory.state.trackIndex.set(index))
+        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.machine.memory.state.trackIndex.set(index))
     }
 
     maySwitchBankGroupIndex(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.BankGroup, index => this.machine.memory.state.bankGroupIndex.set(index))
+        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.BankGroup, index => this.machine.memory.state.bankGroupIndex.set(index))
     }
 
     maySwitchPatternGroupIndex(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.machine.memory.state.patternGroupIndex.set(index))
+        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.machine.memory.state.patternGroupIndex.set(index))
     }
 
     maySwitchPatternEditMode(label: FunctionKeyLabel<any>): boolean {
-        return MachineContext.mayExecWithIndex(label, FunctionKeyLabel.PatternEditMode, index => this.patternEditMode.set(index))
+        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.PatternEditMode, index => this.patternEditMode.set(index))
     }
 
     mayToggle(label: FunctionKeyLabel<any>,
@@ -376,6 +349,9 @@ export class MachineContext implements Terminable {
     }
 
     private onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
+        if (this.emulateMultiKeys) {
+            return
+        }
         console.debug(`onFunctionKeyRelease(${FunctionKeyIndex[keyIndex]})`)
         this.functionKeys.byIndex(keyIndex).setPressed(false)
         const labels = this.activeLabels[keyIndex]
@@ -394,6 +370,164 @@ export class MachineContext implements Terminable {
         if (index === -1) return false
         exec(choices[index].value)
         return true
+    }
+
+    private installKeys(): void {
+        this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
+            this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
+                key.setPointerCapture(event.pointerId)
+                if (this.shiftMode.get()) {
+                    if (keyIndex <= MainKeyIndex.Step10) {
+                        this.displayInput[0] = this.displayInput[1]
+                        this.displayInput[1] = this.displayInput[2]
+                        this.displayInput[2] = (keyIndex + 1) % 10
+                        this.updateDisplay(this.displayInputValue())
+                    } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+                        this.mode.setMainKeyValue(this.displayInputValue())
+                        this.displayInput.fill(0)
+                    }
+                } else {
+                    this.pressedMainKeys.add(keyIndex)
+                    this.mode.onMainKeyPress(keyIndex)
+                }
+            }))
+            this.terminator.with(key.bind('pointerup', () => this.pressedMainKeys.delete(keyIndex)))
+        })
+        this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
+            this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
+                key.setPointerCapture(event.pointerId)
+                this.onFunctionKeyPress(keyIndex)
+            }))
+            this.terminator.with(key.bind('pointerup', () => this.onFunctionKeyRelease(keyIndex)))
+        })
+        this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
+            this.shiftKey.setPointerCapture(event.pointerId)
+            this.shiftMode.set(true)
+        }))
+        this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
+
+        this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
+            if (event.repeat) {
+                return
+            }
+            const code = event.code
+            if (code === 'ShiftLeft' || code === 'ShiftRight') {
+                this.shiftKey.setPressed(true)
+                this.shiftMode.set(true)
+            } else if (code === 'Tab') {
+                event.preventDefault()
+                this.emulateMultiKeys = true
+            } else {
+                ifDefined(FunctionKeyboardShortcuts.get(code),
+                    (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
+            }
+        }))
+        this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
+            const code = event.code
+            if (code === 'ShiftLeft' || code === 'ShiftRight') {
+                this.shiftKey.setPressed(false)
+                this.shiftMode.set(false)
+                this.displayInput.fill(0)
+            } else if (code === 'Tab') {
+                if (this.emulateMultiKeys) {
+                    // TODO
+                    console.log(this.pressedMainKeys)
+                    this.emulateMultiKeys = false
+                }
+            } else {
+                ifDefined(FunctionKeyboardShortcuts.get(code),
+                    (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
+            }
+        }))
+    }
+
+    private installKnobs(): void {
+        const terminator = this.terminator
+        const parentNode = this.parentNode
+        const preset = this.machine.preset
+        terminator.with(new Knob(HTML.query('[data-parameter=tempo]', parentNode), preset.tempo))
+        terminator.with(new Knob(HTML.query('[data-parameter=volume]', parentNode), preset.volume))
+        terminator.with(new Knob(HTML.query('[data-instrument=global] [data-parameter=accent]', parentNode), preset.accent))
+        const bassdrumGroup = HTML.query('[data-instrument=bassdrum]', parentNode)
+        terminator.with(new Knob(HTML.query('[data-parameter=tune]', bassdrumGroup), preset.bassdrum.tune))
+        terminator.with(new Knob(HTML.query('[data-parameter=level]', bassdrumGroup), preset.bassdrum.level))
+        terminator.with(new Knob(HTML.query('[data-parameter=attack]', bassdrumGroup), preset.bassdrum.attack))
+        terminator.with(new Knob(HTML.query('[data-parameter=decay]', bassdrumGroup), preset.bassdrum.decay))
+        const snaredrumGroup = HTML.query('[data-instrument=snaredrum]', parentNode)
+        terminator.with(new Knob(HTML.query('[data-parameter=tune]', snaredrumGroup), preset.snaredrum.tune))
+        terminator.with(new Knob(HTML.query('[data-parameter=level]', snaredrumGroup), preset.snaredrum.level))
+        terminator.with(new Knob(HTML.query('[data-parameter=tone]', snaredrumGroup), preset.snaredrum.tone))
+        terminator.with(new Knob(HTML.query('[data-parameter=snappy]', snaredrumGroup), preset.snaredrum.snappy))
+        const tomLowGroup = HTML.query('[data-instrument=low-tom]', parentNode)
+        terminator.with(new Knob(HTML.query('[data-parameter=tune]', tomLowGroup), preset.tomLow.tune))
+        terminator.with(new Knob(HTML.query('[data-parameter=level]', tomLowGroup), preset.tomLow.level))
+        terminator.with(new Knob(HTML.query('[data-parameter=decay]', tomLowGroup), preset.tomLow.decay))
+        const tomMidGroup = HTML.query('[data-instrument=mid-tom]', parentNode)
+        terminator.with(new Knob(HTML.query('[data-parameter=tune]', tomMidGroup), preset.tomMid.tune))
+        terminator.with(new Knob(HTML.query('[data-parameter=level]', tomMidGroup), preset.tomMid.level))
+        terminator.with(new Knob(HTML.query('[data-parameter=decay]', tomMidGroup), preset.tomMid.decay))
+        const tomHiGroup = HTML.query('[data-instrument=hi-tom]', parentNode)
+        terminator.with(new Knob(HTML.query('[data-parameter=tune]', tomHiGroup), preset.tomHi.tune))
+        terminator.with(new Knob(HTML.query('[data-parameter=level]', tomHiGroup), preset.tomHi.level))
+        terminator.with(new Knob(HTML.query('[data-parameter=decay]', tomHiGroup), preset.tomHi.decay))
+        const rimClapGroup = HTML.query('[data-instrument=rim-clap]', parentNode)
+        terminator.with(new Knob(HTML.query('[data-parameter=rim-level]', rimClapGroup), preset.rim.level))
+        terminator.with(new Knob(HTML.query('[data-parameter=clap-level]', rimClapGroup), preset.clap.level))
+        const hihatGroup = HTML.query('[data-instrument=hihat]', parentNode)
+        terminator.with(new Knob(HTML.query('[data-parameter=level]', hihatGroup), preset.hihatLevel))
+        terminator.with(new Knob(HTML.query('[data-parameter=cl-decay]', hihatGroup), preset.closedHihat.decay))
+        terminator.with(new Knob(HTML.query('[data-parameter=op-decay]', hihatGroup), preset.openedHihat.decay))
+        const cymbalParent = HTML.query('[data-instrument=cymbal]', parentNode)
+        terminator.with(new Knob(HTML.query('[data-parameter=crash-level]', cymbalParent), preset.crash.level))
+        terminator.with(new Knob(HTML.query('[data-parameter=ride-level]', cymbalParent), preset.ride.level))
+        terminator.with(new Knob(HTML.query('[data-parameter=crash-tune]', cymbalParent), preset.crash.tune))
+        terminator.with(new Knob(HTML.query('[data-parameter=ride-tune]', cymbalParent), preset.ride.tune))
+    }
+
+    private installTransport() {
+        // Use Events and terminate
+        const transport = this.machine.transport
+        HTML.query('button[data-control=transport-start]', this.parentNode)
+            .addEventListener('pointerdown', () => {
+                if (!transport.isPlaying()) {
+                    transport.moveTo(0.0)
+                    transport.play()
+                }
+            })
+        HTML.query('button[data-control=transport-stop-continue]', this.parentNode)
+            .addEventListener('pointerdown', () => transport.togglePlayback())
+        window.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.code === 'Space' && !event.repeat) {
+                transport.togglePlayback()
+            }
+        })
+    }
+
+    private installAnimationSynchronizer(): void {
+        let running = true
+        let blink = true
+        let frame: number = 0 | 0
+        let position: number = 0.0
+        let lastTime: number = Date.now()
+        const next = () => {
+            const now = Date.now()
+            const elapsedTime = (now - lastTime) / 1000.0
+            position += secondsToBars(elapsedTime, this.machine.preset.tempo.get()) * 8.0
+            lastTime = now
+            if (position >= 1.0) {
+                HTML.queryAll('.blink-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', blink))
+                blink = !blink
+                position -= 1.0
+            }
+            const flash: boolean = frame % 4 < 2
+            HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash))
+            frame++
+            if (running) {
+                requestAnimationFrame(next)
+            }
+        }
+        requestAnimationFrame(next)
+        this.terminator.with({terminate: () => running = false})
     }
 
     private readonly displayInputValue = (): number => this.displayInput[0] * 100 + this.displayInput[1] * 10 + this.displayInput[2]

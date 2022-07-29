@@ -1,5 +1,5 @@
 import {PatternIndex} from "../../audio/tr909/memory.js"
-import {MachineContext} from "../context.js"
+import {UIContext} from "../context.js"
 import {DisplayValue} from "../display.js"
 import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
 import {consumed, Mode} from "../mode.js"
@@ -7,7 +7,7 @@ import {consumed, Mode} from "../mode.js"
 export default class extends Mode {
     private writeIndex: number = 0
 
-    constructor(context: MachineContext) {
+    constructor(context: UIContext) {
         super(context)
 
         this.context.updateBankGroupKeys(this.context.memoryState().bankGroupIndex.get())

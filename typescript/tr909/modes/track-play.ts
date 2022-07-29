@@ -1,10 +1,10 @@
 import {BankGroupIndex, TrackIndex} from "../../audio/tr909/memory.js"
-import {MachineContext} from "../context.js"
+import {UIContext} from "../context.js"
 import {FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices,} from "../keys.js"
 import {consumed, Mode} from "../mode.js"
 
 export default class extends Mode {
-    constructor(context: MachineContext) {
+    constructor(context: UIContext) {
         super(context)
 
         this.with(this.context.startStepRunningAnimation())
