@@ -7,7 +7,7 @@ export interface PatternProvider {
 
     pattern(): Pattern | null
 
-    nextPattern(): void
+    next(): void
 
     reevaluate(): void
 }
@@ -32,7 +32,7 @@ export class UserPatternSelect implements PatternProvider {
         return this.current
     }
 
-    nextPattern(): void {
+    next(): void {
         if (this.waiting === null) return
         this.current = this.waiting
         this.waiting = null
@@ -55,22 +55,33 @@ export class TrackPatternPlay implements PatternProvider {
         return this.current
     }
 
-    nextPattern(): void {
+    next(): void {
         const track: Track = this.state.activeTrack()
-        if (++this.index >= track.size()) {
-            if (this.state.cycleGuideMode.get()) {
-                this.current = this.state.activeBank().patterns[track.get(this.index = 0)]
-            } else {
-                this.current = null
-            }
+        if (track.isEmpty()) {
+            this.index = 0
+            this.current = null
         } else {
-            this.current = this.state.activeBank().patterns[track.get(this.index)]
+            const patterns = this.state.activeBank().patterns
+            if (this.index < track.size()) {
+                this.current = patterns[track.get(this.index++)]
+            } else {
+                if (this.state.cycleGuideMode.get()) {
+                    this.index = 0
+                    this.current = track.isEmpty() ? null : patterns[track.get(this.index++)]
+                } else {
+                    this.current = null
+                }
+            }
         }
     }
 
     reevaluate(): void {
         const track = this.state.activeTrack()
         const patterns = this.state.activeBank().patterns
-        this.current = track.isEmpty() ? null : patterns[track.get(this.index)]
+        this.current = track.isEmpty()
+            ? null
+            : this.index < track.size()
+                ? patterns[track.get(this.index)]
+                : null
     }
 }

@@ -81,15 +81,6 @@ export class Machine implements Terminable {
             }
         }
         this.startScheduler()
-
-        // TODO > Test Data < REMOVE WHEN DONE TESTING
-        this.memory.state.patternBy(0, 0).testA()
-        this.memory.state.patternBy(0, 1).testB()
-        const track = this.memory.state.activeBank().tracks[1]
-        track.insert(0)
-        track.insert(1)
-        track.insert(0)
-        track.insert(1)
     }
 
     play(channelIndex: ChannelIndex, step: Step) {

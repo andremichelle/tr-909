@@ -12,20 +12,21 @@ import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {ChannelIndex, Pattern, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
+import {StepSequencer, StepSequencerEnv} from "./sequencer.js"
 import {PlayMode} from "./state.js"
 
 const LevelMapping = new Linear(-18.0, 0.0) // min active, half accent, full, accent + total accent
 
-registerProcessor('tr-909', class extends AudioWorkletProcessor implements VoiceFactory {
+registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepSequencerEnv, VoiceFactory {
     private readonly resources: Resources
     private readonly preset: Preset
     private readonly memory: Memory
     private readonly channels: Channel[]
+    private readonly sequencer: StepSequencer
 
-    private patternProvider: PatternProvider = null
+    private patternProvider: PatternProvider
     private moving: boolean = false
     private bpm: number = 120.0
-    private bar: number = 0.0
     private barIncrement: number = 0.0
     private frameIndex: number = 0 | 0
 
@@ -43,6 +44,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             ? this.patternProvider = new TrackPatternPlay(this.memory.state)
             : this.patternProvider = new UserPatternSelect(this.memory.state, () => this.moving), true)
         this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
+        this.sequencer = new StepSequencer(this)
 
         this.port.onmessage = (event: MessageEvent) => {
             const message: ToWorkletMessage | TransportMessage = event.data
@@ -61,7 +63,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             } else if (message.type === "transport-pause") {
                 this.moving = false
             } else if (message.type === "transport-move") {
-                this.bar = message.position
+                this.sequencer.moveTo(message.position)
             } else if (message.type === "play-channel") {
                 this.schedulePlay(message.channelIndex, this.frameIndex, message.step, false)
             }
@@ -71,8 +73,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     // noinspection JSUnusedGlobalSymbols
     process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
         if (this.moving) {
-            this.sequence()
-            this.advance()
+            this.sequencer.sequence(this.barIncrement)
         }
         this.channels.forEach((channel: Channel, index: number) =>
             channel.process(outputs[index][0], this.frameIndex, this.frameIndex + RENDER_QUANTUM))
@@ -80,62 +81,41 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         return true
     }
 
-    // Patterns in TR-909 are always starting from phase zero
-    // 0 > next pattern
-    // index % lastStep === 0 > next pattern
+    currentPattern(): Pattern | null {
+        return this.patternProvider.pattern()
+    }
 
-    sequence(): void {
-        const pattern: Pattern = this.patternProvider.pattern()
-        if (pattern === null) {
-            return
-        }
+    nextPattern(): void {
+        this.patternProvider.next()
+    }
+
+    onPatternStep(pattern: Pattern, stepIndex: number, position: number): void {
         const cycleGuideMode = this.memory.state.cycleGuideMode.get()
-        const scale = pattern.scale.get().value()
-        const b0 = this.bar
-        const b1 = b0 + this.barIncrement
-        const t0 = pattern.shuffleInverse(b0)
-        const t1 = pattern.shuffleInverse(b1)
-        let index = Math.floor(t0 / scale)
-        let search = index * scale
-        while (search < t1) {
-            if (search >= t0) {
-                const stepIndex = index % pattern.lastStep.get()
-                const bar = pattern.shuffleTransform(search)
-                const frameIndex = this.frameIndex + Math.floor(barsToNumFrames(bar - b0, this.bpm, sampleRate))
-                const frameIndexDelayed = frameIndex + Pattern.FlamDelays[pattern.flamIndex.get()] / 1000.0 * sampleRate
-                const totalAccent: boolean = pattern.isTotalAccent(stepIndex)
-                for (let channelIndex = 0; channelIndex < ChannelIndex.End; channelIndex++) {
-                    if (cycleGuideMode && channelIndex === ChannelIndex.Rim && stepIndex % 4 === 0) { // TODO Only when pattern-write tap-mode
-                        this.schedulePlay(channelIndex, frameIndex, stepIndex === 0
-                            ? Step.Full
-                            : Step.Weak, totalAccent)
-                        continue
-                    }
-                    const step: Step = pattern.getStep(channelIndex, stepIndex)
-                    if (step === Step.None) {
-                        continue
-                    }
-                    this.schedulePlay(channelIndex, frameIndex, step, totalAccent)
-                    // FLAM
-                    if (channelIndex !== ChannelIndex.Hihat && step === Step.Extra) {
-                        this.schedulePlay(channelIndex, frameIndexDelayed, step, totalAccent)
-                    }
-                }
-                this.port.postMessage({type: "update-step", stepIndex: stepIndex} as ToMainMessage)
-                if (stepIndex + 1 === pattern.lastStep.get()) {
-                    this.patternProvider.nextPattern()
-                }
+        const frameIndex = this.frameIndex + Math.floor(barsToNumFrames(position, this.bpm, sampleRate))
+        const frameIndexDelayed = frameIndex + Pattern.FlamDelays[pattern.flamIndex.get()] / 1000.0 * sampleRate
+        const totalAccent: boolean = pattern.isTotalAccent(stepIndex)
+        for (let channelIndex = 0; channelIndex < ChannelIndex.End; channelIndex++) {
+            if (cycleGuideMode && channelIndex === ChannelIndex.Rim && stepIndex % 4 === 0) { // TODO Only when pattern-write tap-mode
+                this.schedulePlay(channelIndex, frameIndex, stepIndex === 0
+                    ? Step.Full
+                    : Step.Weak, totalAccent)
+                continue
             }
-            search = ++index * scale
+            const step: Step = pattern.getStep(channelIndex, stepIndex)
+            if (step === Step.None) {
+                continue
+            }
+            this.schedulePlay(channelIndex, frameIndex, step, totalAccent)
+            // FLAM
+            if (channelIndex !== ChannelIndex.Hihat && step === Step.Extra) {
+                this.schedulePlay(channelIndex, frameIndexDelayed, step, totalAccent)
+            }
         }
+        this.port.postMessage({type: "update-step", stepIndex: stepIndex} as ToMainMessage)
     }
 
     schedulePlay(channelIndex: ChannelIndex, frameIndex: number, step: Step, totalAccent: boolean): void {
         this.channels[channelIndex].schedulePlay(frameIndex, step, totalAccent)
-    }
-
-    advance() {
-        this.bar += this.barIncrement
     }
 
     resolveLevel(step: Step, totalAccent: boolean): number {

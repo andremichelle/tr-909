@@ -6,7 +6,7 @@ import {consumed, Mode} from "../mode.js"
 import {InstrumentMode, Utils} from "../utils.js"
 
 enum TransientEditing {
-    Off, LastStep, ShuffleFlam, InstrumentSelect
+    Off, ShuffleFlam, InstrumentSelect
 }
 
 export default class extends Mode {
@@ -142,6 +142,7 @@ class PatternSelectMode extends Mode {
 }
 
 class StepInputMode extends Mode {
+    private editLastStep: boolean = false
     private clearSubscription: Terminable = TerminableVoid
 
     constructor(context: MachineContext, readonly transientEdit: ObservableValue<TransientEditing>) {
@@ -157,7 +158,7 @@ class StepInputMode extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.LastStep) {
-            this.transientEdit.set(TransientEditing.LastStep)
+            this.editLastStep = true
             return true
         }
         if (label === FunctionKeyLabel.Scale) {
@@ -187,14 +188,20 @@ class StepInputMode extends Mode {
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
         if (label === FunctionKeyLabel.Clear) {
             this.clearSubscription.terminate()
+        } else if (label === FunctionKeyLabel.LastStep) {
+            this.editLastStep = false
         }
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const pattern = this.context.memoryState().activePattern()
-            const instrumentMode = this.context.instrumentMode.get()
-            Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
+            if (this.editLastStep) {
+                pattern.lastStep.set(keyIndex + 1)
+            } else {
+                const instrumentMode = this.context.instrumentMode.get()
+                Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
+            }
             return true
         }
         return false

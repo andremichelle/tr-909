@@ -106,6 +106,33 @@ export class Pattern implements Observable<void> {
         this.observable.notify()
     }
 
+    testC(): void {
+        this.observable.mute()
+        for (let i = 0; i < 16; i++) {
+            this.setStep(ChannelIndex.Hihat, i, Step.Full)
+        }
+        this.setStep(ChannelIndex.Clap, 4, Step.Full)
+        this.setStep(ChannelIndex.Clap, 12, Step.Full)
+        this.scale.set(Scale.getByIndex(2))
+        this.shuffleIndex.set(6)
+        this.observable.unmute()
+        this.observable.notify()
+    }
+
+    testD(): void {
+        this.observable.mute()
+        for (let i = 0; i < 16; i++) {
+            this.setStep(ChannelIndex.Hihat, i, Step.Full)
+        }
+        this.setStep(ChannelIndex.Clap, 4, Step.Full)
+        this.setStep(ChannelIndex.Clap, 12, Step.Full)
+        this.setStep(ChannelIndex.Clap, 15, Step.Weak)
+        this.shuffleIndex.set(6)
+        this.lastStep.set(6)
+        this.observable.unmute()
+        this.observable.notify()
+    }
+
     setStep(channelIndex: ChannelIndex, stepIndex: number, step: Step): void {
         console.assert(0 <= channelIndex && channelIndex < ChannelIndex.End)
         console.assert(0 <= stepIndex && stepIndex < 16)
