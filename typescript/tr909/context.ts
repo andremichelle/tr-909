@@ -50,14 +50,11 @@ export class MachineContext implements Terminable {
                 readonly shiftKey: Key) {
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
-                this.pressedMainKeys.add(keyIndex)
                 key.setPointerCapture(event.pointerId)
+                this.pressedMainKeys.add(keyIndex)
                 this.mode.onMainKeyPress(keyIndex)
             }))
-            this.terminator.with(key.bind('pointerup', () => {
-                this.pressedMainKeys.delete(keyIndex)
-                this.mode.onMainKeyRelease(keyIndex)
-            }))
+            this.terminator.with(key.bind('pointerup', () => this.pressedMainKeys.delete(keyIndex)))
         })
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {

@@ -22,9 +22,6 @@ export abstract class Mode implements Terminable {
         return false
     }
 
-    onMainKeyRelease(keyIndex: MainKeyIndex): void {
-    }
-
     getDisplayValue(): DisplayValue {
         return 'none'
     }

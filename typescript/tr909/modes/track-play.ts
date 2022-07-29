@@ -67,7 +67,7 @@ export default class extends Mode {
             this.context.display.show(0)
         } else {
             this.context.updatePatternLocationKeys(track.get(0))
-            this.context.display.show(1) // first measure index
+            this.context.display.show(1) // first measure
         }
         this.context.updateTrackKeys(trackIndex, false)
     }
