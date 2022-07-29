@@ -1,5 +1,5 @@
-import {ifDefined} from "../../lib/common.js"
-import {Pattern} from "./pattern.js"
+import {ifDefined} from "../../../lib/common.js"
+import {Pattern} from "../pattern.js"
 
 export interface StepSequencerEnv {
     currentPattern(): Pattern | null

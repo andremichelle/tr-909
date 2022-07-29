@@ -1,19 +1,19 @@
-import {ArrayUtils} from "../../lib/common.js"
-import {Linear} from "../../lib/mapping.js"
-import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage} from "../common.js"
-import {BasicTuneDecayVoice} from "./dsp/basic-voice.js"
-import {BassdrumVoice} from "./dsp/bassdrum.js"
-import {Channel, VoiceFactory} from "./dsp/channel.js"
-import {PatternProvider, TrackPatternPlay, UserPatternSelect} from "./dsp/pattern.js"
-import {SnaredrumVoice} from "./dsp/snaredrum.js"
-import {Voice} from "./dsp/voice.js"
-import {Memory} from "./memory.js"
-import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
-import {ChannelIndex, Pattern, Step} from "./pattern.js"
-import {Preset} from "./preset.js"
-import {Resources} from "./resources.js"
+import {ArrayUtils} from "../../../lib/common.js"
+import {Linear} from "../../../lib/mapping.js"
+import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage} from "../../common.js"
+import {Memory} from "../memory.js"
+import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "../messages.js"
+import {ChannelIndex, Pattern, Step} from "../pattern.js"
+import {Preset} from "../preset.js"
+import {Resources} from "../resources.js"
+import {PlayMode} from "../state.js"
+import {BasicTuneDecayVoice} from "./basic-voice.js"
+import {BassdrumVoice} from "./bassdrum.js"
+import {Channel, VoiceFactory} from "./channel.js"
+import {PatternProvider, TrackPatternPlay, UserPatternSelect} from "./pattern.js"
 import {StepSequencer, StepSequencerEnv} from "./sequencer.js"
-import {PlayMode} from "./state.js"
+import {SnaredrumVoice} from "./snaredrum.js"
+import {Voice} from "./voice.js"
 
 const LevelMapping = new Linear(-18.0, 0.0) // min active, half accent, full, accent + total accent
 
@@ -41,7 +41,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
         }, true)
         this.memory = new Memory()
         this.memory.state.playMode.addObserver(mode => mode === PlayMode.Track
-            ? this.patternProvider = new TrackPatternPlay(this.memory.state)
+            ? this.patternProvider = new TrackPatternPlay(this.memory.state, this.port)
             : this.patternProvider = new UserPatternSelect(this.memory.state, () => this.moving), true)
         this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
         this.sequencer = new StepSequencer(this)

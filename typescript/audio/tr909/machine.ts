@@ -10,7 +10,7 @@ import {Track} from "./track.js"
 
 export class Machine implements Terminable {
     static loadModule(context: AudioContext): Promise<void> {
-        return context.audioWorklet.addModule("bin/audio/tr909/processor.js")
+        return context.audioWorklet.addModule("bin/audio/tr909/dsp/processor.js")
     }
 
     private readonly terminator: Terminator = new Terminator()
@@ -25,7 +25,7 @@ export class Machine implements Terminable {
     readonly master: GainNode
 
     readonly processorStepIndex = new ObservableValueImpl<number>(0)
-    readonly processorTrackMeasure = new ObservableValueImpl<number>(1) // TODO Update
+    readonly processorTrackMeasure = new ObservableValueImpl<number>(0)
 
     constructor(readonly context, resources: Resources) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {
@@ -74,10 +74,13 @@ export class Machine implements Terminable {
             }).flat())
         this.worklet.port.onmessage = event => {
             const message = event.data as ToMainMessage
+            const schedule = (exec: () => void) => this.scheduleUpdates.push({
+                time: context.currentTime + context.outputLatency, exec
+            })
             if (message.type === 'update-step') {
-                const index = message.stepIndex
-                const time = context.currentTime + context.outputLatency
-                this.scheduleUpdates.push({time, exec: () => this.processorStepIndex.set(index)})
+                schedule(() => this.processorStepIndex.set(message.stepIndex))
+            } else if (message.type === "update-track-measure") {
+                schedule(() => this.processorTrackMeasure.set(message.measure))
             }
         }
         this.startScheduler()

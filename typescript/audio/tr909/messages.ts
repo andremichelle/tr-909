@@ -13,6 +13,7 @@ export type ToWorkletMessage =
 
 export type ToMainMessage =
     | { type: "update-step", stepIndex: number }
+    | { type: "update-track-measure", measure: number }
     | { type: "update-pattern", location: PatternLocation }
 
 export type ProcessorOptions = { resources: Resources }

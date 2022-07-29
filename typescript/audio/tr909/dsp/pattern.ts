@@ -1,3 +1,4 @@
+import {ToMainMessage} from "../messages.js"
 import {Pattern} from "../pattern.js"
 import {State} from "../state.js"
 import {Track} from "../track.js"
@@ -44,10 +45,10 @@ export class UserPatternSelect implements PatternProvider {
 }
 
 export class TrackPatternPlay implements PatternProvider {
-    private index: number = 0
+    private measure: number = 0
     private current: Pattern = null
 
-    constructor(readonly state: State) {
+    constructor(readonly state: State, readonly port: MessagePort) {
         this.reevaluate()
     }
 
@@ -57,21 +58,29 @@ export class TrackPatternPlay implements PatternProvider {
 
     next(): void {
         const track: Track = this.state.activeTrack()
+        let increment: boolean = false
         if (track.isEmpty()) {
-            this.index = 0
+            this.measure = 0
             this.current = null
         } else {
             const patterns = this.state.activeBank().patterns
-            if (this.index < track.size()) {
-                this.current = patterns[track.get(this.index++)]
+            if (this.measure < track.size()) {
+                this.current = patterns[track.get(this.measure)]
+                increment = true
             } else {
                 if (this.state.cycleGuideMode.get()) {
-                    this.index = 0
-                    this.current = track.isEmpty() ? null : patterns[track.get(this.index++)]
+                    this.measure = 0
+                    this.current = track.isEmpty() ? null : patterns[track.get(this.measure)]
+                    increment = true
                 } else {
+                    this.measure = 0
                     this.current = null
                 }
             }
+        }
+        this.postMeasure()
+        if (increment) {
+            this.measure++
         }
     }
 
@@ -80,8 +89,12 @@ export class TrackPatternPlay implements PatternProvider {
         const patterns = this.state.activeBank().patterns
         this.current = track.isEmpty()
             ? null
-            : this.index < track.size()
-                ? patterns[track.get(this.index)]
+            : this.measure < track.size()
+                ? patterns[track.get(this.measure)]
                 : null
+    }
+
+    private postMeasure() {
+        this.port.postMessage({type: "update-track-measure", measure: this.measure} as ToMainMessage)
     }
 }

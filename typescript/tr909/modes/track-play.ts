@@ -10,6 +10,8 @@ export default class extends Mode {
         this.with(this.context.startStepRunningAnimation())
         this.with({terminate: () => this.context.functionKeys.deactivate(ZeroBasedIndices.TrackKeys)})
         this.with(this.context.memoryState().trackIndex.addObserver(() => this.initButtons(), false))
+        this.with(this.context.machine.processorTrackMeasure
+            .addObserver((measure) => this.context.updateDisplay(measure + 1), true))
         this.with(this.context.memoryState().bankGroupIndex
             .addObserver((bankGroupIndex: BankGroupIndex) => {
                 this.context.updateBankGroupKeys(bankGroupIndex)
@@ -48,7 +50,8 @@ export default class extends Mode {
     }
 
     getDisplayValue(): number | 'none' {
-        return this.context.memoryState().activeTrack().isEmpty() ? 0 : this.context.machine.processorTrackMeasure.get()
+        return this.context.memoryState().activeTrack().isEmpty()
+            ? 0 : this.context.machine.processorTrackMeasure.get() + 1
     }
 
     name(): string {
