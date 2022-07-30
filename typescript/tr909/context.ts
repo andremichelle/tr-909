@@ -35,7 +35,7 @@ import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
-type HoldKey = { type: 'main' | 'function', keyIndex: number }
+type KeyLocation = { type: 'main' | 'function', keyIndex: number } // to emulate pressing multiple keys
 
 export class UIContext implements Terminable {
     private readonly terminator = new Terminator()
@@ -53,7 +53,7 @@ export class UIContext implements Terminable {
 
     readonly displayInput: Uint8Array
 
-    readonly holdingKeys: Set<HoldKey> = new Set<HoldKey>()
+    readonly bufferedKeys: Set<KeyLocation> = new Set<KeyLocation>()
 
     private mode: NonNullable<Mode>
 
@@ -398,7 +398,7 @@ export class UIContext implements Terminable {
             }))
             this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
                 if (event.altKey) {
-                    this.holdingKeys.add({type: 'main', keyIndex})
+                    this.bufferedKeys.add({type: 'main', keyIndex})
                 } else {
                     this.pressedMainKeys.delete(keyIndex)
                 }
@@ -411,7 +411,7 @@ export class UIContext implements Terminable {
             }))
             this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
                 if (event.altKey) {
-                    this.holdingKeys.add({type: 'function', keyIndex})
+                    this.bufferedKeys.add({type: 'function', keyIndex})
                 } else {
                     this.onFunctionKeyRelease(keyIndex)
                 }
@@ -439,15 +439,15 @@ export class UIContext implements Terminable {
             }
         }))
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
-            if (!event.altKey && this.holdingKeys.size > 0) {
-                this.holdingKeys.forEach((hold: HoldKey) => {
-                    if (hold.type === 'main') {
-                        this.pressedMainKeys.delete(hold.keyIndex)
-                    } else if (hold.type === 'function') {
-                        this.onFunctionKeyRelease(hold.keyIndex)
+            if (!event.altKey && this.bufferedKeys.size > 0) {
+                this.bufferedKeys.forEach((location: KeyLocation) => {
+                    if (location.type === 'main') {
+                        this.pressedMainKeys.delete(location.keyIndex)
+                    } else if (location.type === 'function') {
+                        this.onFunctionKeyRelease(location.keyIndex)
                     }
                 })
-                this.holdingKeys.clear()
+                this.bufferedKeys.clear()
             } else {
                 const code = event.code
                 if (code === 'ShiftLeft' || code === 'ShiftRight') {

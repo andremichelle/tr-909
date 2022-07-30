@@ -40,10 +40,6 @@ export class Boot implements Observable<Boot> {
         return this.observable.addObserver(observer)
     }
 
-    removeObserver(observer: Observer<Boot>): boolean {
-        return this.observable.removeObserver(observer)
-    }
-
     terminate(): void {
         this.observable.terminate()
     }

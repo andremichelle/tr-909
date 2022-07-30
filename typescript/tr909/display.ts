@@ -1,3 +1,5 @@
+import {Observable} from "../lib/common.js"
+
 enum Segment {
     TT = 1 << 0, TR = 1 << 1, BR = 1 << 2, BB = 1 << 3, BL = 1 << 4, TL = 1 << 5, CR = 1 << 6
 }
@@ -32,6 +34,10 @@ class Digit {
 }
 
 export type DisplayValue = number | 'none'
+
+export interface DisplayValueProvider extends Observable<DisplayValue> {
+    displayValue(): DisplayValue
+}
 
 export class Display {
     private readonly digits: Digit[]

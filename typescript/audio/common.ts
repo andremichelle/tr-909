@@ -102,10 +102,6 @@ export class Transport implements Observable<TransportMessage> {
         return this.observable.addObserver(observer)
     }
 
-    removeObserver(observer: Observer<TransportMessage>): boolean {
-        return this.observable.removeObserver(observer)
-    }
-
     play(): void {
         if (this.moving) return
         this.moving = true

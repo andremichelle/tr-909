@@ -105,8 +105,6 @@ export type Observer<VALUE> = (value: VALUE) => void
 
 export interface Observable<VALUE> extends Terminable {
     addObserver(observer: Observer<VALUE>, notify: boolean): Terminable
-
-    removeObserver(observer: Observer<VALUE>): boolean
 }
 
 export class ObservableImpl<T> implements Observable<T> {
@@ -131,16 +129,14 @@ export class ObservableImpl<T> implements Observable<T> {
 
     addObserver(observer: Observer<T>): Terminable {
         this.observers.push(observer)
-        return {terminate: () => this.removeObserver(observer)}
-    }
-
-    removeObserver(observer: Observer<T>): boolean {
-        let index = this.observers.indexOf(observer)
-        if (-1 < index) {
-            this.observers.splice(index, 1)
-            return true
+        return {
+            terminate: () => {
+                const index = this.observers.indexOf(observer)
+                if (-1 < index) {
+                    this.observers.splice(index, 1)
+                }
+            }
         }
-        return false
     }
 
     terminate(): void {
@@ -166,8 +162,7 @@ export interface ObservableValue<T> extends Value<T>, Observable<T> {
 export const ObservableValueVoid: ObservableValue<any> = {
     addObserver: (observer: Observer<any>, notify: boolean): Terminable => TerminableVoid,
     get: (): any => null,
-    removeObserver: (observer: Observer<any>): boolean => false,
-    set: (value: any): boolean => true,
+    set: (_: any): boolean => true,
     terminate: (): void => null
 }
 
@@ -193,10 +188,6 @@ export class ObservableValueImpl<T> implements ObservableValue<T> {
     addObserver(observer: Observer<T>, notify: boolean = false): Terminable {
         if (notify) observer(this.value)
         return this.observable.addObserver(observer)
-    }
-
-    removeObserver(observer: Observer<T>): boolean {
-        return this.observable.removeObserver(observer)
     }
 
     terminate(): void {
@@ -240,10 +231,6 @@ export class Parameter<T> implements ObservableValue<T> {
     addObserver(observer: Observer<T>, notify: boolean = false): Terminable {
         if (notify) observer(this.value)
         return this.observable.addObserver(observer)
-    }
-
-    removeObserver(observer: Observer<T>): boolean {
-        return this.observable.removeObserver(observer)
     }
 
     terminate(): void {
@@ -432,10 +419,6 @@ export abstract class Settings<DATA> implements Observable<Settings<DATA>>, Seri
 
     addObserver(observer: Observer<Settings<DATA>>): Terminable {
         return this.observable.addObserver(observer)
-    }
-
-    removeObserver(observer: Observer<Settings<DATA>>): boolean {
-        return this.observable.removeObserver(observer)
     }
 
     terminate(): void {

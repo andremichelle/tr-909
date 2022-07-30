@@ -14,10 +14,6 @@ export class Track implements Serializer<TrackFormat>, Observable<void> {
         return this.observable.addObserver(observer)
     }
 
-    removeObserver(observer: Observer<void>): boolean {
-        return this.observable.removeObserver(observer)
-    }
-
     deserialize(format: TrackFormat): Serializer<TrackFormat> {
         this.sequence.splice(0, this.sequence.length, ...format.sequence)
         return this
