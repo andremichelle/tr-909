@@ -7,6 +7,7 @@ import {
     Terminable,
     Terminator
 } from "../../lib/common.js"
+import {PatternGroupIndex, PatternIndex} from "./memory.js"
 import {Scale} from "./scale.js"
 
 /**
@@ -39,6 +40,8 @@ export interface PatternFormat {
     chained: boolean
 }
 
+export type PatternLocation = { readonly patternGroupIndex: PatternGroupIndex, readonly patternIndex: PatternIndex }
+
 export class Pattern implements Observable<void> {
     // https://www.kvraudio.com/forum/viewtopic.php?p=3740195&sid=89d14cd241a916781a274f424c4d92a0#p3740195
     // aM: However from my hearing we divide by 32 and not multiply by 2/96 (too less shuffle)
@@ -61,7 +64,7 @@ export class Pattern implements Observable<void> {
     private readonly totalAccents: boolean[]
     private readonly shuffle: Shuffle
 
-    constructor() {
+    constructor(readonly location: PatternLocation) {
         this.observable = this.terminator.with(new ObservableImpl<void>())
         this.listener = () => this.observable.notify()
         this.steps = ArrayUtils.fill(ChannelIndex.End, () => ArrayUtils.fill(16, () => Step.None))

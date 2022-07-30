@@ -55,7 +55,7 @@ export default class extends Mode {
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-            this.context.activeTrack().writeInto(this.context.memoryState().patternIndex.get(), this.writeIndex++)
+            this.context.activeTrack().writeLocation(this.context.memoryState().activePattern().location, this.writeIndex++)
             this.context.updateDisplay()
         } else {
             this.context.memoryState().patternIndex.set(keyIndex as number as PatternIndex)

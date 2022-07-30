@@ -1,7 +1,7 @@
 import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator} from "../../lib/common.js"
 import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
-import {BankGroupIndex, Memory, MemoryBank, PatternIndex} from "./memory.js"
+import {BankIndex, Memory, MemoryBank} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {ChannelIndex, Pattern, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
@@ -59,17 +59,22 @@ export class Machine implements Terminable {
             format: this.memory.state.serialize()
         } as ToWorkletMessage)))
         this.terminator.merge(this.memory.banks
-            .map((bank: MemoryBank, bankGroupIndex: BankGroupIndex) => {
+            .map((bank: MemoryBank, bankIndex: BankIndex) => {
                 return [
                     ...bank.tracks
-                        .map((track: Track, arrayIndex: number) => track
+                        .map((track: Track, trackIndex: number) => track
                             .addObserver(() => this.worklet.port.postMessage({
-                                type: 'update-track', bankGroupIndex, arrayIndex, format: track.serialize()
+                                type: 'update-track', bankIndex, arrayIndex: trackIndex, format: track.serialize()
                             } as ToWorkletMessage), false)),
-                    ...bank.patterns
-                        .map((pattern: Pattern, arrayIndex: PatternIndex) => pattern
+                    ...bank.patternGroups
+                        .map(patternGroup => patternGroup.patterns)
+                        .flat()
+                        .map((pattern: Pattern) => pattern
                             .addObserver(() => this.worklet.port.postMessage({
-                                type: 'update-pattern', bankGroupIndex, arrayIndex, format: pattern.serialize()
+                                type: 'update-pattern',
+                                bankIndex,
+                                location: pattern.location,
+                                format: pattern.serialize()
                             } as ToWorkletMessage), false))]
             }).flat())
         this.worklet.port.onmessage = event => {

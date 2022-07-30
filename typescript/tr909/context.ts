@@ -1,7 +1,7 @@
 import {secondsToBars} from "../audio/common.js"
 import {Machine} from "../audio/tr909/machine.js"
-import {BankGroupIndex, Memory, MemoryBank, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
-import {Pattern} from "../audio/tr909/pattern.js"
+import {BankIndex, Memory, MemoryBank, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
+import {Pattern, PatternLocation} from "../audio/tr909/pattern.js"
 import {Scale} from "../audio/tr909/scale.js"
 import {PlayMode, State} from "../audio/tr909/state.js"
 import {Track} from "../audio/tr909/track.js"
@@ -234,28 +234,34 @@ export class UIContext implements Terminable {
         this.display.show(value === undefined ? this.mode.getDisplayValue() : value)
     }
 
-    updatePatternLocationKeys(pattern: Pattern | number): void {
-        console.debug(`activatePatternLocationKeys(arrayIndex: ${pattern})`)
-        const location = this.machine.memory.state.activeBank().toLocation(pattern)
+    updatePatternLocationKeys(location: PatternLocation): void {
+        console.debug(`updatePatternLocationKeys(location: ${location})`)
         this.updatePatternGroupKeys(location.patternGroupIndex, false)
         this.mainKeys.deactivate()
-        this.mainKeys.byIndex(location.patternIndex as number).setState(KeyState.Blink)
+
+        let patternIndex: number = location.patternIndex
+        this.mainKeys.byIndex(patternIndex).setState(KeyState.Blink)
+
+        // TODO Verify
+        while (this.memoryState().patternBy(location.patternGroupIndex, patternIndex++).chained.get()) {
+            this.mainKeys.byIndex(patternIndex).setState(KeyState.On)
+        }
     }
 
     updateTrackKeys(trackIndex: TrackIndex, writeMode: boolean): void {
-        console.debug(`activateTrackKeys(index: ${trackIndex}, writeMode: ${writeMode})`)
+        console.debug(`updateTrackKeys(index: ${trackIndex}, writeMode: ${writeMode})`)
         this.functionKeys.activate(index => index === trackIndex
             ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, ZeroBasedIndices.TrackKeys)
     }
 
     updatePatternGroupKeys(patternGroupIndex: PatternGroupIndex, writeMode: boolean): void {
-        console.debug(`activatePatternGroupKeys(index: ${patternGroupIndex}, writeMode: ${writeMode})`)
+        console.debug(`updatePatternGroupKeys(index: ${patternGroupIndex}, writeMode: ${writeMode})`)
         this.functionKeys.activate(index => patternGroupIndex === index
             ? writeMode ? KeyState.Blink : KeyState.On : KeyState.Off, ZeroBasedIndices.PatternGroupKeys)
     }
 
-    updateBankGroupKeys(bankGroupIndex: BankGroupIndex): void {
-        console.debug(`activateBankGroupKeys(index: ${bankGroupIndex})`)
+    updateBankGroupKeys(bankGroupIndex: BankIndex): void {
+        console.debug(`updateBankGroupKeys(index: ${bankGroupIndex})`)
         this.functionKeys.activate(index => bankGroupIndex === index
             ? KeyState.On : KeyState.Off, ZeroBasedIndices.BankGroupKeys)
     }
@@ -273,16 +279,16 @@ export class UIContext implements Terminable {
     }
 
     watchPatternLocationKeys(): Terminable {
-        this.updatePatternLocationKeys(this.machine.memory.state.activePattern())
-        return this.machine.memory.state.patternIndicesChangeNotification
-            .addObserver(pattern => this.updatePatternLocationKeys(pattern))
+        this.updatePatternLocationKeys(this.activePattern().location)
+        return this.memoryState().patternIndicesChangeNotification
+            .addObserver(pattern => this.updatePatternLocationKeys(pattern.location))
     }
 
     watchPatternStepsKeys(): Terminable {
         const terminator = new Terminator()
         const state = this.machine.memory.state
         const updateKeys = () => {
-            const pattern: Pattern = this.machine.memory.state.activePattern()
+            const pattern: Pattern = this.activePattern()
             const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
             this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) =>
                 key.setState(keyIndex === MainKeyIndex.CartridgeEnterTotalAccent ? KeyState.Off : mapping(pattern, keyIndex)))

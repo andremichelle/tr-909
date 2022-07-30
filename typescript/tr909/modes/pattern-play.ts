@@ -32,16 +32,25 @@ export default class extends Mode {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             return false
         }
+        const state = this.context.memoryState()
         if (this.context.pressedMainKeys.size === 1) {
-            this.context.memoryState().patternIndex.set(keyIndex as number as PatternIndex)
+            for (let index = 0; index < 16; index++) {
+                this.context.activeBank()
+                    .patternByIndices(state.patternGroupIndex.get(), index)
+                    .chained.set(false)
+            }
+            state.patternIndex.set(keyIndex as number as PatternIndex)
         } else if (this.context.pressedMainKeys.size === 2) {
             const tuple: MainKeyIndex[] = [...this.context.pressedMainKeys]
             const start = Math.min(tuple[0], tuple[1])
-            const end = Math.max(tuple[0], tuple[1]) - 1
+            const end = Math.max(tuple[0], tuple[1])
             for (let index = start; index < end; index++) {
-                this.context.activeBank().patterns[index].chained.set(true)
+                this.context.activeBank()
+                    .patternByIndices(state.patternGroupIndex.get(), index)
+                    .chained.set(true)
             }
-            this.context.memoryState().patternIndex.set(start as number as PatternIndex)
+            state.patternIndex.set(start as number as PatternIndex) // TODO Search chain start (on intersection)
+            this.context.updatePatternLocationKeys(this.context.activePattern().location)
         } else {
             return false
         }

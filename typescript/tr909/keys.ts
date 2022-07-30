@@ -1,4 +1,4 @@
-import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
+import {BankIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Events, Terminable} from "../lib/common.js"
 
 export enum PatternEditMode {
@@ -99,9 +99,9 @@ export class FunctionKeyLabel<T> {
         FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, PatternEditMode.Step),
         FunctionKeyLabel.create(FunctionKeyIndex.BackTap, PatternEditMode.Tap)
     ] as const
-    static readonly BankGroup: ReadonlyArray<FunctionKeyLabel<BankGroupIndex>> = [
-        FunctionKeyLabel.create(FunctionKeyIndex.ForwardBankI, BankGroupIndex.I),
-        FunctionKeyLabel.create(FunctionKeyIndex.AvailableMeasuresBankII, BankGroupIndex.II)
+    static readonly BankGroup: ReadonlyArray<FunctionKeyLabel<BankIndex>> = [
+        FunctionKeyLabel.create(FunctionKeyIndex.ForwardBankI, BankIndex.I),
+        FunctionKeyLabel.create(FunctionKeyIndex.AvailableMeasuresBankII, BankIndex.II)
     ]
     static readonly LastMeasure: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'last measure')
     static readonly TempoMode: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TapeSyncTempoMode, 'tempo mode')

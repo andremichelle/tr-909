@@ -34,9 +34,14 @@ export class UserPatternSelect implements PatternProvider {
     }
 
     next(): void {
-        if (this.waiting === null) return
-        this.current = this.waiting
-        this.waiting = null
+        if (this.waiting === null) {
+            if (this.current?.chained.get() === true) {
+                this.current = this.state.nextPattern(this.current)
+            }
+        } else {
+            this.current = this.waiting
+            this.waiting = null
+        }
     }
 
     reevaluate(): void {
@@ -63,14 +68,14 @@ export class TrackPatternPlay implements PatternProvider {
             this.measure = 0
             this.current = null
         } else {
-            const patterns = this.state.activeBank().patterns
+            const memoryBank = this.state.activeBank()
             if (this.measure < track.size()) {
-                this.current = patterns[track.get(this.measure)]
+                this.current = memoryBank.patternByLocation(track.get(this.measure))
                 increment = true
             } else {
                 if (this.state.cycleGuideMode.get()) {
                     this.measure = 0
-                    this.current = track.isEmpty() ? null : patterns[track.get(this.measure)]
+                    this.current = track.isEmpty() ? null : memoryBank.patternByLocation(track.get(this.measure))
                     increment = true
                 } else {
                     this.measure = 0
@@ -86,11 +91,10 @@ export class TrackPatternPlay implements PatternProvider {
 
     reevaluate(): void {
         const track = this.state.activeTrack()
-        const patterns = this.state.activeBank().patterns
         this.current = track.isEmpty()
             ? null
             : this.measure < track.size()
-                ? patterns[track.get(this.measure)]
+                ? this.state.activeBank().patternByLocation(track.get(this.measure))
                 : null
     }
 

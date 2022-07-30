@@ -6,15 +6,7 @@ import {
     Terminable,
     Terminator
 } from "../../lib/common.js"
-import {
-    BankGroupIndex,
-    Memory,
-    MemoryBank,
-    PatternGroupIndex,
-    PatternIndex,
-    PatternLocation,
-    TrackIndex
-} from "./memory.js"
+import {BankIndex, Memory, MemoryBank, PatternGroup, PatternGroupIndex, PatternIndex, TrackIndex} from "./memory.js"
 import {Pattern} from "./pattern.js"
 import {Track} from "./track.js"
 
@@ -23,7 +15,7 @@ export enum PlayMode {
 }
 
 export interface StateFormat {
-    bankGroupIndex: BankGroupIndex
+    bankGroupIndex: BankIndex
     patternGroupIndex: PatternGroupIndex
     patternIndex: PatternIndex
     trackIndex: TrackIndex
@@ -34,7 +26,7 @@ export interface StateFormat {
 export class State implements Serializer<StateFormat>, Terminable {
     private readonly terminator: Terminator = new Terminator()
 
-    readonly bankGroupIndex: ObservableValue<BankGroupIndex> = new ObservableValueImpl<BankGroupIndex>(BankGroupIndex.I)
+    readonly bankGroupIndex: ObservableValue<BankIndex> = new ObservableValueImpl<BankIndex>(BankIndex.I)
     readonly patternGroupIndex: ObservableValue<PatternGroupIndex> = new ObservableValueImpl<PatternGroupIndex>(PatternGroupIndex.I)
     readonly patternIndex: ObservableValue<PatternIndex> = new ObservableValueImpl<PatternIndex>(PatternIndex.Pattern1)
     readonly trackIndex: ObservableValue<TrackIndex> = new ObservableValueImpl<TrackIndex>(TrackIndex.I)
@@ -57,32 +49,34 @@ export class State implements Serializer<StateFormat>, Terminable {
         this.terminator.with(this.playMode.addObserver(this.onChange, false))
     }
 
-    activePattern(): Pattern {
-        return this.activeBank().patternBy(this.patternGroupIndex.get(), this.patternIndex.get())
-    }
-
     activeBank(): MemoryBank {
         return this.memory.banks[this.bankGroupIndex.get()]
+    }
+
+    activePatternGroup(): PatternGroup {
+        return this.activeBank().patternGroups[this.patternGroupIndex.get()]
+    }
+
+    activePattern(): Pattern {
+        return this.activePatternGroup().patterns[this.patternIndex.get()]
     }
 
     activeTrack(): Track {
         return this.activeBank().tracks[this.trackIndex.get()]
     }
 
-    toIndex(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {
-        return this.activeBank().toIndex(patternGroupIndex, patternIndex)
-    }
-
-    indexOf(pattern: Pattern): number {
-        return this.activeBank().indexOf(pattern)
+    nextPattern(pattern: Pattern): Pattern | null {
+        if (pattern.location.patternIndex < PatternGroup.NUM_PATTERNS - 1) {
+            return this.patternBy(pattern.location.patternGroupIndex, pattern.location.patternIndex + 1)
+        } else {
+            return null
+        }
     }
 
     patternBy(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
-        return this.activeBank().patternBy(patternGroupIndex, patternIndex)
-    }
-
-    toLocation(index: number): PatternLocation {
-        return this.activeBank().toLocation(index)
+        return this.activeBank()
+            .patternGroups[patternGroupIndex]
+            .patterns[patternIndex]
     }
 
     deserialize(format: StateFormat): Serializer<StateFormat> {

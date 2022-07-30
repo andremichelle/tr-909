@@ -1,12 +1,13 @@
 import {Observable, ObservableImpl, Observer, Serializer, Terminable} from "../../lib/common.js"
+import {PatternLocation} from "./pattern.js"
 
 export class TrackFormat {
-    sequence: number[]
+    sequence: PatternLocation[]
 }
 
 export class Track implements Serializer<TrackFormat>, Observable<void> {
     private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
-    private readonly sequence: number[] = []
+    private readonly sequence: PatternLocation[] = []
 
     addObserver(observer: Observer<void>, notify: boolean): Terminable {
         if (notify) observer()
@@ -23,21 +24,19 @@ export class Track implements Serializer<TrackFormat>, Observable<void> {
     }
 
     serialize(): TrackFormat {
-        return {
-            sequence: this.sequence
-        }
+        return {sequence: this.sequence}
     }
 
-    writeInto(measure: number, index: number = Number.MAX_SAFE_INTEGER): void {
+    writeLocation(location: PatternLocation, index: number = Number.MAX_SAFE_INTEGER): void {
         if (index >= this.sequence.length) {
-            this.sequence.push(measure)
+            this.sequence.push(location)
         } else {
-            this.sequence[index] = measure
+            this.sequence[index] = location
         }
         this.observable.notify()
     }
 
-    get(index: number): number {
+    get(index: number): PatternLocation {
         console.assert(index >= 0 && index < this.sequence.length)
         return this.sequence[index]
     }

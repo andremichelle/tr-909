@@ -54,10 +54,14 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
                 this.memory.state.deserialize(message.format)
                 this.patternProvider.reevaluate()
             } else if (message.type === 'update-track') {
-                this.memory.banks[message.bankGroupIndex].tracks[message.arrayIndex].deserialize(message.format)
+                this.memory.banks[message.bankIndex]
+                    .tracks[message.arrayIndex]
+                    .deserialize(message.format)
                 this.patternProvider.reevaluate()
             } else if (message.type === 'update-pattern') {
-                this.memory.banks[message.bankGroupIndex].patterns[message.arrayIndex].deserialize(message.format)
+                this.memory.banks[message.bankIndex]
+                    .patternByLocation(message.location)
+                    .deserialize(message.format)
             } else if (message.type === "transport-play") {
                 this.moving = true
             } else if (message.type === "transport-pause") {

@@ -1,4 +1,4 @@
-import {BankGroupIndex, TrackIndex} from "../../audio/tr909/memory.js"
+import {BankIndex, TrackIndex} from "../../audio/tr909/memory.js"
 import {UIContext} from "../context.js"
 import {FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices,} from "../keys.js"
 import {consumed, Mode} from "../mode.js"
@@ -13,7 +13,7 @@ export default class extends Mode {
         this.with(this.context.machine.processorTrackMeasure
             .addObserver((measure) => this.context.updateDisplay(measure + 1), true))
         this.with(this.context.memoryState().bankGroupIndex
-            .addObserver((bankGroupIndex: BankGroupIndex) => {
+            .addObserver((bankGroupIndex: BankIndex) => {
                 this.context.updateBankGroupKeys(bankGroupIndex)
                 this.initButtons()
             }, true))

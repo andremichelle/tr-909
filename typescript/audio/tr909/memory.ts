@@ -1,9 +1,9 @@
 import {ArrayUtils} from "../../lib/common.js"
-import {Pattern} from "./pattern.js"
+import {Pattern, PatternLocation} from "./pattern.js"
 import {State} from "./state.js"
 import {Track} from "./track.js"
 
-export enum BankGroupIndex {I, II}
+export enum BankIndex {I, II}
 
 export enum TrackIndex {I, II, III, IV} // times 2 for each bank
 
@@ -17,13 +17,10 @@ export enum PatternIndex {
     Pattern13, Pattern14, Pattern15, Pattern16,
 }
 
-export type PatternLocation = { patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex }
-
 export class Memory {
     private static readonly MAX_MEASURES = 896
 
     readonly banks: [MemoryBank, MemoryBank] = [new MemoryBank(), new MemoryBank()]
-
     readonly state: State = new State(this)
 
     availableMeasures(): number {
@@ -32,36 +29,30 @@ export class Memory {
     }
 }
 
+export class PatternGroup {
+    static readonly NUM_PATTERNS = 16
+
+    readonly patterns: ReadonlyArray<Pattern>
+
+    constructor(patternGroupIndex: PatternGroupIndex) {
+        this.patterns = ArrayUtils.fill(PatternGroup.NUM_PATTERNS,
+            (patternIndex: PatternIndex) => new Pattern({patternGroupIndex, patternIndex}))
+    }
+}
+
 export class MemoryBank {
     static readonly NUM_TRACKS = 4
     static readonly NUM_PATTERN_GROUPS = 3
-    static readonly NUM_PATTERNS = 16
-    static readonly PATTERNS_COUNT = MemoryBank.NUM_PATTERNS * MemoryBank.NUM_PATTERN_GROUPS
 
-    readonly tracks: Track[] = ArrayUtils.fill(MemoryBank.NUM_TRACKS, () => new Track())
-    readonly patterns: Pattern[] = ArrayUtils.fill(MemoryBank.PATTERNS_COUNT, () => new Pattern())
+    readonly tracks: ReadonlyArray<Track> = ArrayUtils.fill(MemoryBank.NUM_TRACKS, () => new Track())
+    readonly patternGroups: ReadonlyArray<PatternGroup> = ArrayUtils.fill(MemoryBank.NUM_PATTERN_GROUPS,
+        (index: PatternGroupIndex) => new PatternGroup(index))
 
-    toIndex(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {
-        return patternGroupIndex * MemoryBank.NUM_PATTERNS + patternIndex
+    patternByIndices(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
+        return this.patternGroups[patternGroupIndex].patterns[patternIndex]
     }
 
-    indexOf(pattern: Pattern): number {
-        const index = this.patterns.indexOf(pattern)
-        console.assert(-1 < index)
-        return index
-    }
-
-    patternBy(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
-        return this.patterns[patternGroupIndex * MemoryBank.NUM_PATTERNS + patternIndex]
-    }
-
-    toLocation(pattern: Pattern | number): PatternLocation {
-        if (pattern instanceof Pattern) {
-            pattern = this.indexOf(pattern)
-        }
-        return {
-            patternGroupIndex: Math.floor(pattern / MemoryBank.NUM_PATTERNS) % MemoryBank.NUM_PATTERN_GROUPS,
-            patternIndex: pattern % MemoryBank.NUM_PATTERNS
-        }
+    patternByLocation(location: PatternLocation): Pattern {
+        return this.patternByIndices(location.patternGroupIndex, location.patternIndex)
     }
 }
