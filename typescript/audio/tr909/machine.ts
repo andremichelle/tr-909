@@ -27,7 +27,7 @@ export class Machine implements Terminable {
     readonly processorStepIndex = new ObservableValueImpl<number>(0)
     readonly processorTrackMeasure = new ObservableValueImpl<number>(0)
 
-    constructor(readonly context, resources: Resources) {
+    constructor(readonly context, resources: Resources<Float32Array>) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {
             numberOfInputs: 1,
             numberOfOutputs: ChannelIndex.End,

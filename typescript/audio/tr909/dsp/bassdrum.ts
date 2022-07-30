@@ -22,11 +22,11 @@ export class BassdrumVoice extends Voice {
     private phase: number = 0.0
     private attackPosition: number = 0.0
 
-    constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, level: decibel) {
+    constructor(resources: { attack: Float32Array; cycle: Float32Array }, preset: BassdrumPreset, sampleRate: number, level: decibel) {
         super(sampleRate)
 
-        this.cycle = resources.bassdrum.cycle
-        this.attack = resources.bassdrum.attack
+        this.cycle = resources.cycle
+        this.attack = resources.attack
         this.gainInterpolator = new Interpolator(sampleRate)
         this.gainInterpolator.set(0.0, false) // gain attack for free
         this.terminator.with(preset.level.addObserver(value =>

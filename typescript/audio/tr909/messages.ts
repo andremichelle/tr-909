@@ -15,4 +15,4 @@ export type ToMainMessage =
     | { type: "update-step", stepIndex: number }
     | { type: "update-track-measure", measure: number }
 
-export type ProcessorOptions = { resources: Resources }
+export type ProcessorOptions = { resources: Resources<Float32Array> }

@@ -18,7 +18,7 @@ import {Voice} from "./voice.js"
 const LevelMapping = new Linear(-18.0, 0.0) // min active, half accent, full, accent + total accent
 
 registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepSequencerEnv, VoiceFactory {
-    private readonly resources: Resources
+    private readonly resources: Resources<Float32Array>
     private readonly preset: Preset
     private readonly memory: Memory
     private readonly channels: Channel[]
@@ -134,10 +134,10 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
         console.assert(step !== Step.None)
         switch (channelIndex) {
             case ChannelIndex.Bassdrum:
-                return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate,
+                return new BassdrumVoice(this.resources.bassdrum, this.preset.bassdrum, sampleRate,
                     this.resolveLevel(step, totalAccent))
             case ChannelIndex.Snaredrum:
-                return new SnaredrumVoice(this.resources, this.preset.snaredrum, sampleRate,
+                return new SnaredrumVoice(this.resources.snaredrum, this.preset.snaredrum, sampleRate,
                     this.resolveLevel(step, totalAccent))
             case ChannelIndex.TomLow:
                 return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, sampleRate,
