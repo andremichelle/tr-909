@@ -7,7 +7,6 @@ export default class extends Mode {
     constructor(context: UIContext) {
         super(context)
 
-        this.context.display.show('none')
         this.with(this.context.startStepRunningAnimation())
         this.with(this.context.watchPatternLocationKeys())
     }

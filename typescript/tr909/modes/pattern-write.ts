@@ -17,7 +17,6 @@ export default class extends Mode {
     constructor(context: UIContext) {
         super(context)
 
-        this.context.updateDisplay('none')
         this.context.updatePatternGroupKeys(this.context.memoryState().patternGroupIndex.get(), true)
 
         this.inputMode = new Idle(context)

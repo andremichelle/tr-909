@@ -12,10 +12,11 @@ import {
     ObservableValue,
     ObservableValueImpl,
     Terminable,
+    TerminableVoid,
     Terminator
 } from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
-import {Display, DisplayValue} from "./display.js"
+import {Display, DisplayObservableValueProvider} from "./display.js"
 import {
     FunctionKeyboardShortcuts,
     FunctionKeyIndex,
@@ -40,6 +41,9 @@ type KeyLocation = { type: 'main' | 'function', keyIndex: number } // to emulate
 export class UIContext implements Terminable {
     private readonly terminator = new Terminator()
 
+    private readonly tempoDisplayProvider: DisplayObservableValueProvider
+    private readonly inputDisplayProvider: DisplayObservableValueProvider
+
     readonly display: Display
     readonly mainKeys: KeyGroup<MainKeyIndex>
     readonly functionKeys: KeyGroup<FunctionKeyIndex>
@@ -50,12 +54,16 @@ export class UIContext implements Terminable {
     readonly pressedMainKeys: Set<MainKeyIndex>
     readonly activeLabels: FunctionKeyLabel<any>[][]
     readonly shiftMode: ObservableValueImpl<boolean>
-
-    readonly displayInput: Uint8Array
+    readonly displayInputDigits: Uint8Array
+    readonly displayInputValue: ObservableValue<number> = new ObservableValueImpl<number>(0)
 
     readonly bufferedKeys: Set<KeyLocation> = new Set<KeyLocation>()
 
     private mode: NonNullable<Mode>
+    private isUserInputting: boolean = false
+
+    private tempoDisplaySubscription: Terminable = TerminableVoid
+    private inputDisplaySubscription: Terminable = TerminableVoid
 
     constructor(readonly machine: Machine,
                 readonly parentNode: ParentNode) {
@@ -73,7 +81,10 @@ export class UIContext implements Terminable {
         this.pressedMainKeys = new Set<MainKeyIndex>()
         this.activeLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
         this.shiftMode = new ObservableValueImpl<boolean>(false)
-        this.displayInput = new Uint8Array(3)
+        this.displayInputDigits = new Uint8Array(3)
+
+        this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo)
+        this.inputDisplayProvider = new DisplayObservableValueProvider(this.displayInputValue)
 
         this.mode = new TrackPlayMode(this)
 
@@ -230,10 +241,6 @@ export class UIContext implements Terminable {
         this.mainKeys.deactivate()
     }
 
-    updateDisplay(value?: DisplayValue): void {
-        this.display.show(value === undefined ? this.mode.getDisplayValue() : value)
-    }
-
     updatePatternLocationKeys(location: PatternLocation): void {
         console.debug(`updatePatternLocationKeys(location: ${location})`)
         this.updatePatternGroupKeys(location.patternGroupIndex, false)
@@ -347,7 +354,7 @@ export class UIContext implements Terminable {
             const label = FunctionKeyLabel.NormalKeys[keyIndex]
             this.activeLabels[keyIndex].push(label)
             if (label === FunctionKeyLabel.Tempo) {
-                this.display.show(this.machine.preset.tempo.get())
+                this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider)
                 return
             }
             if (this.mode.onFunctionKeyPress(label)) {
@@ -362,7 +369,7 @@ export class UIContext implements Terminable {
         const labels = this.activeLabels[keyIndex]
         labels.splice(0, labels.length).forEach((label: FunctionKeyLabel<any>) => {
             if (label === FunctionKeyLabel.Tempo) {
-                this.updateDisplay(this.mode.getDisplayValue())
+                this.tempoDisplaySubscription.terminate()
             }
             this.mode.onFunctionKeyRelease(label)
         })
@@ -383,15 +390,27 @@ export class UIContext implements Terminable {
                 key.setPointerCapture(event.pointerId)
                 if (this.shiftMode.get()) {
                     if (keyIndex <= MainKeyIndex.Step10) {
-                        this.displayInput[0] = this.displayInput[1]
-                        this.displayInput[1] = this.displayInput[2]
-                        this.displayInput[2] = (keyIndex + 1) % 10
-                        this.updateDisplay(this.displayInputValue())
+                        if (!this.isUserInputting) {
+                            this.isUserInputting = true
+                            this.display.pushProvider(this.inputDisplayProvider)
+                        }
+                        this.displayInputDigits[0] = this.displayInputDigits[1]
+                        this.displayInputDigits[1] = this.displayInputDigits[2]
+                        this.displayInputDigits[2] = (keyIndex + 1) % 10
+                        this.displayInputValue.set(this.displayInputDigits[0] * 100 + this.displayInputDigits[1] * 10 + this.displayInputDigits[2])
                     } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-                        this.mode.setMainKeyValue(this.displayInputValue())
-                        this.displayInput.fill(0)
+                        this.mode.setMainKeyValue(this.displayInputValue.get())
+                        this.displayInputDigits.fill(0)
+                        if (this.isUserInputting) {
+                            this.isUserInputting = false
+                            this.inputDisplaySubscription.terminate()
+                        }
                     }
                 } else {
+                    if (this.isUserInputting) {
+                        this.isUserInputting = false
+                        this.inputDisplaySubscription.terminate()
+                    }
                     this.pressedMainKeys.add(keyIndex)
                     this.mode.onMainKeyPress(keyIndex)
                 }
@@ -453,7 +472,7 @@ export class UIContext implements Terminable {
                 if (code === 'ShiftLeft' || code === 'ShiftRight') {
                     this.shiftKey.setPressed(false)
                     this.shiftMode.set(false)
-                    this.displayInput.fill(0)
+                    this.displayInputDigits.fill(0)
                 } else {
                     ifDefined(FunctionKeyboardShortcuts.get(code),
                         (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
@@ -550,6 +569,4 @@ export class UIContext implements Terminable {
         requestAnimationFrame(next)
         this.terminator.with({terminate: () => running = false})
     }
-
-    private readonly displayInputValue = (): number => this.displayInput[0] * 100 + this.displayInput[1] * 10 + this.displayInput[2]
 }

@@ -1,6 +1,5 @@
 import {Terminable, Terminator} from "../lib/common.js"
 import {UIContext} from "./context.js"
-import {DisplayValue} from "./display.js"
 import {FunctionKeyLabel, MainKeyIndex} from "./keys.js"
 
 export type consumed = boolean
@@ -23,10 +22,6 @@ export abstract class Mode implements Terminable {
     }
 
     setMainKeyValue(value: number): void {
-    }
-
-    getDisplayValue(): DisplayValue {
-        return 'none'
     }
 
     abstract name(): string

@@ -1,21 +1,55 @@
-import {PatternIndex} from "../../audio/tr909/memory.js"
+import {Memory, PatternIndex} from "../../audio/tr909/memory.js"
+import {ObservableValue, ObservableValueImpl, Observer, Terminable, TerminableVoid} from "../../lib/common.js"
 import {UIContext} from "../context.js"
-import {DisplayValue} from "../display.js"
+import {DisplayObservableValueProvider, DisplayValue, DisplayValueProvider} from "../display.js"
 import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
 import {consumed, Mode} from "../mode.js"
 
 export default class extends Mode {
-    private writeIndex: number = 0
+    private terminableAvailableMeasureDisplay: Terminable = TerminableVoid
+
+    private writeIndex: ObservableValue<number> = new ObservableValueImpl(0)
+
+    private readonly availableMeasures: DisplayValueProvider = new class implements DisplayValueProvider {
+        addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable {
+            return TerminableVoid
+        }
+
+        displayValue(): DisplayValue {
+            return
+        }
+
+        terminate(): void {
+        }
+    }()
 
     constructor(context: UIContext) {
         super(context)
 
         this.context.updateBankGroupKeys(this.context.memoryState().bankGroupIndex.get())
         this.context.updateTrackKeys(this.context.memoryState().trackIndex.get(), true)
-        this.context.updateDisplay(this.getDisplayValue())
         this.with(this.context.startStepRunningAnimation())
         this.with(this.context.watchPatternLocationKeys())
+        this.with(this.context.display
+            .pushProvider(new DisplayObservableValueProvider(this.writeIndex, x => x + 1)))
+
+        this.availableMeasures = new class implements DisplayValueProvider {
+            constructor(readonly memory: Memory) {
+            }
+
+            addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable {
+                return TerminableVoid
+            }
+
+            displayValue(): DisplayValue {
+                return this.memory.availableMeasures()
+            }
+
+            terminate(): void {
+            }
+        }(context.machine.memory)
     }
+
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
         if (this.context.maySwitchToTrackPlayMode(label)) {
@@ -25,22 +59,22 @@ export default class extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.AvailableMeasures) {
-            this.context.display.show(this.context.memory().availableMeasures())
+            this.terminableAvailableMeasureDisplay = this.context.display.pushProvider(this.availableMeasures)
             return true
         }
         if (label == FunctionKeyLabel.Back) {
-            if (this.writeIndex > 0) {
-                this.writeIndex--
-                this.context.updatePatternLocationKeys(this.context.activeTrack().get(this.writeIndex))
-                this.context.updateDisplay()
+            const index = this.writeIndex.get()
+            if (index > 0) {
+                this.writeIndex.set(index - 1)
+                this.context.updatePatternLocationKeys(this.context.activeTrack().get(this.writeIndex.get()))
                 return true
             }
         }
         if (label == FunctionKeyLabel.Forward) {
-            if (this.writeIndex < this.context.activeTrack().size() - 1) {
-                this.writeIndex++
-                this.context.updatePatternLocationKeys(this.context.activeTrack().get(this.writeIndex))
-                this.context.updateDisplay()
+            const index = this.writeIndex.get()
+            if (index < this.context.activeTrack().size() - 1) {
+                this.writeIndex.set(index + 1)
+                this.context.updatePatternLocationKeys(this.context.activeTrack().get(this.writeIndex.get()))
                 return true
             }
         }
@@ -49,14 +83,14 @@ export default class extends Mode {
 
     onFunctionKeyRelease(key: FunctionKeyLabel<any>): void {
         if (key === FunctionKeyLabel.AvailableMeasures) {
-            this.context.updateDisplay()
+            this.terminableAvailableMeasureDisplay.terminate()
         }
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-            this.context.activeTrack().writeLocation(this.context.memoryState().activePattern().location, this.writeIndex++)
-            this.context.updateDisplay()
+            this.context.activeTrack().writeLocation(this.context.memoryState().activePattern().location, this.writeIndex.get())
+            this.writeIndex.set(this.writeIndex.get() + 1)
         } else {
             this.context.memoryState().patternIndex.set(keyIndex as number as PatternIndex)
         }
@@ -65,12 +99,7 @@ export default class extends Mode {
 
     setMainKeyValue(value: number) {
         if (value === 0) return
-        this.writeIndex = Math.min(value - 1, this.context.activeTrack().size() - 1)
-        this.context.updateDisplay()
-    }
-
-    getDisplayValue(): DisplayValue {
-        return this.writeIndex + 1
+        this.writeIndex.set(Math.min(value - 1, this.context.activeTrack().size() - 1))
     }
 
     name(): string {

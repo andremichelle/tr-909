@@ -1,4 +1,4 @@
-import {Observable} from "../lib/common.js"
+import {Observable, ObservableValue, Observer, Terminable, Terminator} from "../lib/common.js"
 
 enum Segment {
     TT = 1 << 0, TR = 1 << 1, BR = 1 << 2, BB = 1 << 3, BL = 1 << 4, TL = 1 << 5, CR = 1 << 6
@@ -39,14 +39,61 @@ export interface DisplayValueProvider extends Observable<DisplayValue> {
     displayValue(): DisplayValue
 }
 
+export class DisplayObservableValueProvider implements DisplayValueProvider {
+    static Identity = x => x
+
+    readonly terminator: Terminator = new Terminator()
+
+    constructor(readonly observableValue: ObservableValue<number>,
+                readonly mapping: (value: number) => number = DisplayObservableValueProvider.Identity) {
+    }
+
+    addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable {
+        this.terminator.with(this.observableValue.addObserver(value => observer(this.mapping(value)), notify))
+        return this.terminator
+    }
+
+    displayValue(): DisplayValue {
+        return this.mapping(this.observableValue.get())
+    }
+
+    terminate(): void {
+        this.terminator.terminate()
+    }
+}
+
 export class Display {
+    private readonly providerStack: [DisplayValueProvider, Terminator][] = []
     private readonly digits: Digit[]
 
     constructor(svg: SVGSVGElement) {
-        this.digits = Array.from(svg.querySelectorAll('g g')).map(g => new Digit(Array.from(g.querySelectorAll('path'))))
+        this.digits = Array.from(svg.querySelectorAll('g g'))
+            .map(g => new Digit(Array.from(g.querySelectorAll('path'))))
     }
 
-    show(value: DisplayValue): void {
+    pushProvider(provider: DisplayValueProvider): Terminable {
+        const terminator = new Terminator()
+        terminator.with(provider.addObserver(value => this.show(value), true))
+        this.providerStack.forEach(pair => pair[1].terminate())
+        this.providerStack.push([provider, terminator])
+        return {
+            terminate: () => {
+                const index = this.providerStack.findIndex(([p]) => p === provider)
+                console.assert(index !== -1)
+                const remove: [DisplayValueProvider, Terminator] = this.providerStack.splice(index, 1)[0]
+                remove[1].terminate()
+
+                if (this.providerStack.length === 0) {
+                    this.show('none')
+                } else {
+                    const last: [DisplayValueProvider, Terminator] = this.providerStack[this.providerStack.length - 1]
+                    last[1].with(last[0].addObserver(value => this.show(value), true))
+                }
+            }
+        }
+    }
+
+    private show(value: DisplayValue): void {
         if (value === 'none') {
             this.digits.forEach(digit => digit.clear())
         } else {
