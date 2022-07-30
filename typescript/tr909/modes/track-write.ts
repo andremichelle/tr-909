@@ -38,6 +38,9 @@ export default class extends Mode {
             }
 
             addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable {
+                if(notify) {
+                    observer(this.displayValue())
+                }
                 return TerminableVoid
             }
 
