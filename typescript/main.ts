@@ -72,12 +72,13 @@ const showProgress = (() => {
     HTML.query('body').appendChild(meter.domElement)
 
     // TODO > Test Data < REMOVE WHEN DONE TESTING
-    const state = machine.memory.state
-    state.patternBy(0, 0).testA()
-    state.patternBy(0, 1).testB()
-    state.patternBy(0, 2).testC()
-    state.patternBy(0, 3).testD()
-    const track = state.activeBank().tracks[1]
+    const memory = machine.memory
+    const memoryBank = memory.banks[0]
+    memoryBank.patternByIndices(0, 0).testA()
+    memoryBank.patternByIndices(0, 1).testB()
+    memoryBank.patternByIndices(0, 2).testC()
+    memoryBank.patternByIndices(0, 3).testD()
+    const track = memoryBank.tracks[1]
     track.writeLocation({patternGroupIndex: 0, patternIndex: 0})
     track.writeLocation({patternGroupIndex: 0, patternIndex: 1})
     track.writeLocation({patternGroupIndex: 0, patternIndex: 0})

@@ -65,20 +65,6 @@ export class State implements Serializer<StateFormat>, Terminable {
         return this.activeBank().tracks[this.trackIndex.get()]
     }
 
-    nextPattern(pattern: Pattern): Pattern | null {
-        if (pattern.location.patternIndex < PatternGroup.NUM_PATTERNS - 1) {
-            return this.patternBy(pattern.location.patternGroupIndex, pattern.location.patternIndex + 1)
-        } else {
-            return null
-        }
-    }
-
-    patternBy(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
-        return this.activeBank()
-            .patternGroups[patternGroupIndex]
-            .patterns[patternIndex]
-    }
-
     deserialize(format: StateFormat): Serializer<StateFormat> {
         this.bankGroupIndex.set(format.bankGroupIndex)
         this.patternGroupIndex.set(format.patternGroupIndex)

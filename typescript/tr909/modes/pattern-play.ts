@@ -47,7 +47,7 @@ export default class extends Mode {
             for (let index = start; index < end; index++) {
                 this.context.activeBank()
                     .patternByIndices(state.patternGroupIndex.get(), index)
-                    .chained.set(true)
+                    .chained.set(true) // TODO Move chaining to PatternGroup chain-array (one update instead of many, 15 instead of 16 entries)
             }
             state.patternIndex.set(start as number as PatternIndex) // TODO Search chain start (on intersection)
             this.context.updatePatternLocationKeys(this.context.activePattern().location)

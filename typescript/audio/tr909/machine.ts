@@ -3,7 +3,7 @@ import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
 import {BankIndex, Memory, MemoryBank} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
-import {ChannelIndex, Pattern, Step} from "./pattern.js"
+import {ChannelIndex, Pattern, PatternLocation, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 import {Track} from "./track.js"
@@ -15,6 +15,7 @@ export class Machine implements Terminable {
 
     private readonly terminator: Terminator = new Terminator()
     private readonly scheduleUpdates: { time: number, exec: () => void }[] = []
+    private readonly bundledUpdates: { bankIndex: BankIndex, location: PatternLocation }[] = []
     private running: boolean = true
 
     readonly worklet: AudioWorkletNode
@@ -70,12 +71,8 @@ export class Machine implements Terminable {
                         .map(patternGroup => patternGroup.patterns)
                         .flat()
                         .map((pattern: Pattern) => pattern
-                            .addObserver(() => this.worklet.port.postMessage({
-                                type: 'update-pattern',
-                                bankIndex,
-                                location: pattern.location,
-                                format: pattern.serialize()
-                            } as ToWorkletMessage), false))]
+                            .addObserver(() => this
+                                .bundledUpdate(bankIndex, pattern.location), false))]
             }).flat())
         this.worklet.port.onmessage = event => {
             const message = event.data as ToMainMessage
@@ -100,12 +97,27 @@ export class Machine implements Terminable {
         this.terminator.terminate()
     }
 
+    private bundledUpdate(bankIndex: BankIndex, location: PatternLocation) {
+        if (!this.bundledUpdates.some(update => update.bankIndex === bankIndex && update.location === location)) {
+            this.bundledUpdates.push({bankIndex, location})
+        }
+    }
+
     private startScheduler() {
         const schedule = () => {
             if (this.scheduleUpdates.length > 0) {
                 if (this.context.currentTime >= this.scheduleUpdates[0].time) {
                     this.scheduleUpdates.shift().exec()
                 }
+            }
+            while (this.bundledUpdates.length > 0) {
+                const update = this.bundledUpdates.pop()
+                const bankIndex = update.bankIndex
+                const location = update.location
+                this.worklet.port.postMessage({
+                    type: 'update-pattern', bankIndex, location,
+                    format: this.memory.banks[bankIndex].patternByLocation(location).serialize()
+                } as ToWorkletMessage)
             }
             if (this.running) {
                 requestAnimationFrame(schedule)

@@ -242,7 +242,7 @@ export class UIContext implements Terminable {
     }
 
     updatePatternLocationKeys(location: PatternLocation): void {
-        console.debug(`updatePatternLocationKeys(location: ${location})`)
+        console.debug(`updatePatternLocationKeys(location: [${location.patternGroupIndex}, ${location.patternIndex}])`)
         this.updatePatternGroupKeys(location.patternGroupIndex, false)
         this.mainKeys.deactivate()
 
@@ -250,7 +250,7 @@ export class UIContext implements Terminable {
         this.mainKeys.byIndex(patternIndex).setState(KeyState.Blink)
 
         // TODO Verify
-        while (this.memoryState().patternBy(location.patternGroupIndex, patternIndex++).chained.get()) {
+        while (this.memoryState().activeBank().patternByIndices(location.patternGroupIndex, patternIndex++).chained.get()) {
             this.mainKeys.byIndex(patternIndex).setState(KeyState.On)
         }
     }

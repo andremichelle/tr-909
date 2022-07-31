@@ -48,6 +48,14 @@ export class MemoryBank {
     readonly patternGroups: ReadonlyArray<PatternGroup> = ArrayUtils.fill(MemoryBank.NUM_PATTERN_GROUPS,
         (index: PatternGroupIndex) => new PatternGroup(index))
 
+    nextPattern(pattern: Pattern): Pattern | null {
+        if (pattern.location.patternIndex < PatternGroup.NUM_PATTERNS - 1) {
+            return this.patternByIndices(pattern.location.patternGroupIndex, pattern.location.patternIndex + 1)
+        } else {
+            return null
+        }
+    }
+
     patternByIndices(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
         return this.patternGroups[patternGroupIndex].patterns[patternIndex]
     }

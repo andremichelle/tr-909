@@ -36,7 +36,7 @@ export class UserPatternSelect implements PatternProvider {
     next(): void {
         if (this.waiting === null) {
             if (this.current?.chained.get() === true) {
-                this.current = this.state.nextPattern(this.current)
+                this.current = this.state.activeBank().nextPattern(this.current)
             }
         } else {
             this.current = this.waiting
