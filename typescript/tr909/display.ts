@@ -41,6 +41,7 @@ export interface DisplayValueProvider extends Observable<DisplayValue> {
 
 export class DisplayObservableValueProvider implements DisplayValueProvider {
     static Identity = x => x
+    static PlusOne = x => x + 1
 
     readonly terminator: Terminator = new Terminator()
 
@@ -62,7 +63,7 @@ export class DisplayObservableValueProvider implements DisplayValueProvider {
     }
 }
 
-export class Display {
+export class Display implements Terminable {
     private readonly providerStack: [DisplayValueProvider, Terminator][] = []
     private readonly digits: Digit[]
 
@@ -91,6 +92,12 @@ export class Display {
                 }
             }
         }
+    }
+
+    terminate(): void {
+        this.providerStack
+            .splice(0, this.providerStack.length)
+            .forEach(pair => pair[1].terminate())
     }
 
     private show(value: DisplayValue): void {

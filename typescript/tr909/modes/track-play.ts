@@ -12,7 +12,7 @@ export default class extends Mode {
         this.with({terminate: () => this.context.functionKeys.deactivate(ZeroBasedIndices.TrackKeys)})
         this.with(this.context.memoryState().trackIndex.addObserver(() => this.initButtons(), false))
         this.with(this.context.display.pushProvider(new DisplayObservableValueProvider(
-            this.context.machine.processorTrackMeasure)))
+            this.context.machine.processorTrackMeasure, DisplayObservableValueProvider.PlusOne)))
         this.with(this.context.memoryState().bankGroupIndex
             .addObserver((bankGroupIndex: BankIndex) => {
                 this.context.updateBankGroupKeys(bankGroupIndex)
@@ -60,10 +60,10 @@ export default class extends Mode {
         if (track.isEmpty()) {
             this.context.updatePatternGroupKeys(0, false)
             this.context.mainKeys.byIndex(0).setState(KeyState.Blink)
-            this.context.machine.processorTrackMeasure.set(0)
+            this.context.machine.processorTrackMeasure.set(-1)
         } else {
             this.context.updatePatternLocationKeys(track.get(0))
-            this.context.machine.processorTrackMeasure.set(1) // first measure
+            this.context.machine.processorTrackMeasure.set(0)
         }
         this.context.updateTrackKeys(trackIndex, false)
     }
