@@ -1,4 +1,4 @@
-import {FlamIndex, Pattern, ShuffleIndex, Step} from "../../audio/tr909/pattern.js"
+import {FlamIndex, Pattern, ShuffleIndex, Step} from "../../audio/tr909/memory.js"
 import {ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {UIContext} from "../context.js"
 import {FunctionKeyLabel, Key, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"

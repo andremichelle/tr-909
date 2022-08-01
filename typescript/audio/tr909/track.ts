@@ -1,5 +1,5 @@
 import {Observable, ObservableImpl, Observer, Serializer, Terminable} from "../../lib/common.js"
-import {PatternLocation} from "./pattern.js"
+import {PatternLocation} from "./memory.js"
 
 export class TrackFormat {
     sequence: PatternLocation[]

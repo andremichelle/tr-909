@@ -1,5 +1,5 @@
+import {Pattern} from "../memory.js"
 import {ToMainMessage} from "../messages.js"
-import {Pattern} from "../pattern.js"
 import {State} from "../state.js"
 import {Track} from "../track.js"
 

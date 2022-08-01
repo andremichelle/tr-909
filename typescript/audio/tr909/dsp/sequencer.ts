@@ -1,5 +1,5 @@
 import {ifDefined} from "../../../lib/common.js"
-import {Pattern} from "../pattern.js"
+import {Pattern} from "../memory.js"
 
 export interface StepSequencerEnv {
     currentPattern(): Pattern | null
@@ -61,7 +61,7 @@ export class StepSequencer {
 
     private sequenceSection(p0: number, p1: number): void {
         const pattern = this.environment.currentPattern()
-        const scale = pattern.scale.get().value()
+        const scale = pattern.scaleRatio()
         const searchStart = pattern.shuffleInverse(p0)
         const searchLimit = pattern.shuffleInverse(p1)
         let searchIndex = Math.floor(searchStart / scale)

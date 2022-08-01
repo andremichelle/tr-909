@@ -6,8 +6,16 @@ import {
     Terminable,
     Terminator
 } from "../../lib/common.js"
-import {BankIndex, Memory, MemoryBank, PatternGroup, PatternGroupIndex, PatternIndex, TrackIndex} from "./memory.js"
-import {Pattern} from "./pattern.js"
+import {
+    BankIndex,
+    Memory,
+    MemoryBank,
+    Pattern,
+    PatternGroup,
+    PatternGroupIndex,
+    PatternIndex,
+    TrackIndex
+} from "./memory.js"
 import {Track} from "./track.js"
 
 export enum PlayMode {

@@ -1,8 +1,15 @@
 import {secondsToBars} from "../audio/common.js"
 import {Machine} from "../audio/tr909/machine.js"
-import {BankIndex, Memory, MemoryBank, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
-import {Pattern, PatternLocation} from "../audio/tr909/pattern.js"
-import {Scale} from "../audio/tr909/scale.js"
+import {
+    BankIndex,
+    Memory,
+    MemoryBank,
+    Pattern,
+    PatternGroupIndex,
+    PatternLocation,
+    ScaleIndex,
+    TrackIndex
+} from "../audio/tr909/memory.js"
 import {PlayMode, State} from "../audio/tr909/state.js"
 import {Track} from "../audio/tr909/track.js"
 import {
@@ -105,9 +112,8 @@ export class UIContext implements Terminable {
         const indicator: SVGUseElement = HTML.query('[data-control=scale] [data-control=indicator]')
         const activePatternObserver = (pattern: Pattern) => {
             patternSubscription.terminate()
-            patternSubscription.with(pattern.scale.addObserver((scale: Scale) =>
-                indicator.y.baseVal.value = scale === Scale.N6D16
-                    ? 0 : scale === Scale.N3D8 ? 16 : scale === Scale.D32 ? 32 : 48, true))
+            patternSubscription.with(pattern.scaleIndex.addObserver((scaleIndex: ScaleIndex) =>
+                indicator.y.baseVal.value = scaleIndex * 16, true))
         }
         this.terminator.with(this.machine.memory.state.patternIndicesChangeNotification.addObserver(activePatternObserver))
         activePatternObserver(this.machine.memory.state.activePattern())

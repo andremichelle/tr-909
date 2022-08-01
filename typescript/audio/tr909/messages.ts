@@ -1,5 +1,4 @@
-import {BankIndex} from "./memory.js"
-import {ChannelIndex, PatternFormat, PatternLocation, Step} from "./pattern.js"
+import {BankIndex, ChannelIndex, PatternFormat, PatternLocation, Step} from "./memory.js"
 import {Resources} from "./resources.js"
 import {StateFormat} from "./state.js"
 import {TrackFormat} from "./track.js"
