@@ -65,10 +65,11 @@ export class TrackPatternPlay implements PatternProvider {
         const track: Track = this.state.activeTrack()
         let increment: boolean = false
         if (track.isEmpty()) {
-            this.measure = 0
+            this.measure = -1
             this.current = null
         } else {
             const memoryBank = this.state.activeBank()
+            console.assert(this.measure >= 0)
             if (this.measure < track.size()) {
                 this.current = memoryBank.patternByLocation(track.get(this.measure))
                 increment = true
@@ -80,10 +81,12 @@ export class TrackPatternPlay implements PatternProvider {
                 } else {
                     this.measure = 0
                     this.current = null
+                    this.postTrackComplete()
+                    return
                 }
             }
         }
-        this.postMeasure()
+        this.postUpdateTrackMeasure()
         if (increment) {
             this.measure++
         }
@@ -93,12 +96,16 @@ export class TrackPatternPlay implements PatternProvider {
         const track = this.state.activeTrack()
         this.current = track.isEmpty()
             ? null
-            : this.measure < track.size()
+            : this.measure >= 0 && this.measure < track.size()
                 ? this.state.activeBank().patternByLocation(track.get(this.measure))
                 : null
     }
 
-    private postMeasure() {
+    private postUpdateTrackMeasure() {
         this.port.postMessage({type: "update-track-measure", measure: this.measure} as ToMainMessage)
+    }
+
+    private postTrackComplete() {
+        this.port.postMessage({type: "track-complete"} as ToMainMessage)
     }
 }

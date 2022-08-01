@@ -51,10 +51,7 @@ export class StepSequencer {
     }
 
     moveTo(position: number): void {
-        this.position = position
-    }
-
-    reset(): void {
+        console.assert(position === 0.0, 'only rewind is implemented')
         this.firstRun = true
         this.position = 0.0
     }

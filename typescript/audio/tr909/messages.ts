@@ -13,5 +13,6 @@ export type ToWorkletMessage =
 export type ToMainMessage =
     | { type: "update-step", stepIndex: number }
     | { type: "update-track-measure", measure: number }
+    | { type: "track-complete" }
 
 export type ProcessorOptions = { resources: Resources<Float32Array> }

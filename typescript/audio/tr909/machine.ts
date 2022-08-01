@@ -82,6 +82,11 @@ export class Machine implements Terminable {
                 schedule(() => this.processorStepIndex.set(message.stepIndex))
             } else if (message.type === "update-track-measure") {
                 schedule(() => this.processorTrackMeasure.set(message.measure))
+            } else if (message.type === "track-complete") {
+                schedule(() => {
+                    this.transport.stop()
+                    this.processorTrackMeasure.set(0)
+                })
             }
         }
         this.startScheduler()

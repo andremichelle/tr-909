@@ -394,6 +394,7 @@ export class UIContext implements Terminable {
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
+                key.setPressed(true)
                 if (this.shiftMode.get()) {
                     if (keyIndex <= MainKeyIndex.Step10) {
                         if (!this.isUserInputting) {
@@ -422,6 +423,7 @@ export class UIContext implements Terminable {
                 }
             }))
             this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
+                key.setPressed(false)
                 if (event.altKey) {
                     this.bufferedKeys.add({type: 'main', keyIndex})
                 } else {
