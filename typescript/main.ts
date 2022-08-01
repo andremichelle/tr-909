@@ -31,7 +31,7 @@ const showProgress = (() => {
     // --- BOOT ENDS ---
 
     const main: HTMLElement = HTML.query('main')
-    const parentNode = HTML.query('div.tr-909')
+    const parentNode: HTMLElement = HTML.query('div.tr-909')
     const debugZoom = HTML.query('[data-output=zoom]')
     const debugMode = HTML.query('[data-output=mode]')
     const debugTransporting = HTML.query('[data-output=transporting]')
@@ -51,7 +51,7 @@ const showProgress = (() => {
             scale = 1.0
         }
         debugZoom.textContent = `${Math.round(scale * 100)}%`
-        main.style.setProperty("--scale", `${scale}`)
+        parentNode.style.setProperty("--scale", `${scale}`)
     }
 
     window.addEventListener("resize", resize)

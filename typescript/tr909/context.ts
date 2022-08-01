@@ -22,7 +22,7 @@ import {
     TerminableVoid,
     Terminator
 } from "../lib/common.js"
-import {HTML} from "../lib/dom.js"
+import {HTML, SVG} from "../lib/dom.js"
 import {Display, DisplayObservableValueProvider} from "./display.js"
 import {
     FunctionKeyboardShortcuts,
@@ -43,8 +43,6 @@ import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
-type KeyLocation = { type: 'main' | 'function', keyIndex: number } // to emulate pressing multiple keys
-
 export class UIContext implements Terminable {
     private readonly terminator = new Terminator()
 
@@ -64,7 +62,7 @@ export class UIContext implements Terminable {
     readonly displayInputDigits: Uint8Array
     readonly displayInputValue: ObservableValue<number> = new ObservableValueImpl<number>(0)
 
-    readonly bufferedKeys: Set<KeyLocation> = new Set<KeyLocation>()
+    readonly pressedKeys: Map<Key, Finger> = new Map<Key, Finger>()
 
     private mode: NonNullable<Mode>
     private isUserInputting: boolean = false
@@ -73,15 +71,15 @@ export class UIContext implements Terminable {
     private inputDisplaySubscription: Terminable = TerminableVoid
 
     constructor(readonly machine: Machine,
-                readonly parentNode: ParentNode) {
+                readonly parentNode: HTMLElement) {
         this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode))
         this.mainKeys = new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
             HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
             HTML.query('[data-control=main-key][data-parameter=total-accent]')]
-            .map((element: HTMLButtonElement) => new Key(element)))
+            .map((element: HTMLButtonElement, index: number) => new Key(element, 'main', index)))
         this.functionKeys = new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
-            .map((element: HTMLButtonElement) => new Key(element)))
-        this.shiftKey = new Key(HTML.query('[data-button=shift-key]'))
+            .map((element: HTMLButtonElement, keyIndex: number) => new Key(element, 'function', keyIndex)))
+        this.shiftKey = new Key(HTML.query('[data-button=shift-key]'), 'function', FunctionKeyIndex.Shift)
 
         this.instrumentMode = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
         this.patternEditMode = new ObservableValueImpl<PatternEditMode>(PatternEditMode.Step)
@@ -99,7 +97,7 @@ export class UIContext implements Terminable {
         this.installKeyboard()
         this.installKnobs()
         this.installTransport()
-        this.installAnimationSynchronizer()
+        this.installAnimationFrame()
 
         //
         // Key states for all modes...
@@ -395,6 +393,11 @@ export class UIContext implements Terminable {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
                 key.setPressed(true)
+                if (event.altKey && !this.pressedKeys.has(key)) {
+                    const finger = new Finger(this.parentNode)
+                    finger.align(key)
+                    this.pressedKeys.set(key, finger)
+                }
                 if (this.shiftMode.get()) {
                     if (keyIndex <= MainKeyIndex.Step10) {
                         if (!this.isUserInputting) {
@@ -422,10 +425,8 @@ export class UIContext implements Terminable {
                     this.mode.onMainKeyPress(keyIndex)
                 }
             }))
-            this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
-                if (event.altKey) {
-                    this.bufferedKeys.add({type: 'main', keyIndex})
-                } else {
+            this.terminator.with(key.bind('pointerup', () => {
+                if (!this.pressedKeys.has(key)) {
                     key.setPressed(false)
                     this.pressedMainKeys.delete(keyIndex)
                 }
@@ -434,12 +435,15 @@ export class UIContext implements Terminable {
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
+                if (event.altKey && !this.pressedKeys.has(key)) {
+                    const finger = new Finger(this.parentNode)
+                    finger.align(key)
+                    this.pressedKeys.set(key, finger)
+                }
                 this.onFunctionKeyPress(keyIndex)
             }))
-            this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
-                if (event.altKey) {
-                    this.bufferedKeys.add({type: 'function', keyIndex})
-                } else {
+            this.terminator.with(key.bind('pointerup', () => {
+                if (!this.pressedKeys.has(key)) {
                     this.onFunctionKeyRelease(keyIndex)
                 }
             }))
@@ -466,16 +470,17 @@ export class UIContext implements Terminable {
             }
         }))
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
-            if (!event.altKey && this.bufferedKeys.size > 0) {
-                this.bufferedKeys.forEach((location: KeyLocation) => {
-                    if (location.type === 'main') {
-                        this.mainKeys.byIndex(location.keyIndex).setPressed(false)
-                        this.pressedMainKeys.delete(location.keyIndex)
-                    } else if (location.type === 'function') {
-                        this.onFunctionKeyRelease(location.keyIndex)
+            if (!event.altKey && this.pressedKeys.size > 0) {
+                this.pressedKeys.forEach((finger, key) => {
+                    finger.terminate()
+                    if (key.type === 'main') {
+                        this.mainKeys.byIndex(key.keyIndex).setPressed(false)
+                        this.pressedMainKeys.delete(key.keyIndex)
+                    } else if (key.type === 'function') {
+                        this.onFunctionKeyRelease(key.keyIndex)
                     }
                 })
-                this.bufferedKeys.clear()
+                this.pressedKeys.clear()
             } else {
                 const code = event.code
                 if (code === 'ShiftLeft' || code === 'ShiftRight') {
@@ -552,7 +557,7 @@ export class UIContext implements Terminable {
         })
     }
 
-    private installAnimationSynchronizer(): void {
+    private installAnimationFrame(): void {
         let running = true
         let blink = true
         let frame: number = 0 | 0
@@ -571,11 +576,32 @@ export class UIContext implements Terminable {
             const flash: boolean = frame % 4 < 2
             HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash))
             frame++
+            this.pressedKeys.forEach((finger: Finger, key: Key) => finger.align(key))
             if (running) {
                 requestAnimationFrame(next)
             }
         }
         requestAnimationFrame(next)
         this.terminator.with({terminate: () => running = false})
+    }
+}
+
+class Finger implements Terminable {
+    private readonly svg = SVG.createUse('#finger', 64, 64, {class: 'tap-finger'})
+
+    constructor(private readonly parentNode: HTMLElement) {
+        this.parentNode.appendChild(this.svg)
+    }
+
+    align(key: Key): void {
+        const keyRect = key.touchPoint()
+        const parentRect = this.parentNode.getBoundingClientRect()
+        const scale = parseFloat(this.parentNode.style.getPropertyValue("--scale"))
+        this.svg.style.left = `${(keyRect.x - parentRect.left) / scale}px`
+        this.svg.style.top = `${(keyRect.y - parentRect.top) / scale}px`
+    }
+
+    terminate(): void {
+        this.svg.remove()
     }
 }

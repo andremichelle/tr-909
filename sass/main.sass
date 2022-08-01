@@ -6,12 +6,11 @@ main
   display: flex
   align-items: center
   justify-items: center
-  --scale: 1
-  transform: scale(var(--scale)) rotate(0deg)
+  transform: rotate(0deg)
   position: absolute
 
   @media (orientation: portrait)
-    transform: scale(var(--scale)) rotate(90deg)
+    transform: rotate(90deg)
 
 div.debug
   top: 4px

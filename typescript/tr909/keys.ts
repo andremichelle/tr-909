@@ -18,7 +18,7 @@ export enum FunctionKeyIndex {
     PatternGroup1, PatternGroup2, PatternGroup3, EmptyExtInst,
     TempoStep, BackTap, ForwardBankI, AvailableMeasuresBankII,
     CycleGuideLastMeasure, TapeSyncTempoMode, LastStep, Scale,
-    ShuffleFlam, Clear, InstrumentSelect
+    ShuffleFlam, Clear, InstrumentSelect, Shift
 }
 
 export const FunctionKeyboardShortcuts = new Map<string, FunctionKeyIndex>([
@@ -157,7 +157,9 @@ export enum KeyState {
 export class Key {
     private state: KeyState = KeyState.Off
 
-    constructor(private readonly element: HTMLButtonElement) {
+    constructor(readonly element: HTMLButtonElement,
+                readonly type: 'main' | 'function',
+                readonly keyIndex: number) {
     }
 
     bind(type: string, listener: EventListenerOrEventListenerObject, options?: AddEventListenerOptions): Terminable {
@@ -190,6 +192,11 @@ export class Key {
         this.element.classList.toggle('enabled', this.state !== KeyState.On)
         this.element.classList.toggle('blink-enabled', this.state !== KeyState.Blink)
         this.element.classList.toggle('flash-enabled', this.state !== KeyState.Flash)
+    }
+
+    touchPoint(): { x: number, y: number } {
+        const rect = this.element.getBoundingClientRect()
+        return {x: rect.x + rect.width / 2, y: rect.y + rect.height / 2}
     }
 }
 

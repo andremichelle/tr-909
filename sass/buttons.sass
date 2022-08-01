@@ -83,8 +83,6 @@ button.translucent-button
   color: lighten(#ee3b2e, 10)
   pointer-events: all
 
-  // rename active to selected or something
-
   // workaround to prevent flickr when changing background-image
   &:after
     content: ''
@@ -97,7 +95,7 @@ button.translucent-button
     background-image: url('../svg/translucent-button-active.svg')
 
   &.active
-    box-shadow: 0 0 8px 0 rgba(black, 0.3) inset, 0 0.5px 2px 0 rgba(white, 0.8)
+    box-shadow: 0 0 16px 0 rgba(black, 0.2) inset, 0 0.5px 2px 0 rgba(white, 0.8)
 
   &.blink-enabled:after
     opacity: 0.5
