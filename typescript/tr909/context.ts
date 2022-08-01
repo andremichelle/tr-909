@@ -423,10 +423,10 @@ export class UIContext implements Terminable {
                 }
             }))
             this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
-                key.setPressed(false)
                 if (event.altKey) {
                     this.bufferedKeys.add({type: 'main', keyIndex})
                 } else {
+                    key.setPressed(false)
                     this.pressedMainKeys.delete(keyIndex)
                 }
             }))
@@ -469,6 +469,7 @@ export class UIContext implements Terminable {
             if (!event.altKey && this.bufferedKeys.size > 0) {
                 this.bufferedKeys.forEach((location: KeyLocation) => {
                     if (location.type === 'main') {
+                        this.mainKeys.byIndex(location.keyIndex).setPressed(false)
                         this.pressedMainKeys.delete(location.keyIndex)
                     } else if (location.type === 'function') {
                         this.onFunctionKeyRelease(location.keyIndex)
