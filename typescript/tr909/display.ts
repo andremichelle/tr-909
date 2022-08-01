@@ -4,7 +4,7 @@ enum Segment {
     TT = 1 << 0, TR = 1 << 1, BR = 1 << 2, BB = 1 << 3, BL = 1 << 4, TL = 1 << 5, CR = 1 << 6
 }
 
-const Segments = [
+const Digits = [
     Segment.TT | Segment.BB | Segment.BL | Segment.TL | Segment.BR | Segment.TR,
     Segment.TR | Segment.BR,
     Segment.TT | Segment.BB | Segment.CR | Segment.TR | Segment.BL,
@@ -17,6 +17,11 @@ const Segments = [
     Segment.TT | Segment.BB | Segment.CR | Segment.TL | Segment.BR | Segment.TR,
 ]
 
+const Chars: Map<string, number> = new Map<string, number>([
+    ['E', Segment.TT | Segment.BB | Segment.CR | Segment.TL | Segment.BL],
+    ['R', Segment.TT | Segment.CR | Segment.TL | Segment.BR | Segment.BL | Segment.TR],
+])
+
 class Digit {
     constructor(private readonly segments: SVGPathElement[]) {
     }
@@ -25,15 +30,23 @@ class Digit {
         this.segments.forEach(s => s.classList.toggle('active', false))
     }
 
-    show(value: number): void {
+    showDigit(value: number): void {
         console.assert(value >= 0 && value <= 9)
+        this.showBits(Digits[value])
+    }
+
+    showLetter(char: 'E' | 'R'): void {
+        this.showBits(Chars.get(char)!)
+    }
+
+    private showBits(bits: number) {
         for (let index = 0; index < this.segments.length; index++) {
-            this.segments[index].classList.toggle('active', (1 << index & Segments[value]) !== 0)
+            this.segments[index].classList.toggle('active', (1 << index & bits) !== 0)
         }
     }
 }
 
-export type DisplayValue = number | 'none'
+export type DisplayValue = number | 'none' | Error
 
 export interface DisplayValueProvider extends Observable<DisplayValue> {
     displayValue(): DisplayValue
@@ -70,6 +83,10 @@ export class Display implements Terminable {
     constructor(svg: SVGSVGElement) {
         this.digits = Array.from(svg.querySelectorAll('g g'))
             .map(g => new Digit(Array.from(g.querySelectorAll('path'))))
+
+        // No explicit error handling. We just want to inform the user that something went wrong.
+        window.addEventListener('error', event => this.show(new Error(event.message)))
+        window.addEventListener('unhandledrejection', event => this.show(new Error(event.reason)))
     }
 
     pushProvider(provider: DisplayValueProvider): Terminable {
@@ -103,6 +120,10 @@ export class Display implements Terminable {
     private show(value: DisplayValue): void {
         if (value === 'none') {
             this.digits.forEach(digit => digit.clear())
+        } else if (value instanceof Error) {
+            this.digits[0].showLetter('E')
+            this.digits[1].showLetter('R')
+            this.digits[2].showLetter('R')
         } else {
             value = Math.floor(value)
             value
@@ -114,7 +135,7 @@ export class Display implements Terminable {
                     if (isNaN(integer)) {
                         this.digits[index].clear()
                     } else {
-                        this.digits[index].show(integer)
+                        this.digits[index].showDigit(integer)
                     }
                 })
         }
