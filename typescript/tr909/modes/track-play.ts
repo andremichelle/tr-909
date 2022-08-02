@@ -2,7 +2,7 @@ import {BankIndex, TrackIndex} from "../../audio/tr909/memory.js"
 import {UIContext} from "../context.js"
 import {DisplayObservableValueProvider} from "../display.js"
 import {FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices,} from "../keys.js"
-import {consumed, Mode} from "../mode.js"
+import {complete, Mode} from "../mode.js"
 
 export default class extends Mode {
     constructor(context: UIContext) {
@@ -20,7 +20,7 @@ export default class extends Mode {
             }, true))
     }
 
-    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
         if (this.context.maySwitchBankGroupIndex(label)) {
             return true
         }
@@ -39,10 +39,10 @@ export default class extends Mode {
         if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.memoryState().cycleGuideMode)) {
             return true
         }
-        return false
+        return true
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+    onMainKeyPress(keyIndex: MainKeyIndex): complete {
         if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             this.context.playInstrument(keyIndex)
             return true

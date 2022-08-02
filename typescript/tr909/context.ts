@@ -38,7 +38,7 @@ import {
     ZeroBasedIndices
 } from "./keys.js"
 import {Knob} from "./knobs.js"
-import {Mode} from "./mode.js"
+import {complete, Mode} from "./mode.js"
 import PatternPlayMode from "./modes/pattern-play.js"
 import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
@@ -61,7 +61,7 @@ export class UIContext implements Terminable {
     readonly userInputDigits: Uint8Array
     readonly displayInputNumber: ObservableValue<number> = new ObservableValueImpl<number>(0)
 
-    readonly multiTaps: Map<Key, Option<Finger>> = new Map<Key, Option<Finger>>()
+    readonly multiTapsEmulated: Map<Key, Option<Finger>> = new Map<Key, Option<Finger>>()
 
     private mode: NonNullable<Mode>
     private isUserInputting: boolean = false
@@ -336,18 +336,18 @@ export class UIContext implements Terminable {
 
     playInstrument(keyIndex: MainKeyIndex): void {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent || this.isShiftKeyPressed()) return
-        const instrument = Utils.keyIndexToPlayInstrument(keyIndex, this.getPressedMainKeys())
+        const instrument = Utils.keyIndexToPlayInstrument(keyIndex, this.getConcurrentMainKeys())
         const channelIndex = instrument.channelIndex
         const step = instrument.step
         this.machine.play(channelIndex, step)
     }
 
     isShiftKeyPressed(): boolean {
-        return this.multiTaps.has(this.functionKeys.byIndex(FunctionKeyIndex.Shift))
+        return this.multiTapsEmulated.has(this.functionKeys.byIndex(FunctionKeyIndex.Shift))
     }
 
-    getPressedMainKeys(): Set<MainKeyIndex> {
-        return new Set<MainKeyIndex>([...this.multiTaps.keys()].filter(key => key.isMainKey()).map(key => key.keyIndex))
+    getConcurrentMainKeys(): Set<MainKeyIndex> {
+        return new Set<MainKeyIndex>([...this.multiTapsEmulated.keys()].filter(key => key.isMainKey()).map(key => key.keyIndex))
     }
 
     terminate(): void {
@@ -385,24 +385,22 @@ export class UIContext implements Terminable {
                         this.stopUserNumberInput()
                     }
                 } else {
-                    if (event.shiftKey && !this.multiTaps.has(key)) {
-                        this.multiTaps.set(key, Options.None) // register key before calling press method
+                    if (event.shiftKey && !this.multiTapsEmulated.has(key)) {
                         const consumed = this.mode.onMainKeyPress(keyIndex)
                         console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`)
                         if (consumed) {
                             this.stopUserNumberInput()
-                            this.multiTaps.delete(key)
                         } else {
-                            this.multiTaps.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
+                            this.multiTapsEmulated.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
                         }
                     } else {
                         const consumed = this.mode.onMainKeyPress(keyIndex)
-                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed})ø`)
+                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed})`)
                     }
                 }
             }))
             this.terminator.with(key.bind('pointerup', () => {
-                if (!this.multiTaps.has(key)) {
+                if (!this.multiTapsEmulated.has(key)) {
                     key.setPressed(false)
                 }
             }))
@@ -410,23 +408,21 @@ export class UIContext implements Terminable {
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
-                if (event.shiftKey && !this.multiTaps.has(key)) {
-                    this.multiTaps.set(key, Options.None) // register key before calling press method
-                    const consumed = this.onFunctionKeyPress(keyIndex)
-                    console.debug(`onFunctionKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`)
-                    if (consumed) {
+                if (event.shiftKey && !this.multiTapsEmulated.has(key)) {
+                    const complete = keyIndex !== FunctionKeyIndex.Shift && this.onFunctionKeyPress(keyIndex)
+                    console.debug(`onFunctionKeyPress(${keyIndex} => complete: ${complete}) [emulated]`)
+                    if (complete) {
                         this.stopUserNumberInput()
-                        this.multiTaps.delete(key)
                     } else {
-                        this.multiTaps.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
+                        this.multiTapsEmulated.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
                     }
                 } else {
-                    const consumed = this.onFunctionKeyPress(keyIndex)
-                    console.debug(`onFunctionKeyPress(${keyIndex} => consumed: ${consumed})`)
+                    const complete = this.onFunctionKeyPress(keyIndex)
+                    console.debug(`onFunctionKeyPress(${keyIndex} => complete: ${complete})`)
                 }
             }))
             this.terminator.with(key.bind('pointerup', () => {
-                if (!this.multiTaps.has(key)) {
+                if (!this.multiTapsEmulated.has(key)) {
                     this.onFunctionKeyRelease(keyIndex)
                 }
             }))
@@ -451,8 +447,7 @@ export class UIContext implements Terminable {
         }
     }
 
-    private onFunctionKeyPress(keyIndex: FunctionKeyIndex): boolean {
-        console.debug(`onFunctionKeyPress(${FunctionKeyIndex[keyIndex]})`)
+    private onFunctionKeyPress(keyIndex: FunctionKeyIndex): complete {
         this.functionKeys.byIndex(keyIndex).setPressed(true)
         if (this.isShiftKeyPressed()) {
             this.activeLabels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex])
@@ -490,9 +485,9 @@ export class UIContext implements Terminable {
                 (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
         }))
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
-            if (!event.shiftKey && this.multiTaps.size > 0) {
+            if (!event.shiftKey && this.multiTapsEmulated.size > 0) {
                 this.stopUserNumberInput()
-                this.multiTaps.forEach((finger: Option<Finger>, key: Key) => {
+                this.multiTapsEmulated.forEach((finger: Option<Finger>, key: Key) => {
                     finger.ifPresent(finger => finger.terminate())
                     if (key.type === 'main') {
                         this.mainKeys.byIndex(key.keyIndex).setPressed(false)
@@ -500,7 +495,7 @@ export class UIContext implements Terminable {
                         this.onFunctionKeyRelease(key.keyIndex)
                     }
                 })
-                this.multiTaps.clear()
+                this.multiTapsEmulated.clear()
             } else {
                 ifDefined(FunctionKeyboardShortcuts.get(event.code),
                     (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
@@ -589,7 +584,7 @@ export class UIContext implements Terminable {
             const flash: boolean = frame % 4 < 2
             HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash))
             frame++
-            this.multiTaps.forEach((finger: Option<Finger>, key: Key) => finger
+            this.multiTapsEmulated.forEach((finger: Option<Finger>, key: Key) => finger
                 .ifPresent(finger => finger.align(key)))
             if (running) {
                 requestAnimationFrame(next)

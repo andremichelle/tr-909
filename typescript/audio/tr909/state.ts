@@ -58,19 +58,31 @@ export class State implements Serializer<StateFormat>, Terminable {
     }
 
     activeBank(): MemoryBank {
-        return this.memory.banks[this.bankGroupIndex.get()]
+        const banks = this.memory.banks
+        const bankIndex = this.bankGroupIndex.get()
+        console.assert(bankIndex >= 0 && bankIndex < banks.length)
+        return banks[bankIndex]
     }
 
     activePatternGroup(): PatternGroup {
-        return this.activeBank().patternGroups[this.patternGroupIndex.get()]
+        const patternGroups = this.activeBank().patternGroups
+        const patternGroupIndex = this.patternGroupIndex.get()
+        console.assert(patternGroupIndex >= 0 && patternGroupIndex < patternGroups.length)
+        return patternGroups[patternGroupIndex]
     }
 
     activePattern(): Pattern {
-        return this.activePatternGroup().patterns[this.patternIndex.get()]
+        const patterns = this.activePatternGroup().patterns
+        const patternIndex = this.patternIndex.get()
+        console.assert(patternIndex >= 0 && patternIndex < patterns.length)
+        return patterns[patternIndex]
     }
 
     activeTrack(): Track {
-        return this.activeBank().tracks[this.trackIndex.get()]
+        const tracks = this.activeBank().tracks
+        const trackIndex = this.trackIndex.get()
+        console.assert(trackIndex >= 0 && trackIndex < tracks.length)
+        return tracks[trackIndex]
     }
 
     deserialize(format: StateFormat): Serializer<StateFormat> {

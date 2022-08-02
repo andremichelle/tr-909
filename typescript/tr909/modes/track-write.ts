@@ -3,7 +3,7 @@ import {ObservableValue, ObservableValueImpl, Observer, Terminable, TerminableVo
 import {UIContext} from "../context.js"
 import {DisplayObservableValueProvider, DisplayValue, DisplayValueProvider} from "../display.js"
 import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
-import {consumed, Mode} from "../mode.js"
+import {complete, Mode} from "../mode.js"
 
 export default class extends Mode {
     private terminableAvailableMeasureDisplay: Terminable = TerminableVoid
@@ -38,7 +38,7 @@ export default class extends Mode {
             }
 
             addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable {
-                if(notify) {
+                if (notify) {
                     observer(this.displayValue())
                 }
                 return TerminableVoid
@@ -54,7 +54,7 @@ export default class extends Mode {
     }
 
 
-    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
         if (this.context.maySwitchToTrackPlayMode(label)) {
             return true
         }
@@ -70,18 +70,18 @@ export default class extends Mode {
             if (index > 0) {
                 this.writeIndex.set(index - 1)
                 this.context.updatePatternLocationKeys(this.context.activeTrack().get(this.writeIndex.get()))
-                return true
             }
+            return true
         }
         if (label == FunctionKeyLabel.Forward) {
             const index = this.writeIndex.get()
             if (index < this.context.activeTrack().size() - 1) {
                 this.writeIndex.set(index + 1)
                 this.context.updatePatternLocationKeys(this.context.activeTrack().get(this.writeIndex.get()))
-                return true
             }
+            return true
         }
-        return false
+        return true
     }
 
     onFunctionKeyRelease(key: FunctionKeyLabel<any>): void {
@@ -90,7 +90,7 @@ export default class extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+    onMainKeyPress(keyIndex: MainKeyIndex): complete {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             this.context.activeTrack().writeLocation(this.context.memoryState().activePattern().location, this.writeIndex.get())
             this.writeIndex.set(this.writeIndex.get() + 1)

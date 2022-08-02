@@ -1,7 +1,7 @@
 import {PatternIndex} from "../../audio/tr909/memory.js"
 import {UIContext} from "../context.js"
 import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
-import {consumed, Mode} from "../mode.js"
+import {complete, Mode} from "../mode.js"
 
 export default class extends Mode {
     constructor(context: UIContext) {
@@ -11,7 +11,7 @@ export default class extends Mode {
         this.with(this.context.watchPatternLocationKeys())
     }
 
-    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
         if (this.context.maySwitchToTrackPlayMode(label)) {
             return true
         }
@@ -24,16 +24,16 @@ export default class extends Mode {
         if (this.context.maySwitchToPatternWriteMode(label)) {
             return true
         }
-        return false
+        return true
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+    onMainKeyPress(keyIndex: MainKeyIndex): complete {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-            return false
+            return true
         }
         const state = this.context.memoryState()
-        const pressedMainKeys = this.context.getPressedMainKeys()
-        if (pressedMainKeys.size === 1) {
+        const concurrentMainKeys = this.context.getConcurrentMainKeys()
+        if (concurrentMainKeys.size === 0) {
             for (let index = 0; index < 16; index++) {
                 this.context.activeBank()
                     .patternByIndices(state.patternGroupIndex.get(), index)
@@ -41,8 +41,8 @@ export default class extends Mode {
             }
             state.patternIndex.set(keyIndex as number as PatternIndex) // TODO search for chain start, if any
             return false
-        } else if (pressedMainKeys.size === 2) {
-            const tuple: MainKeyIndex[] = [...pressedMainKeys]
+        } else if (concurrentMainKeys.size === 1) {
+            const tuple: MainKeyIndex[] = [...concurrentMainKeys, keyIndex]
             const start = Math.min(tuple[0], tuple[1])
             const end = Math.max(tuple[0], tuple[1])
             for (let index = start; index < end; index++) {
@@ -50,7 +50,7 @@ export default class extends Mode {
                     .patternByIndices(state.patternGroupIndex.get(), index)
                     .chained.set(true) // TODO Move chaining to PatternGroup chain-array (one update instead of many, 15 instead of 16 entries)
             }
-            state.patternIndex.set(start as number as PatternIndex) // TODO Search chain start (on intersection)
+            state.patternIndex.set(start as number as PatternIndex)
             this.context.updatePatternLocationKeys(this.context.activePattern().location)
             return true
         } else {

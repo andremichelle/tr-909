@@ -77,11 +77,12 @@ export class FunctionKeyLabel<T> {
     static readonly AvailableMeasures: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.AvailableMeasuresBankII, 'available measure')
     static readonly CycleGuide: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.CycleGuideLastMeasure, 'cycle/guide')
     static readonly TapeSync: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.TapeSyncTempoMode, 'tape sync')
-    static readonly LastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.LastStep, 'last step')
+    static readonly LastStep: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.LastStep, 'last step', true)
     static readonly Scale: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Scale, 'scale')
-    static readonly ShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ShuffleFlam, 'shuffle/flam')
-    static readonly Clear: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Clear, 'clear')
-    static readonly InstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.InstrumentSelect, 'instrument select')
+    static readonly ShuffleFlam: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.ShuffleFlam, 'shuffle/flam', true)
+    static readonly Clear: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Clear, 'clear', true)
+    static readonly InstrumentSelect: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.InstrumentSelect, 'instrument select', true)
+    static readonly Shift: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.Shift, 'shift', true)
 
     static readonly TrackWrite: ReadonlyArray<FunctionKeyLabel<TrackIndex>> = [
         FunctionKeyLabel.create(FunctionKeyIndex.Track1, TrackIndex.I),
@@ -125,7 +126,8 @@ export class FunctionKeyLabel<T> {
         FunctionKeyLabel.Scale,
         FunctionKeyLabel.ShuffleFlam,
         FunctionKeyLabel.Clear,
-        FunctionKeyLabel.InstrumentSelect
+        FunctionKeyLabel.InstrumentSelect,
+        FunctionKeyLabel.Shift
     ]
     static readonly ShiftKeys: ReadonlyArray<FunctionKeyLabel<any>> = [
         ...FunctionKeyLabel.TrackWrite,
@@ -142,11 +144,11 @@ export class FunctionKeyLabel<T> {
         FunctionKeyLabel.ShiftInstrumentSelect
     ]
 
-    private static create<T>(keyIndex: FunctionKeyIndex, value: T): FunctionKeyLabel<T> {
-        return new FunctionKeyLabel<T>(keyIndex, value)
+    private static create<T>(keyIndex: FunctionKeyIndex, value: T, multiTap: boolean = false): FunctionKeyLabel<T> {
+        return new FunctionKeyLabel<T>(keyIndex, value, multiTap)
     }
 
-    private constructor(readonly keyIndex: FunctionKeyIndex, readonly value: T) {
+    private constructor(readonly keyIndex: FunctionKeyIndex, readonly value: T, readonly multiTap: boolean) {
     }
 }
 

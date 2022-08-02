@@ -10,13 +10,13 @@ import {BasicTuneDecayVoice} from "./basic-voice.js"
 import {BassdrumVoice} from "./bassdrum.js"
 import {Channel, VoiceFactory} from "./channel.js"
 import {PatternProvider, TrackPatternPlay, UserPatternSelect} from "./pattern.js"
-import {StepSequencer, StepSequencerEnv} from "./sequencer.js"
+import {StepSequencer, StepSequencerEnvironment} from "./sequencer.js"
 import {SnaredrumVoice} from "./snaredrum.js"
 import {Voice} from "./voice.js"
 
 const LevelMapping = new Linear(-18.0, 0.0) // min active, half accent, full, accent + total accent
 
-registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepSequencerEnv, VoiceFactory {
+registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepSequencerEnvironment, VoiceFactory {
     private readonly resources: Resources<Float32Array>
     private readonly preset: Preset
     private readonly memory: Memory

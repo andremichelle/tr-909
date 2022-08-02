@@ -2,7 +2,7 @@ import {FlamIndex, Pattern, ShuffleIndex, Step} from "../../audio/tr909/memory.j
 import {ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {UIContext} from "../context.js"
 import {FunctionKeyLabel, Key, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"
-import {consumed, Mode} from "../mode.js"
+import {complete, Mode} from "../mode.js"
 import {InstrumentMode, Utils} from "../utils.js"
 
 enum TransientEditing {
@@ -61,7 +61,7 @@ export default class extends Mode {
         })
     }
 
-    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
         return this.inputMode.onFunctionKeyPress(label)
     }
 
@@ -69,7 +69,7 @@ export default class extends Mode {
         this.inputMode.onFunctionKeyRelease(label)
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+    onMainKeyPress(keyIndex: MainKeyIndex): complete {
         return this.inputMode.onMainKeyPress(keyIndex)
     }
 
@@ -98,7 +98,7 @@ class SelectMode extends Mode {
                     : KeyState.Off, ZeroBasedIndices.StepKeys), true))
     }
 
-    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
         if (this.context.maySwitchToTrackPlayMode(label)) {
             return true
         }
@@ -126,7 +126,7 @@ class SelectMode extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+    onMainKeyPress(keyIndex: MainKeyIndex): complete {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) return false
         this.context.memoryState().patternIndex.set(keyIndex as number)
         if (this.clear) {
@@ -152,7 +152,7 @@ class StepInputMode extends Mode {
         this.with({terminate: () => this.clearSubscription.terminate()})
     }
 
-    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
         if (this.context.maySwitchPatternEditMode(label)) {
             return true
         }
@@ -181,7 +181,7 @@ class StepInputMode extends Mode {
                 }, true)
             return true
         }
-        return false
+        return true
     }
 
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
@@ -192,7 +192,7 @@ class StepInputMode extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+    onMainKeyPress(keyIndex: MainKeyIndex): complete {
         if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const pattern = this.context.memoryState().activePattern()
             if (this.editLastStep) {
@@ -223,7 +223,7 @@ class TapInputMode extends Mode {
         this.with({terminate: () => this.clearSubscription.terminate()})
     }
 
-    onFunctionKeyPress(label: FunctionKeyLabel<any>): consumed {
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
         if (this.context.maySwitchPatternEditMode(label)) {
             return true
         }
@@ -234,19 +234,18 @@ class TapInputMode extends Mode {
         if (label === FunctionKeyLabel.Clear) {
             this.clearPressed = true
             this.clearSubscription = this.context.machine.processorStepIndex.addObserver(stepIndex => {
-                const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.getPressedMainKeys())
-                if (instrumentMode === InstrumentMode.None || instrumentMode === InstrumentMode.TotalAccent) {
-                    return
+                const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.getConcurrentMainKeys())
+                if (instrumentMode !== InstrumentMode.None && instrumentMode !== InstrumentMode.TotalAccent) {
+                    const pattern = this.context.memoryState().activePattern()
+                    Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
                 }
-                const pattern = this.context.memoryState().activePattern()
-                Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
             }, true)
             return true
         }
         if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.memoryState().cycleGuideMode)) {
             return true
         }
-        return false
+        return true
     }
 
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
@@ -256,10 +255,10 @@ class TapInputMode extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+    onMainKeyPress(keyIndex: MainKeyIndex): complete {
         if (!this.clearPressed && keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const machine = this.context.machine
-            const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.getPressedMainKeys())
+            const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.getConcurrentMainKeys())
             const channelIndex = playInstrument.channelIndex
             const step = playInstrument.step
             machine.play(channelIndex, step)
@@ -312,7 +311,7 @@ class ShuffleFlamInput extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
+    onMainKeyPress(keyIndex: MainKeyIndex): complete {
         const pattern = this.context.memoryState().activePattern()
         if (keyIndex <= MainKeyIndex.Step7) {
             pattern.shuffleIndex.set(keyIndex as ShuffleIndex)
@@ -346,9 +345,9 @@ class InstrumentSelectInput extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(this.context.getPressedMainKeys()))
-        return true
+    onMainKeyPress(keyIndex: MainKeyIndex): complete {
+        this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(this.context.getConcurrentMainKeys().add(keyIndex)))
+        return false
     }
 
     name(): string {

@@ -254,7 +254,7 @@ export class Utils {
             } else if (instrumentMode === InstrumentMode.TotalAccent) {
                 return simple(keyIndex, MainKeyIndex.CartridgeEnterTotalAccent)
             } else {
-                throw new Error(`Unknown instrumentMode(${instrumentMode})`)
+                throw new Error(`Unknown instrumentMode(${instrumentMode.name})`)
             }
         }
     }

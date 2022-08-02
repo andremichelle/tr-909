@@ -90,7 +90,7 @@ const showProgress = (() => {
         debugMode.textContent = interfaceContext.modeName()
         debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
         debugInstrument.textContent = interfaceContext.instrumentMode.get().name
-        debugNumberOfKeys.textContent = interfaceContext.multiTaps.size.toString()
+        debugNumberOfKeys.textContent = interfaceContext.multiTapsEmulated.size.toString()
         requestAnimationFrame(run)
     }
     requestAnimationFrame(run)
