@@ -346,8 +346,9 @@ class InstrumentSelectInput extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(this.context.getConcurrentMainKeys().add(keyIndex)))
-        return false
+        const mainKeyIndices = this.context.getConcurrentMainKeys().add(keyIndex)
+        this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(mainKeyIndices))
+        return mainKeyIndices.size > 1
     }
 
     name(): string {
