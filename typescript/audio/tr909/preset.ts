@@ -47,7 +47,7 @@ const TuneMapping = new Linear(-0.5, 0.5)
 export class Preset {
     readonly tempo = new Parameter<number>(TempoMapping, PrintMapping.FLOAT_ONE, 120.0)
     readonly volume = new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, 0.0)
-    readonly accent = new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.0)
+    readonly accent = new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.5)
     readonly bassdrum: Readonly<BassdrumPreset> = Object.seal({
         tune: new Parameter<number>(BassdrumTuneMapping, PrintMapping.UnipolarPercent, BassdrumTuneMapping.y(0.0)),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),

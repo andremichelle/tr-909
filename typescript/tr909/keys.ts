@@ -198,6 +198,14 @@ export class Key {
         const rect = this.element.getBoundingClientRect()
         return {x: rect.x + rect.width / 2, y: rect.y + rect.height / 2}
     }
+
+    isMainKey() {
+        return this.type === 'main'
+    }
+
+    isFunctionKey() {
+        return this.type === 'function'
+    }
 }
 
 export class KeyGroup<INDEX extends number> {

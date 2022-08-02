@@ -2,6 +2,12 @@ import {Terminable, Terminator} from "../lib/common.js"
 import {UIContext} from "./context.js"
 import {FunctionKeyLabel, MainKeyIndex} from "./keys.js"
 
+/**
+ * consumed is for emulating multi-touch on keys to reach extended functionalities.
+ * It will define the life-time of a key sequence. It should return true,
+ * if the corresponding action of a key is executed, so no new tap-fingers will be displayed on screen
+ * and will not be part of the currently active keys.
+ */
 export type consumed = boolean
 
 export abstract class Mode implements Terminable {

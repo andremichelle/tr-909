@@ -18,6 +18,8 @@ import {
     ifDefined,
     ObservableValue,
     ObservableValueImpl,
+    Option,
+    Options,
     Terminable,
     TerminableVoid,
     Terminator
@@ -47,28 +49,25 @@ export class UIContext implements Terminable {
     private readonly terminator = new Terminator()
 
     private readonly tempoDisplayProvider: DisplayObservableValueProvider
-    private readonly inputDisplayProvider: DisplayObservableValueProvider
+    private readonly userInputDisplayProvider: DisplayObservableValueProvider
 
     readonly display: Display
     readonly mainKeys: KeyGroup<MainKeyIndex>
     readonly functionKeys: KeyGroup<FunctionKeyIndex>
-    readonly shiftKey: Key
 
     readonly instrumentMode: ObservableValueImpl<InstrumentMode>
     readonly patternEditMode: ObservableValueImpl<PatternEditMode>
-    readonly pressedMainKeys: Set<MainKeyIndex>
     readonly activeLabels: FunctionKeyLabel<any>[][]
-    readonly shiftMode: ObservableValueImpl<boolean>
-    readonly displayInputDigits: Uint8Array
-    readonly displayInputValue: ObservableValue<number> = new ObservableValueImpl<number>(0)
+    readonly userInputDigits: Uint8Array
+    readonly displayInputNumber: ObservableValue<number> = new ObservableValueImpl<number>(0)
 
-    readonly pressedKeys: Map<Key, Finger> = new Map<Key, Finger>()
+    readonly multiTaps: Map<Key, Option<Finger>> = new Map<Key, Option<Finger>>()
 
     private mode: NonNullable<Mode>
     private isUserInputting: boolean = false
 
     private tempoDisplaySubscription: Terminable = TerminableVoid
-    private inputDisplaySubscription: Terminable = TerminableVoid
+    private userInputSubscription: Terminable = TerminableVoid
 
     constructor(readonly machine: Machine,
                 readonly parentNode: HTMLElement) {
@@ -79,17 +78,14 @@ export class UIContext implements Terminable {
             .map((element: HTMLButtonElement, index: number) => new Key(element, 'main', index)))
         this.functionKeys = new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
             .map((element: HTMLButtonElement, keyIndex: number) => new Key(element, 'function', keyIndex)))
-        this.shiftKey = new Key(HTML.query('[data-button=shift-key]'), 'function', FunctionKeyIndex.Shift)
 
         this.instrumentMode = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
         this.patternEditMode = new ObservableValueImpl<PatternEditMode>(PatternEditMode.Step)
-        this.pressedMainKeys = new Set<MainKeyIndex>()
         this.activeLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
-        this.shiftMode = new ObservableValueImpl<boolean>(false)
-        this.displayInputDigits = new Uint8Array(3)
+        this.userInputDigits = new Uint8Array(3)
 
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo)
-        this.inputDisplayProvider = new DisplayObservableValueProvider(this.displayInputValue)
+        this.userInputDisplayProvider = new DisplayObservableValueProvider(this.displayInputNumber)
 
         this.mode = new TrackPlayMode(this)
 
@@ -148,35 +144,35 @@ export class UIContext implements Terminable {
     }
 
     maySwitchToTrackPlayMode(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.switchToTrackPlayMode(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.TrackPlay, index => this.switchToTrackPlayMode(index))
     }
 
     maySwitchToTrackWriteMode(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.TrackWrite, index => this.switchToTrackWriteMode(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.TrackWrite, index => this.switchToTrackWriteMode(index))
     }
 
     maySwitchToPatternPlayMode(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.switchToPatternPlayMode(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternPlay, index => this.switchToPatternPlayMode(index))
     }
 
     maySwitchToPatternWriteMode(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.PatternWrite, index => this.switchToPatternWriteMode(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternWrite, index => this.switchToPatternWriteMode(index))
     }
 
     maySwitchTrackIndex(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.TrackPlay, index => this.machine.memory.state.trackIndex.set(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.TrackPlay, index => this.machine.memory.state.trackIndex.set(index))
     }
 
     maySwitchBankGroupIndex(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.BankGroup, index => this.machine.memory.state.bankGroupIndex.set(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.BankGroup, index => this.machine.memory.state.bankGroupIndex.set(index))
     }
 
     maySwitchPatternGroupIndex(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.PatternPlay, index => this.machine.memory.state.patternGroupIndex.set(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternPlay, index => this.machine.memory.state.patternGroupIndex.set(index))
     }
 
     maySwitchPatternEditMode(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecWithIndex(label, FunctionKeyLabel.PatternEditMode, index => this.patternEditMode.set(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternEditMode, index => this.patternEditMode.set(index))
     }
 
     mayToggle(label: FunctionKeyLabel<any>,
@@ -253,8 +249,7 @@ export class UIContext implements Terminable {
         let patternIndex: number = location.patternIndex
         this.mainKeys.byIndex(patternIndex).setState(KeyState.Blink)
 
-        // TODO Verify
-        while (this.memoryState().activeBank().patternByIndices(location.patternGroupIndex, patternIndex++).chained.get()) {
+        while (this.memoryState().activeBank().patternGroups[location.patternGroupIndex].chained[patternIndex++]) {
             this.mainKeys.byIndex(patternIndex).setState(KeyState.On)
         }
     }
@@ -305,7 +300,12 @@ export class UIContext implements Terminable {
                 key.setState(keyIndex === MainKeyIndex.CartridgeEnterTotalAccent ? KeyState.Off : mapping(pattern, keyIndex)))
         }
         let patternSubscription = state.activePattern().addObserver(() => updateKeys(), true)
-        terminator.with({terminate: () => patternSubscription.terminate()})
+        terminator.with({
+            terminate: () => {
+                patternSubscription.terminate()
+                patternSubscription = TerminableVoid
+            }
+        })
         terminator.with(state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             patternSubscription.terminate()
             patternSubscription = pattern.addObserver(() => updateKeys(), true)
@@ -335,53 +335,28 @@ export class UIContext implements Terminable {
     }
 
     playInstrument(keyIndex: MainKeyIndex): void {
-        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) return
-        const instrument = Utils.keyIndexToPlayInstrument(keyIndex, this.pressedMainKeys)
+        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent || this.isShiftKeyPressed()) return
+        const instrument = Utils.keyIndexToPlayInstrument(keyIndex, this.getPressedMainKeys())
         const channelIndex = instrument.channelIndex
         const step = instrument.step
         this.machine.play(channelIndex, step)
+    }
+
+    isShiftKeyPressed(): boolean {
+        return this.multiTaps.has(this.functionKeys.byIndex(FunctionKeyIndex.Shift))
+    }
+
+    getPressedMainKeys(): Set<MainKeyIndex> {
+        return new Set<MainKeyIndex>([...this.multiTaps.keys()].filter(key => key.isMainKey()).map(key => key.keyIndex))
     }
 
     terminate(): void {
         this.terminator.terminate()
     }
 
-    private onFunctionKeyPress(keyIndex: FunctionKeyIndex): void {
-        console.debug(`onFunctionKeyPress(${FunctionKeyIndex[keyIndex]})`)
-        this.functionKeys.byIndex(keyIndex).setPressed(true)
-        if (this.shiftMode.get()) {
-            this.activeLabels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex])
-            if (this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex])) {
-                return
-            }
-        } else {
-            const label = FunctionKeyLabel.NormalKeys[keyIndex]
-            this.activeLabels[keyIndex].push(label)
-            if (label === FunctionKeyLabel.Tempo) {
-                this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider)
-                return
-            }
-            if (this.mode.onFunctionKeyPress(label)) {
-                return
-            }
-        }
-    }
-
-    private onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
-        console.debug(`onFunctionKeyRelease(${FunctionKeyIndex[keyIndex]})`)
-        this.functionKeys.byIndex(keyIndex).setPressed(false)
-        const labels = this.activeLabels[keyIndex]
-        labels.splice(0, labels.length).forEach((label: FunctionKeyLabel<any>) => {
-            if (label === FunctionKeyLabel.Tempo) {
-                this.tempoDisplaySubscription.terminate()
-            }
-            this.mode.onFunctionKeyRelease(label)
-        })
-    }
-
-    private static mayExecWithIndex<T>(label: FunctionKeyLabel<any>,
-                                       choices: ReadonlyArray<FunctionKeyLabel<T>>,
-                                       exec: (value: T) => void): boolean {
+    private static mayExecOnIndexedChoice<T>(label: FunctionKeyLabel<any>,
+                                             choices: ReadonlyArray<FunctionKeyLabel<T>>,
+                                             exec: (value: T) => void): boolean {
         const index = choices.indexOf(label)
         if (index === -1) return false
         exec(choices[index].value)
@@ -393,66 +368,115 @@ export class UIContext implements Terminable {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
                 key.setPressed(true)
-                if (event.altKey && !this.pressedKeys.has(key)) {
-                    const finger = new Finger(this.parentNode)
-                    finger.align(key)
-                    this.pressedKeys.set(key, finger)
-                }
-                if (this.shiftMode.get()) {
+                if (this.isShiftKeyPressed()) {
                     if (keyIndex <= MainKeyIndex.Step10) {
-                        if (!this.isUserInputting) {
-                            this.isUserInputting = true
-                            this.display.pushProvider(this.inputDisplayProvider)
-                        }
-                        this.displayInputDigits[0] = this.displayInputDigits[1]
-                        this.displayInputDigits[1] = this.displayInputDigits[2]
-                        this.displayInputDigits[2] = (keyIndex + 1) % 10
-                        this.displayInputValue.set(this.displayInputDigits[0] * 100 + this.displayInputDigits[1] * 10 + this.displayInputDigits[2])
+                        this.startUserNumberInput()
+                        this.userInputDigits[0] = this.userInputDigits[1]
+                        this.userInputDigits[1] = this.userInputDigits[2]
+                        this.userInputDigits[2] = (keyIndex + 1) % 10
+                        this.displayInputNumber.set(
+                            this.userInputDigits[0] * 100 +
+                            this.userInputDigits[1] * 10 +
+                            this.userInputDigits[2])
                     } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-                        this.mode.setMainKeyValue(this.displayInputValue.get())
-                        this.displayInputDigits.fill(0)
-                        if (this.isUserInputting) {
-                            this.isUserInputting = false
-                            this.inputDisplaySubscription.terminate()
-                        }
+                        const number = this.displayInputNumber.get()
+                        console.log(`setMainKeyValue(${number})`)
+                        this.mode.setMainKeyValue(number)
+                        this.stopUserNumberInput()
                     }
                 } else {
-                    if (this.isUserInputting) {
-                        this.isUserInputting = false
-                        this.inputDisplaySubscription.terminate()
+                    if (event.shiftKey && !this.multiTaps.has(key)) {
+                        this.multiTaps.set(key, Options.None) // register key before calling press method
+                        const consumed = this.mode.onMainKeyPress(keyIndex)
+                        if (consumed) {
+                            this.stopUserNumberInput()
+                            this.multiTaps.delete(key)
+                        } else {
+                            this.multiTaps.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
+                        }
+                    } else {
+                        this.mode.onMainKeyPress(keyIndex)
                     }
-                    this.pressedMainKeys.add(keyIndex)
-                    this.mode.onMainKeyPress(keyIndex)
                 }
             }))
             this.terminator.with(key.bind('pointerup', () => {
-                if (!this.pressedKeys.has(key)) {
+                if (!this.multiTaps.has(key)) {
                     key.setPressed(false)
-                    this.pressedMainKeys.delete(keyIndex)
                 }
             }))
         })
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
-                if (event.altKey && !this.pressedKeys.has(key)) {
-                    const finger = new Finger(this.parentNode)
-                    finger.align(key)
-                    this.pressedKeys.set(key, finger)
+                if (event.shiftKey && !this.multiTaps.has(key)) {
+                    this.multiTaps.set(key, Options.None) // register key before calling press method
+                    const consumed = this.onFunctionKeyPress(keyIndex)
+                    console.log(`onFunctionKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`)
+                    if (consumed) {
+                        this.stopUserNumberInput()
+                        this.multiTaps.delete(key)
+                    } else {
+                        this.multiTaps.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
+                    }
+                } else {
+                    const consumed = this.onFunctionKeyPress(keyIndex)
+                    console.log(`onFunctionKeyPress(${keyIndex} => consumed: ${consumed})`)
                 }
-                this.onFunctionKeyPress(keyIndex)
             }))
             this.terminator.with(key.bind('pointerup', () => {
-                if (!this.pressedKeys.has(key)) {
+                if (!this.multiTaps.has(key)) {
                     this.onFunctionKeyRelease(keyIndex)
                 }
             }))
         })
-        this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
-            this.shiftKey.setPointerCapture(event.pointerId)
-            this.shiftMode.set(true)
-        }))
-        this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
+    }
+
+    private startUserNumberInput() {
+        if (!this.isUserInputting) {
+            console.debug('startUserNumberInput')
+            this.isUserInputting = true
+            this.userInputDigits.fill(0)
+            this.userInputSubscription = this.display.pushProvider(this.userInputDisplayProvider)
+        }
+    }
+
+    private stopUserNumberInput(): void {
+        if (this.isUserInputting) {
+            console.debug('stopUserNumberInput')
+            this.isUserInputting = false
+            this.userInputSubscription.terminate()
+            this.userInputSubscription = TerminableVoid
+        }
+    }
+
+    private onFunctionKeyPress(keyIndex: FunctionKeyIndex): boolean {
+        console.debug(`onFunctionKeyPress(${FunctionKeyIndex[keyIndex]})`)
+        this.functionKeys.byIndex(keyIndex).setPressed(true)
+        if (this.isShiftKeyPressed()) {
+            this.activeLabels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex])
+            return this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex])
+        } else {
+            const label = FunctionKeyLabel.NormalKeys[keyIndex]
+            this.activeLabels[keyIndex].push(label)
+            if (label === FunctionKeyLabel.Tempo) {
+                this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider)
+                return true
+            }
+            return this.mode.onFunctionKeyPress(label)
+        }
+    }
+
+    private onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
+        console.debug(`onFunctionKeyRelease(${FunctionKeyIndex[keyIndex]})`)
+        this.functionKeys.byIndex(keyIndex).setPressed(false)
+        const labels = this.activeLabels[keyIndex]
+        labels.splice(0, labels.length).forEach((label: FunctionKeyLabel<any>) => {
+            if (label === FunctionKeyLabel.Tempo) {
+                this.tempoDisplaySubscription.terminate()
+                this.tempoDisplaySubscription = TerminableVoid
+            }
+            this.mode.onFunctionKeyRelease(label)
+        })
     }
 
     private installKeyboard() {
@@ -460,37 +484,24 @@ export class UIContext implements Terminable {
             if (event.repeat) {
                 return
             }
-            const code = event.code
-            if (code === 'ShiftLeft' || code === 'ShiftRight') {
-                this.shiftKey.setPressed(true)
-                this.shiftMode.set(true)
-            } else {
-                ifDefined(FunctionKeyboardShortcuts.get(code),
-                    (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
-            }
+            ifDefined(FunctionKeyboardShortcuts.get(event.code),
+                (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
         }))
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
-            if (!event.altKey && this.pressedKeys.size > 0) {
-                this.pressedKeys.forEach((finger, key) => {
-                    finger.terminate()
+            if (!event.shiftKey && this.multiTaps.size > 0) {
+                this.stopUserNumberInput()
+                this.multiTaps.forEach((finger: Option<Finger>, key: Key) => {
+                    finger.ifPresent(finger => finger.terminate())
                     if (key.type === 'main') {
                         this.mainKeys.byIndex(key.keyIndex).setPressed(false)
-                        this.pressedMainKeys.delete(key.keyIndex)
                     } else if (key.type === 'function') {
                         this.onFunctionKeyRelease(key.keyIndex)
                     }
                 })
-                this.pressedKeys.clear()
+                this.multiTaps.clear()
             } else {
-                const code = event.code
-                if (code === 'ShiftLeft' || code === 'ShiftRight') {
-                    this.shiftKey.setPressed(false)
-                    this.shiftMode.set(false)
-                    this.displayInputDigits.fill(0)
-                } else {
-                    ifDefined(FunctionKeyboardShortcuts.get(code),
-                        (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
-                }
+                ifDefined(FunctionKeyboardShortcuts.get(event.code),
+                    (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
             }
         }))
     }
@@ -576,7 +587,8 @@ export class UIContext implements Terminable {
             const flash: boolean = frame % 4 < 2
             HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash))
             frame++
-            this.pressedKeys.forEach((finger: Finger, key: Key) => finger.align(key))
+            this.multiTaps.forEach((finger: Option<Finger>, key: Key) => finger
+                .ifPresent(finger => finger.align(key)))
             if (running) {
                 requestAnimationFrame(next)
             }
@@ -593,12 +605,13 @@ class Finger implements Terminable {
         this.parentNode.appendChild(this.svg)
     }
 
-    align(key: Key): void {
+    align(key: Key): this {
         const keyRect = key.touchPoint()
         const parentRect = this.parentNode.getBoundingClientRect()
         const scale = parseFloat(this.parentNode.style.getPropertyValue("--scale"))
         this.svg.style.left = `${(keyRect.x - parentRect.left) / scale}px`
         this.svg.style.top = `${(keyRect.y - parentRect.top) / scale}px`
+        return this
     }
 
     terminate(): void {

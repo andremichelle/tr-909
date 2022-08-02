@@ -19,9 +19,11 @@
 <body>
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <defs>
-        <symbol id="finger" viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg" width="48">
-            <path fill="rgba(255, 255, 255, 0.6)" stroke="rgba(0, 0, 0, 0.8)" stroke-width="8"
-                  d="M554.96 265.44c0-20.16-14.559-38.078-34.16-40.879-14-1.68-26.32 3.36-34.719 12.879-4.48-17.359-19.602-30.238-38.641-30.238-12.32 0-22.961 5.602-30.238 14-5.04-16.238-20.16-27.441-37.52-27.441-11.199 0-20.719 4.48-28 11.762V55.443c0-20.16-14.559-38.078-34.16-40.879-24.078-3.36-44.801 15.68-44.801 39.199v267.12c0 5.602-6.719 7.281-10.078 2.8l-45.922-70c-10.641-16.237-34.719-20.16-52.641-7.839-17.922 11.762-24.078 35.281-13.441 51.52 0 0 128.8 194.88 129.92 196 23.52 32.48 61.039 52.641 102.48 52.641h45.922c68.879 0 126-55.441 126.56-124.32v-2.8l-.004-153.45z"/>
+        <symbol id="finger" viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg" width="48"
+                fill="rgba(255, 255, 255, 0.6)" stroke="rgba(0, 0, 0, 0.8)" stroke-width="8">
+            <path d="M554.96 265.44c0-20.16-14.559-38.078-34.16-40.879-14-1.68-26.32 3.36-34.719 12.879-4.48-17.359-19.602-30.238-38.641-30.238-12.32 0-22.961 5.602-30.238 14-5.04-16.238-20.16-27.441-37.52-27.441-11.199 0-20.719 4.48-28 11.762V55.443c0-20.16-14.559-38.078-34.16-40.879-24.078-3.36-44.801 15.68-44.801 39.199v267.12c0 5.602-6.719 7.281-10.078 2.8l-45.922-70c-10.641-16.237-34.719-20.16-52.641-7.839-17.922 11.762-24.078 35.281-13.441 51.52 0 0 128.8 194.88 129.92 196 23.52 32.48 61.039 52.641 102.48 52.641h45.922c68.879 0 126-55.441 126.56-124.32v-2.8l-.004-153.45z"/>
+            <line x1="450" x2="550" y1="50" y2="50"></line>
+            <line x1="500" x2="500" y1="0" y2="100"></line>
         </symbol>
     </defs>
 </svg>
@@ -34,6 +36,8 @@
     <output data-output="transporting"></output>
     <label>Instrument</label>
     <output data-output="instrument"></output>
+    <label>Keys</label>
+    <output data-output="number-of-keys"></output>
 </div>
 <main class="invisible">
     <div class="tr-909">
@@ -222,7 +226,7 @@
             <span>SHUFFLE<br/>/FLAM</span>
             <span>CLEAR</span>
             <button class="translucent-button" data-button="function-key"></button>
-            <button class="translucent-button" data-button="shift-key"></button>
+            <button class="translucent-button" data-button="function-key"></button>
             <span>INSTRUMENT<br/>SELECT</span>
             <span class="shift">SHIFT</span>
         </div>

@@ -43,7 +43,7 @@ export default class extends Mode {
                     throw new Error(`Unknown TransientEditing(${TransientEditing[editing]})`)
                 }
             } else {
-                this.inputMode = new PatternSelectMode(context)
+                this.inputMode = new SelectMode(context)
             }
             console.debug(`mode: ${this.context.modeName()}`)
         }
@@ -84,7 +84,7 @@ class Idle extends Mode {
     }
 }
 
-class PatternSelectMode extends Mode {
+class SelectMode extends Mode {
     private clear: boolean = false
 
     constructor(context: UIContext) {
@@ -136,7 +136,7 @@ class PatternSelectMode extends Mode {
     }
 
     name(): string {
-        return 'Select/Clear'
+        return 'Select'
     }
 }
 
@@ -158,7 +158,7 @@ class StepInputMode extends Mode {
         }
         if (label === FunctionKeyLabel.LastStep) {
             this.editLastStep = true
-            return true
+            return false
         }
         if (label === FunctionKeyLabel.Scale) {
             this.context.memoryState().activePattern().cycleToNextScale()
@@ -166,11 +166,11 @@ class StepInputMode extends Mode {
         }
         if (label === FunctionKeyLabel.ShuffleFlam) {
             this.transientEdit.set(TransientEditing.ShuffleFlam)
-            return true
+            return false
         }
         if (label === FunctionKeyLabel.InstrumentSelect) {
             this.transientEdit.set(TransientEditing.InstrumentSelect)
-            return true
+            return false
         }
         if (label === FunctionKeyLabel.Clear) {
             this.clearSubscription = this.context.machine.processorStepIndex
@@ -234,7 +234,7 @@ class TapInputMode extends Mode {
         if (label === FunctionKeyLabel.Clear) {
             this.clearPressed = true
             this.clearSubscription = this.context.machine.processorStepIndex.addObserver(stepIndex => {
-                const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.pressedMainKeys)
+                const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.getPressedMainKeys())
                 if (instrumentMode === InstrumentMode.None || instrumentMode === InstrumentMode.TotalAccent) {
                     return
                 }
@@ -259,7 +259,7 @@ class TapInputMode extends Mode {
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
         if (!this.clearPressed && keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const machine = this.context.machine
-            const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.pressedMainKeys)
+            const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.getPressedMainKeys())
             const channelIndex = playInstrument.channelIndex
             const step = playInstrument.step
             machine.play(channelIndex, step)
@@ -347,7 +347,7 @@ class InstrumentSelectInput extends Mode {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): consumed {
-        this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(this.context.pressedMainKeys))
+        this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(this.context.getPressedMainKeys()))
         return true
     }
 

@@ -32,14 +32,15 @@ export default class extends Mode {
             return false
         }
         const state = this.context.memoryState()
-        const pressedMainKeys = this.context.pressedMainKeys
+        const pressedMainKeys = this.context.getPressedMainKeys()
         if (pressedMainKeys.size === 1) {
             for (let index = 0; index < 16; index++) {
                 this.context.activeBank()
                     .patternByIndices(state.patternGroupIndex.get(), index)
                     .chained.set(false)
             }
-            state.patternIndex.set(keyIndex as number as PatternIndex)
+            state.patternIndex.set(keyIndex as number as PatternIndex) // TODO search for chain start, if any
+            return false
         } else if (pressedMainKeys.size === 2) {
             const tuple: MainKeyIndex[] = [...pressedMainKeys]
             const start = Math.min(tuple[0], tuple[1])
@@ -51,10 +52,10 @@ export default class extends Mode {
             }
             state.patternIndex.set(start as number as PatternIndex) // TODO Search chain start (on intersection)
             this.context.updatePatternLocationKeys(this.context.activePattern().location)
+            return true
         } else {
             return false
         }
-        return true
     }
 
     name(): string {

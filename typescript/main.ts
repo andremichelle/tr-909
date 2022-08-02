@@ -36,6 +36,7 @@ const showProgress = (() => {
     const debugMode = HTML.query('[data-output=mode]')
     const debugTransporting = HTML.query('[data-output=transporting]')
     const debugInstrument = HTML.query('[data-output=instrument]')
+    const debugNumberOfKeys = HTML.query('[data-output=number-of-keys]')
 
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})
@@ -89,6 +90,7 @@ const showProgress = (() => {
         debugMode.textContent = interfaceContext.modeName()
         debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
         debugInstrument.textContent = interfaceContext.instrumentMode.get().name
+        debugNumberOfKeys.textContent = interfaceContext.multiTaps.size.toString()
         requestAnimationFrame(run)
     }
     requestAnimationFrame(run)
