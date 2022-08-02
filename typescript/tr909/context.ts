@@ -380,7 +380,7 @@ export class UIContext implements Terminable {
                             this.userInputDigits[2])
                     } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
                         const number = this.displayInputNumber.get()
-                        console.log(`setMainKeyValue(${number})`)
+                        console.debug(`setMainKeyValue(${number})`)
                         this.mode.setMainKeyValue(number)
                         this.stopUserNumberInput()
                     }
@@ -388,6 +388,7 @@ export class UIContext implements Terminable {
                     if (event.shiftKey && !this.multiTaps.has(key)) {
                         this.multiTaps.set(key, Options.None) // register key before calling press method
                         const consumed = this.mode.onMainKeyPress(keyIndex)
+                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`)
                         if (consumed) {
                             this.stopUserNumberInput()
                             this.multiTaps.delete(key)
@@ -395,7 +396,8 @@ export class UIContext implements Terminable {
                             this.multiTaps.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
                         }
                     } else {
-                        this.mode.onMainKeyPress(keyIndex)
+                        const consumed = this.mode.onMainKeyPress(keyIndex)
+                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed})ø`)
                     }
                 }
             }))
@@ -411,7 +413,7 @@ export class UIContext implements Terminable {
                 if (event.shiftKey && !this.multiTaps.has(key)) {
                     this.multiTaps.set(key, Options.None) // register key before calling press method
                     const consumed = this.onFunctionKeyPress(keyIndex)
-                    console.log(`onFunctionKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`)
+                    console.debug(`onFunctionKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`)
                     if (consumed) {
                         this.stopUserNumberInput()
                         this.multiTaps.delete(key)
@@ -420,7 +422,7 @@ export class UIContext implements Terminable {
                     }
                 } else {
                     const consumed = this.onFunctionKeyPress(keyIndex)
-                    console.log(`onFunctionKeyPress(${keyIndex} => consumed: ${consumed})`)
+                    console.debug(`onFunctionKeyPress(${keyIndex} => consumed: ${consumed})`)
                 }
             }))
             this.terminator.with(key.bind('pointerup', () => {
