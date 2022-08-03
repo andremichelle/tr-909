@@ -86,9 +86,9 @@ export class UIContext implements Terminable {
 
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo)
         this.userInputDisplayProvider = new DisplayObservableValueProvider(this.displayInputNumber)
-        this.terminator.with(this.displayInputNumber.addObserver(integer => {
-            this.userInputDigits[0] = (integer / 100) % 10
-            this.userInputDigits[1] = (integer / 10) % 10
+        this.terminator.with(this.displayInputNumber.addObserver((integer: number) => {
+            this.userInputDigits[0] = Math.floor(integer / 100) % 10
+            this.userInputDigits[1] = Math.floor(integer / 10) % 10
             this.userInputDigits[2] = integer % 10
         }, false))
 
