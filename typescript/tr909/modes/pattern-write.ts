@@ -115,10 +115,14 @@ class SelectMode extends Mode {
         if (this.context.maySwitchPatternEditMode(label)) {
             return true
         }
-        if (label === FunctionKeyLabel.Clear) {
-            this.clear = true
+        if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.memoryState().cycleGuideMode)) {
             return true
         }
+        if (label === FunctionKeyLabel.Clear) {
+            this.clear = true
+            return false
+        }
+        return true
     }
 
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
@@ -138,16 +142,6 @@ class SelectMode extends Mode {
 
     name(): string {
         return 'Select'
-    }
-}
-
-class CopyMode extends Mode {
-    constructor(context: UIContext) {
-        super(context)
-    }
-
-    name(): string {
-        return 'copy'
     }
 }
 
@@ -212,7 +206,7 @@ class StepInputMode extends Mode {
                 const instrumentMode = this.context.instrumentMode.get()
                 Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
             }
-            return true
+            return false
         }
         return false
     }
@@ -251,13 +245,15 @@ class TapInputMode extends Mode {
         if (label === FunctionKeyLabel.Clear) {
             this.clearPressed = true
             this.clearStepSubscription = this.context.machine.processorStepIndex.addObserver(stepIndex => {
+                console.log(this.context.getConcurrentMainKeys())
                 const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.getConcurrentMainKeys())
+                // console.log(stepIndex,instrumentMode)
                 if (instrumentMode !== InstrumentMode.None && instrumentMode !== InstrumentMode.TotalAccent) {
                     const pattern = this.context.memoryState().activePattern()
                     Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
                 }
             }, true)
-            return true
+            return false
         }
         if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.memoryState().cycleGuideMode)) {
             return true
@@ -269,23 +265,28 @@ class TapInputMode extends Mode {
         if (label === FunctionKeyLabel.Clear) {
             this.clearPressed = false
             this.clearStepSubscription.terminate()
+            this.clearStepSubscription = TerminableVoid
         }
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        if (!this.clearPressed && keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
-            const machine = this.context.machine
-            const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.getConcurrentMainKeys())
-            const channelIndex = playInstrument.channelIndex
-            const step = playInstrument.step
-            machine.play(channelIndex, step)
-            if (machine.transport.isPlaying()) {
-                this.context.memoryState().activePattern()
-                    .setStep(channelIndex, machine.processorStepIndex.get(), step ? Step.Full : Step.Weak)
+        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+            if (this.clearPressed) {
+                return false
+            } else {
+                const machine = this.context.machine
+                const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.getConcurrentMainKeys())
+                const channelIndex = playInstrument.channelIndex
+                const step = playInstrument.step
+                machine.play(channelIndex, step)
+                if (machine.transport.isPlaying()) {
+                    this.context.memoryState().activePattern()
+                        .setStep(channelIndex, machine.processorStepIndex.get(), step ? Step.Full : Step.Weak)
+                }
+                return true
             }
-            return true
         }
-        return false
+        return true
     }
 
     name(): string {
@@ -293,7 +294,10 @@ class TapInputMode extends Mode {
     }
 
     private postMessage(enabled: boolean) {
-        this.context.machine.worklet.port.postMessage({type: 'set-tap-mode', enabled} as ToWorkletMessage)
+        this.context.machine.worklet.port.postMessage({
+            type: 'set-tap-mode',
+            enabled
+        } as ToWorkletMessage)
     }
 }
 

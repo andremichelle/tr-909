@@ -13,7 +13,7 @@ import {
 import {PlayMode, State} from "../audio/tr909/state.js"
 import {Track} from "../audio/tr909/track.js"
 import {
-    ArrayUtils,
+    ArrayUtils, elseIfUndefined,
     Events,
     ifDefined,
     ObservableValue,
@@ -452,7 +452,7 @@ export class UIContext implements Terminable {
         this.functionKeys.byIndex(keyIndex).setPressed(true)
         if (this.isShiftKeyPressed()) {
             this.activeLabels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex])
-            return this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex])
+            return elseIfUndefined(this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex]), true)
         } else {
             const label = FunctionKeyLabel.NormalKeys[keyIndex]
             this.activeLabels[keyIndex].push(label)
@@ -460,7 +460,7 @@ export class UIContext implements Terminable {
                 this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider)
                 return true
             }
-            return this.mode.onFunctionKeyPress(label)
+            return elseIfUndefined(this.mode.onFunctionKeyPress(label), true)
         }
     }
 

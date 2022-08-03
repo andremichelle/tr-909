@@ -1,5 +1,5 @@
 import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator} from "../../lib/common.js"
-import {dbToGain, Transport} from "../common.js"
+import {barsToSeconds, dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
 import {BankIndex, ChannelIndex, Memory, MemoryBank, Pattern, PatternLocation, Step} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
@@ -15,6 +15,7 @@ export class Machine implements Terminable {
     private readonly terminator: Terminator = new Terminator()
     private readonly scheduleUpdates: { time: number, exec: () => void }[] = []
     private readonly bundledUpdates: { bankIndex: BankIndex, location: PatternLocation }[] = []
+
     private running: boolean = true
 
     readonly worklet: AudioWorkletNode
@@ -80,9 +81,12 @@ export class Machine implements Terminable {
         }, false))
         this.worklet.port.onmessage = event => {
             const message = event.data as ToMainMessage
-            const schedule = (exec: () => void) => this.scheduleUpdates.push({
-                time: context.currentTime + context.outputLatency, exec
-            })
+            const schedule = (exec: () => void) => {
+                return this.scheduleUpdates.push({
+                    time: this.context.currentTime + this.context.outputLatency,
+                    exec
+                })
+            }
             if (message.type === 'update-step') {
                 schedule(() => this.processorStepIndex.set(message.stepIndex))
             } else if (message.type === "update-track-measure") {
@@ -95,6 +99,10 @@ export class Machine implements Terminable {
             }
         }
         this.startScheduler()
+    }
+
+    stepAbsoluteDuration(): number {
+        return barsToSeconds(this.memory.state.activePattern().scaleRatio(), this.preset.tempo.get())
     }
 
     play(channelIndex: ChannelIndex, step: Step) {
