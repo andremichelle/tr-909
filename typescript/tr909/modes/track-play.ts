@@ -39,15 +39,21 @@ export default class extends Mode {
         if (this.context.mayToggle(label, FunctionKeyLabel.CycleGuide, this.context.memoryState().cycleGuideMode)) {
             return true
         }
+        if (label === FunctionKeyLabel.LastMeasure) {
+            this.context.startUserNumberInput()
+            this.context.displayInputNumber.set(this.context.memoryState().activeTrack().size())
+            return true
+        }
         return true
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+            return true
+        } else {
             this.context.playInstrument(keyIndex)
             return true
         }
-        return false
     }
 
     setMainKeyValue(value: number) {

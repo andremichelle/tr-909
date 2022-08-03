@@ -86,6 +86,11 @@ export class UIContext implements Terminable {
 
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo)
         this.userInputDisplayProvider = new DisplayObservableValueProvider(this.displayInputNumber)
+        this.terminator.with(this.displayInputNumber.addObserver(integer => {
+            this.userInputDigits[0] = (integer / 100) % 10
+            this.userInputDigits[1] = (integer / 10) % 10
+            this.userInputDigits[2] = integer % 10
+        }, false))
 
         this.mode = new TrackPlayMode(this)
 
@@ -350,6 +355,24 @@ export class UIContext implements Terminable {
         return new Set<MainKeyIndex>([...this.multiTapsEmulated.keys()].filter(key => key.isMainKey()).map(key => key.keyIndex))
     }
 
+    startUserNumberInput() {
+        if (!this.isUserInputting) {
+            console.debug('startUserNumberInput')
+            this.isUserInputting = true
+            this.userInputDigits.fill(0)
+            this.userInputSubscription = this.display.pushProvider(this.userInputDisplayProvider)
+        }
+    }
+
+    stopUserNumberInput(): void {
+        if (this.isUserInputting) {
+            console.debug('stopUserNumberInput')
+            this.isUserInputting = false
+            this.userInputSubscription.terminate()
+            this.userInputSubscription = TerminableVoid
+        }
+    }
+
     terminate(): void {
         this.terminator.terminate()
     }
@@ -370,9 +393,7 @@ export class UIContext implements Terminable {
                 if (event.shiftKey && !this.multiTapsEmulated.has(key)) {
                     const complete = keyIndex !== FunctionKeyIndex.Shift && this.onFunctionKeyPress(keyIndex)
                     console.debug(`onFunctionKeyPress(${keyIndex} => complete: ${complete}) [emulated]`)
-                    if (complete) {
-                        this.stopUserNumberInput()
-                    } else {
+                    if (!complete) {
                         this.multiTapsEmulated.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
                     }
                 } else {
@@ -410,9 +431,7 @@ export class UIContext implements Terminable {
                     if (event.shiftKey && !this.multiTapsEmulated.has(key) && keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
                         const consumed = this.mode.onMainKeyPress(keyIndex)
                         console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`)
-                        if (consumed) {
-                            this.stopUserNumberInput()
-                        } else {
+                        if (!consumed) {
                             this.multiTapsEmulated.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
                         }
                     } else {
@@ -429,24 +448,6 @@ export class UIContext implements Terminable {
         })
     }
 
-    private startUserNumberInput() {
-        if (!this.isUserInputting) {
-            console.debug('startUserNumberInput')
-            this.isUserInputting = true
-            this.userInputDigits.fill(0)
-            this.userInputSubscription = this.display.pushProvider(this.userInputDisplayProvider)
-        }
-    }
-
-    private stopUserNumberInput(): void {
-        if (this.isUserInputting) {
-            console.debug('stopUserNumberInput')
-            this.isUserInputting = false
-            this.userInputSubscription.terminate()
-            this.userInputSubscription = TerminableVoid
-        }
-    }
-
     private onFunctionKeyPress(keyIndex: FunctionKeyIndex): complete {
         this.functionKeys.byIndex(keyIndex).setPressed(true)
         if (this.isShiftKeyPressed()) {
@@ -454,7 +455,6 @@ export class UIContext implements Terminable {
             return this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex])
         } else {
             const label = FunctionKeyLabel.NormalKeys[keyIndex]
-            console.log('add', label)
             this.activeLabels[keyIndex].push(label)
             if (label === FunctionKeyLabel.Tempo) {
                 this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider)
