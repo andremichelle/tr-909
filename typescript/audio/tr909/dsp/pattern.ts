@@ -18,8 +18,9 @@ export interface PatternProvider {
 export class UserPatternSelect implements PatternProvider {
     private current: Pattern
     private waiting: Pattern = null
+    private respectChain: boolean = false
 
-    constructor(readonly state: State, private readonly isMoving: () => boolean) {
+    constructor(readonly state: State, private readonly port: MessagePort, private readonly isMoving: () => boolean) {
         this.current = this.state.activePattern()
         this.state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             if (this.isMoving()) {
@@ -35,14 +36,33 @@ export class UserPatternSelect implements PatternProvider {
         return this.current
     }
 
+    // 0  1  2  3  4
+    // +  +  +
+    // |----------<
     next(): void {
+        const current = this.current
+        if (current === null) {
+            this.respectChain = false
+            return null
+        }
         if (this.waiting === null) {
-            if (this.current?.chained.get() === true) {
-                this.current = this.state.activeBank().nextPattern(this.current)
+            if (this.respectChain) {
+                const bank = this.state.activeBank()
+                if (bank.isChained(current)) {
+                    this.current = bank.nextPattern(current)
+                } else {
+                    this.current = bank.firstOfChained(current)
+                }
+            } else {
+                this.respectChain = true
             }
         } else {
             this.current = this.waiting
+            this.respectChain = true
             this.waiting = null
+        }
+        if (current !== this.current) {
+            this.port.postMessage({type: "update-pattern", location: this.current.location} as ToMainMessage)
         }
     }
 
@@ -59,7 +79,7 @@ export class TrackPatternPlay implements PatternProvider {
     private measure: number = 0
     private current: Pattern = null
 
-    constructor(readonly state: State, readonly port: MessagePort) {
+    constructor(readonly state: State, private readonly port: MessagePort) {
         this.reevaluate()
     }
 

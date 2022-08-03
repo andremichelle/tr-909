@@ -42,7 +42,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
         this.memory = new Memory()
         this.memory.state.playMode.addObserver(mode => mode === PlayMode.Track
             ? this.patternProvider = new TrackPatternPlay(this.memory.state, this.port)
-            : this.patternProvider = new UserPatternSelect(this.memory.state, () => this.moving), true)
+            : this.patternProvider = new UserPatternSelect(this.memory.state, this.port, () => this.moving), true)
         this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
         this.sequencer = new StepSequencer(this)
 
@@ -64,6 +64,10 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
                 this.memory.banks[message.bankIndex]
                     .patternByLocation(message.location)
                     .deserialize(message.format)
+            } else if (message.type === "update-pattern-group-chained") {
+                this.memory.banks[message.bankIndex]
+                    .patternGroups[message.patternGroupIndex]
+                    .writeChain(message.chained)
             } else if (message.type === "transport-play") {
                 this.moving = true
             } else if (message.type === "transport-pause") {

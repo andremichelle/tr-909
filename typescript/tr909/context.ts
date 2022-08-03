@@ -5,6 +5,7 @@ import {
     Memory,
     MemoryBank,
     Pattern,
+    PatternGroup,
     PatternGroupIndex,
     PatternLocation,
     ScaleIndex,
@@ -13,7 +14,8 @@ import {
 import {PlayMode, State} from "../audio/tr909/state.js"
 import {Track} from "../audio/tr909/track.js"
 import {
-    ArrayUtils, elseIfUndefined,
+    ArrayUtils,
+    elseIfUndefined,
     Events,
     ifDefined,
     ObservableValue,
@@ -148,6 +150,10 @@ export class UIContext implements Terminable {
         return this.memoryState().activePattern()
     }
 
+    activePatternGroup(): PatternGroup {
+        return this.memoryState().activePatternGroup()
+    }
+
     maySwitchToTrackPlayMode(label: FunctionKeyLabel<any>): boolean {
         return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.TrackPlay, index => this.switchToTrackPlayMode(index))
     }
@@ -250,13 +256,16 @@ export class UIContext implements Terminable {
         console.debug(`updatePatternLocationKeys(location: [${location.patternGroupIndex}, ${location.patternIndex}])`)
         this.updatePatternGroupKeys(location.patternGroupIndex, false)
         this.mainKeys.deactivate()
+        const patternIndex: number = this.activeBank()
+            .patternGroups[location.patternGroupIndex]
+            .firstOfChained(location.patternIndex).location.patternIndex
+        const chained = this.memoryState().activeBank().patternGroups[location.patternGroupIndex].getChained()
+        let index: MainKeyIndex = patternIndex
+        do {
+            this.mainKeys.byIndex(index).setState(KeyState.On)
+        } while (chained[index++])
 
-        let patternIndex: number = location.patternIndex
-        this.mainKeys.byIndex(patternIndex).setState(KeyState.Blink)
-
-        while (this.memoryState().activeBank().patternGroups[location.patternGroupIndex].chained[patternIndex++]) {
-            this.mainKeys.byIndex(patternIndex).setState(KeyState.On)
-        }
+        this.mainKeys.byIndex(location.patternIndex as number).setState(KeyState.Blink)
     }
 
     updateTrackKeys(trackIndex: TrackIndex, writeMode: boolean): void {

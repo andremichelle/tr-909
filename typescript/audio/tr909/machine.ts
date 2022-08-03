@@ -1,7 +1,17 @@
 import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator} from "../../lib/common.js"
 import {barsToSeconds, dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
-import {BankIndex, ChannelIndex, Memory, MemoryBank, Pattern, PatternLocation, Step} from "./memory.js"
+import {
+    BankIndex,
+    ChannelIndex,
+    Memory,
+    MemoryBank,
+    Pattern,
+    PatternGroup,
+    PatternGroupIndex,
+    PatternLocation,
+    Step
+} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
@@ -68,6 +78,14 @@ export class Machine implements Terminable {
                                 type: 'update-track', bankIndex, arrayIndex: trackIndex, format: track.serialize()
                             } as ToWorkletMessage), false)),
                     ...bank.patternGroups
+                        .map((patternGroup: PatternGroup, patternGroupIndex: PatternGroupIndex) =>
+                            patternGroup.addObserver(() => this.worklet.port.postMessage({
+                                type: 'update-pattern-group-chained',
+                                bankIndex,
+                                patternGroupIndex,
+                                chained: patternGroup.getChained()
+                            } as ToWorkletMessage), false)),
+                    ...bank.patternGroups
                         .map(patternGroup => patternGroup.patterns)
                         .flat()
                         .map((pattern: Pattern) => pattern
@@ -81,14 +99,13 @@ export class Machine implements Terminable {
         }, false))
         this.worklet.port.onmessage = event => {
             const message = event.data as ToMainMessage
-            const schedule = (exec: () => void) => {
-                return this.scheduleUpdates.push({
-                    time: this.context.currentTime + this.context.outputLatency,
-                    exec
-                })
-            }
+            const schedule = (exec: () => void) =>
+                this.scheduleUpdates.push({time: this.context.currentTime + this.context.outputLatency, exec})
             if (message.type === 'update-step') {
                 schedule(() => this.processorStepIndex.set(message.stepIndex))
+            } else if (message.type === 'update-pattern') {
+                const state = this.memory.state
+                state.patternIndicesChangeNotification.notify(state.activeBank().patternByLocation(message.location))
             } else if (message.type === "update-track-measure") {
                 schedule(() => this.processorTrackMeasure.set(message.measure))
             } else if (message.type === "track-complete") {

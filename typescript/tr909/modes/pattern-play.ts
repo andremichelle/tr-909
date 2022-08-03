@@ -33,23 +33,21 @@ export default class extends Mode {
         }
         const state = this.context.memoryState()
         const concurrentMainKeys = this.context.getConcurrentMainKeys()
+        const patternGroup = this.context.activePatternGroup()
         if (concurrentMainKeys.size === 0) {
-            for (let index = 0; index < 16; index++) {
-                this.context.activeBank()
-                    .patternByIndices(state.patternGroupIndex.get(), index)
-                    .chained.set(false)
-            }
-            state.patternIndex.set(keyIndex as number as PatternIndex) // TODO search for chain start, if any
+            patternGroup.clearChains()
+            state.patternIndex.set(patternGroup.firstOfChained(keyIndex as number as PatternIndex).location.patternIndex)
             return false
         } else if (concurrentMainKeys.size === 1) {
+            patternGroup.clearChains()
             const tuple: MainKeyIndex[] = [...concurrentMainKeys, keyIndex]
             const start = Math.min(tuple[0], tuple[1])
             const end = Math.max(tuple[0], tuple[1])
+            const chained = patternGroup.getChained().slice()
             for (let index = start; index < end; index++) {
-                this.context.activeBank()
-                    .patternByIndices(state.patternGroupIndex.get(), index)
-                    .chained.set(true) // TODO Move chaining to PatternGroup chain-array (one update instead of many, 15 instead of 16 entries)
+                chained[index] = true
             }
+            patternGroup.writeChain(chained)
             state.patternIndex.set(start as number as PatternIndex)
             this.context.updatePatternLocationKeys(this.context.activePattern().location)
             return true

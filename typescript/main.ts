@@ -79,6 +79,15 @@ const showProgress = (() => {
     memoryBank.patternByIndices(0, 1).testB()
     memoryBank.patternByIndices(0, 2).testC()
     memoryBank.patternByIndices(0, 3).testD()
+    const chained = new Array(15).fill(false)
+    chained[0] = true
+    chained[1] = true
+    chained[2] = true
+
+    chained[4] = true
+    chained[5] = true
+    chained[6] = true
+    memoryBank.patternGroups[0].writeChain(chained)
     const track = memoryBank.tracks[1]
     track.writeLocation({patternGroupIndex: 0, patternIndex: 0})
     track.writeLocation({patternGroupIndex: 0, patternIndex: 1})

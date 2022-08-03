@@ -4,6 +4,7 @@ import {
     ObservableImpl,
     ObservableValueImpl,
     Observer,
+    Serializer,
     Terminable,
     Terminator
 } from "../../lib/common.js"
@@ -70,14 +71,16 @@ export class MemoryBank {
             (index: PatternGroupIndex) => new PatternGroup(index))
     }
 
+    isChained(pattern: Pattern): boolean {
+        return this.patternGroups[pattern.location.patternGroupIndex].isChained(pattern.location.patternIndex)
+    }
+
+    firstOfChained(pattern: Pattern): Pattern {
+        return this.patternGroups[pattern.location.patternGroupIndex].firstOfChained(pattern.location.patternIndex)
+    }
+
     nextPattern(pattern: Pattern): Pattern | null {
-        if (pattern.location.patternIndex < PatternGroup.NUM_PATTERNS - 1) {
-            return this.patternByIndices(
-                pattern.location.patternGroupIndex,
-                pattern.location.patternIndex + 1)
-        } else {
-            return null
-        }
+        return this.patternGroups[pattern.location.patternGroupIndex].nextPattern(pattern.location.patternIndex)
     }
 
     patternByIndices(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
@@ -89,15 +92,83 @@ export class MemoryBank {
     }
 }
 
-export class PatternGroup {
+export interface PatternGroupFormat {
+    patterns: PatternFormat[]
+    chained: boolean[]
+}
+
+export class PatternGroup implements Observable<void>, Serializer<PatternGroupFormat> {
     static readonly NUM_PATTERNS = 16
 
+    private readonly terminator: Terminator = new Terminator()
+
+    private readonly observable = this.terminator.with(new ObservableImpl<void>())
+    private readonly chained: boolean[] = new Array(PatternGroup.NUM_PATTERNS - 1).fill(false)
+
     readonly patterns: ReadonlyArray<Pattern>
-    readonly chained: boolean[] = new Array(PatternGroup.NUM_PATTERNS - 1).fill(false)
 
     constructor(patternGroupIndex: PatternGroupIndex) {
         this.patterns = ArrayUtils.fill(PatternGroup.NUM_PATTERNS,
             (patternIndex: PatternIndex) => new Pattern({patternGroupIndex, patternIndex}))
+    }
+
+    getChained(): ReadonlyArray<boolean> {
+        return this.chained
+    }
+
+    writeChain(chained: boolean[]) {
+        console.assert(chained.length === PatternGroup.NUM_PATTERNS - 1)
+        if (this.chained.some((chain: boolean, index: number) => chain !== chained[index])) {
+            this.chained.splice(0, this.chained.length, ...chained)
+            this.observable.notify()
+        }
+    }
+
+    clearChains() {
+        if (this.chained.some(chain => chain === true)) {
+            this.chained.fill(false)
+            this.observable.notify()
+        }
+    }
+
+    isChained(patternIndex: PatternIndex): boolean {
+        return this.chained[patternIndex]
+    }
+
+    /**
+     * @returns May return same pattern if pattern is not part of a chained sequence.
+     * Otherwise, it returns the first of the chain.
+     */
+    firstOfChained(patternIndex: PatternIndex): Pattern {
+        let index = patternIndex
+        while (index > 0 && this.chained[index - 1]) {
+            index--
+        }
+        return this.patterns[index]
+    }
+
+    nextPattern(patternIndex: PatternIndex): Pattern | null {
+        return patternIndex + 1 < PatternGroup.NUM_PATTERNS ? this.patterns[patternIndex + 1] : null
+    }
+
+    deserialize(format: PatternGroupFormat): this {
+        this.patterns.forEach((pattern, index) => pattern.deserialize(format.patterns[index]))
+        this.writeChain(format.chained)
+        this.observable.notify()
+        return this
+    }
+
+    serialize(): PatternGroupFormat {
+        return {chained: this.chained, patterns: this.patterns.map(pattern => pattern.serialize())}
+    }
+
+    addObserver(observer: Observer<void>, notify: boolean): Terminable {
+        if (notify) observer()
+        return this.observable.addObserver(observer)
+    }
+
+    terminate(): void {
+        this.observable.terminate()
     }
 }
 
@@ -108,12 +179,11 @@ export interface PatternFormat {
     scaleIndex: ScaleIndex
     shuffleIndex: ShuffleIndex
     flamIndex: FlamIndex
-    chained: boolean
 }
 
 export type PatternLocation = { readonly patternGroupIndex: PatternGroupIndex, readonly patternIndex: PatternIndex }
 
-export class Pattern implements Observable<void> {
+export class Pattern implements Observable<void>, Serializer<PatternFormat> {
     // https://www.kvraudio.com/forum/viewtopic.php?p=3740195&sid=89d14cd241a916781a274f424c4d92a0#p3740195
     // aM: However from my hearing we divide by 32 and not multiply by 2/96 (too less shuffle)
     static readonly ShuffleDelays = ArrayUtils.fill(7, index => index / 32)
@@ -129,7 +199,6 @@ export class Pattern implements Observable<void> {
     readonly flamIndex = new ObservableValueImpl<FlamIndex>(0)
     readonly shuffleIndex = new ObservableValueImpl<ShuffleIndex>(0)
     readonly scaleIndex = new ObservableValueImpl<ScaleIndex>(3)
-    readonly chained = new ObservableValueImpl<boolean>(false)
 
     private readonly observable
     private readonly listener: () => void
@@ -148,7 +217,6 @@ export class Pattern implements Observable<void> {
         this.terminator.with(this.lastStep.addObserver(this.listener, false))
         this.terminator.with(this.flamIndex.addObserver(this.listener, false))
         this.terminator.with(this.shuffleIndex.addObserver(this.listener, false))
-        this.terminator.with(this.chained.addObserver(this.listener, false))
     }
 
     testA() {
@@ -272,12 +340,11 @@ export class Pattern implements Observable<void> {
             scaleIndex: this.scaleIndex.get(),
             flamIndex: this.flamIndex.get(),
             lastStep: this.lastStep.get(),
-            shuffleIndex: this.shuffleIndex.get(),
-            chained: this.chained.get()
+            shuffleIndex: this.shuffleIndex.get()
         }
     }
 
-    deserialize(format: PatternFormat): void {
+    deserialize(format: PatternFormat): Serializer<PatternFormat> {
         console.debug('deserialize pattern')
         this.observable.mute()
         format.steps.forEach((steps: Step[], channel: number) =>
@@ -288,9 +355,9 @@ export class Pattern implements Observable<void> {
         this.scaleIndex.set(format.scaleIndex)
         this.flamIndex.set(format.flamIndex)
         this.shuffleIndex.set(format.shuffleIndex)
-        this.chained.set(format.chained)
         this.observable.unmute()
         this.observable.notify()
+        return this
     }
 
     addObserver(observer: Observer<void>, notify: boolean): Terminable {
