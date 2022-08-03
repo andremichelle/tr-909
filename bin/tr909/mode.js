@@ -1,0 +1,20 @@
+import { Terminator } from "../lib/common.js";
+export class Mode {
+    constructor(context) {
+        this.context = context;
+        this.terminator = new Terminator();
+        this.with = (terminable) => this.terminator.with(terminable);
+        this.terminate = () => this.terminator.terminate();
+    }
+    onFunctionKeyPress(label) {
+        return true;
+    }
+    onFunctionKeyRelease(label) {
+    }
+    onMainKeyPress(keyIndex) {
+        return true;
+    }
+    setMainKeyValue(value) {
+    }
+}
+//# sourceMappingURL=mode.js.map
