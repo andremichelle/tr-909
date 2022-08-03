@@ -1,5 +1,5 @@
 import {Option, Options, Parameter, PrintMapping, Terminable, Terminator} from "../../lib/common.js"
-import {Exp, Linear, LinearInteger, Volume} from "../../lib/mapping.js"
+import {Exp, Linear, Pow, Volume} from "../../lib/mapping.js"
 
 export type BassdrumPreset = {
     tune: Parameter<number>
@@ -35,7 +35,7 @@ export type CrashOrRidePreset = {
     tune: Parameter<number>
 }
 
-const TempoMapping = new LinearInteger(37, 290)
+const TempoMapping = Pow.byCenter(120, 37, 290)
 const BassdrumTuneMapping = new Exp(0.007, 0.0294)
 const BassdrumDecayMapping = new Exp(0.012, 0.100)
 const TomDecayMapping = new Exp(0.04, 0.15)
