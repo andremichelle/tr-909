@@ -25,6 +25,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
 
     private patternProvider: PatternProvider
     private moving: boolean = false
+    private tapMode: boolean = false
     private bpm: number = 120.0
     private barIncrement: number = 0.0
     private frameIndex: number = 0 | 0
@@ -71,6 +72,9 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
                 this.sequencer.moveTo(message.position)
             } else if (message.type === "play-channel") {
                 this.schedulePlay(message.channelIndex, this.frameIndex, message.step, false)
+            } else if (message.type === "set-tap-mode") {
+                console.debug(`set tap mode to ${message.enabled}`)
+                this.tapMode = message.enabled
             }
         }
     }
@@ -100,7 +104,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
         const frameIndexDelayed = frameIndex + Pattern.FlamDelays[pattern.flamIndex.get()] / 1000.0 * sampleRate
         const totalAccent: boolean = pattern.isTotalAccent(stepIndex)
         for (let channelIndex = 0; channelIndex < ChannelIndex.End; channelIndex++) {
-            if (cycleGuideMode && channelIndex === ChannelIndex.Rim && stepIndex % 4 === 0) { // TODO Only when pattern-write tap-mode
+            if (this.tapMode && cycleGuideMode && channelIndex === ChannelIndex.Rim && stepIndex % 4 === 0) {
                 this.schedulePlay(channelIndex, frameIndex, stepIndex === 0
                     ? Step.Full
                     : Step.Weak, totalAccent)

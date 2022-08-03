@@ -1,4 +1,5 @@
 import {FlamIndex, Pattern, ShuffleIndex, Step} from "../../audio/tr909/memory.js"
+import {ToWorkletMessage} from "../../audio/tr909/messages.js"
 import {ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {UIContext} from "../context.js"
 import {FunctionKeyLabel, Key, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"
@@ -223,14 +224,20 @@ class StepInputMode extends Mode {
 
 class TapInputMode extends Mode {
     private clearPressed: boolean = false
-    private clearSubscription: Terminable = TerminableVoid
+    private clearStepSubscription: Terminable = TerminableVoid
 
     constructor(context: UIContext, readonly transientEdit: ObservableValue<TransientEditing>) {
         super(context)
 
         this.context.resetMainKeys()
+        this.postMessage(true)
         this.with(this.context.startStepRunningAnimation())
-        this.with({terminate: () => this.clearSubscription.terminate()})
+        this.with({
+            terminate: () => {
+                this.postMessage(false)
+                this.clearStepSubscription.terminate()
+            }
+        })
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
@@ -243,7 +250,7 @@ class TapInputMode extends Mode {
         }
         if (label === FunctionKeyLabel.Clear) {
             this.clearPressed = true
-            this.clearSubscription = this.context.machine.processorStepIndex.addObserver(stepIndex => {
+            this.clearStepSubscription = this.context.machine.processorStepIndex.addObserver(stepIndex => {
                 const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.getConcurrentMainKeys())
                 if (instrumentMode !== InstrumentMode.None && instrumentMode !== InstrumentMode.TotalAccent) {
                     const pattern = this.context.memoryState().activePattern()
@@ -261,7 +268,7 @@ class TapInputMode extends Mode {
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
         if (label === FunctionKeyLabel.Clear) {
             this.clearPressed = false
-            this.clearSubscription.terminate()
+            this.clearStepSubscription.terminate()
         }
     }
 
@@ -283,6 +290,10 @@ class TapInputMode extends Mode {
 
     name(): string {
         return 'Tap'
+    }
+
+    private postMessage(enabled: boolean) {
+        this.context.machine.worklet.port.postMessage({type: 'set-tap-mode', enabled} as ToWorkletMessage)
     }
 }
 
