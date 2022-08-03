@@ -11,6 +11,8 @@ export interface PatternProvider {
     next(): void
 
     reevaluate(): void
+
+    setTrackMeasure(measure: number): void
 }
 
 export class UserPatternSelect implements PatternProvider {
@@ -45,6 +47,10 @@ export class UserPatternSelect implements PatternProvider {
     }
 
     reevaluate(): void {
+        // nothing to do
+    }
+
+    setTrackMeasure(measure: number): void {
         // nothing to do
     }
 }
@@ -99,6 +105,12 @@ export class TrackPatternPlay implements PatternProvider {
             : this.measure >= 0 && this.measure < track.size()
                 ? this.state.activeBank().patternByLocation(track.get(this.measure))
                 : null
+    }
+
+    setTrackMeasure(measure: number): void {
+        console.debug("setTrackMeasure", measure)
+        this.measure = measure
+        this.reevaluate()
     }
 
     private postUpdateTrackMeasure() {

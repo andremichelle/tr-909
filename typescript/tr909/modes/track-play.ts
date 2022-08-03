@@ -50,6 +50,12 @@ export default class extends Mode {
         return false
     }
 
+    setMainKeyValue(value: number) {
+        if (value > 0) {
+            this.context.machine.processorTrackMeasure.set(value - 1)
+        }
+    }
+
     name(): string {
         return 'Track Play'
     }

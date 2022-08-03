@@ -364,47 +364,6 @@ export class UIContext implements Terminable {
     }
 
     private installKeys(): void {
-        this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
-            this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
-                key.setPointerCapture(event.pointerId)
-                key.setPressed(true)
-                if (this.isShiftKeyPressed()) {
-                    if (keyIndex <= MainKeyIndex.Step10) {
-                        this.startUserNumberInput()
-                        this.userInputDigits[0] = this.userInputDigits[1]
-                        this.userInputDigits[1] = this.userInputDigits[2]
-                        this.userInputDigits[2] = (keyIndex + 1) % 10
-                        this.displayInputNumber.set(
-                            this.userInputDigits[0] * 100 +
-                            this.userInputDigits[1] * 10 +
-                            this.userInputDigits[2])
-                    } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-                        const number = this.displayInputNumber.get()
-                        console.debug(`setMainKeyValue(${number})`)
-                        this.mode.setMainKeyValue(number)
-                        this.stopUserNumberInput()
-                    }
-                } else {
-                    if (event.shiftKey && !this.multiTapsEmulated.has(key)) {
-                        const consumed = this.mode.onMainKeyPress(keyIndex)
-                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`)
-                        if (consumed) {
-                            this.stopUserNumberInput()
-                        } else {
-                            this.multiTapsEmulated.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
-                        }
-                    } else {
-                        const consumed = this.mode.onMainKeyPress(keyIndex)
-                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed})`)
-                    }
-                }
-            }))
-            this.terminator.with(key.bind('pointerup', () => {
-                if (!this.multiTapsEmulated.has(key)) {
-                    key.setPressed(false)
-                }
-            }))
-        })
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
@@ -424,6 +383,47 @@ export class UIContext implements Terminable {
             this.terminator.with(key.bind('pointerup', () => {
                 if (!this.multiTapsEmulated.has(key)) {
                     this.onFunctionKeyRelease(keyIndex)
+                }
+            }))
+        })
+        this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
+            this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
+                key.setPointerCapture(event.pointerId)
+                key.setPressed(true)
+                if (this.isShiftKeyPressed() && !this.isPlaying()) {
+                    if (keyIndex <= MainKeyIndex.Step10) {
+                        this.startUserNumberInput()
+                        this.userInputDigits[0] = this.userInputDigits[1]
+                        this.userInputDigits[1] = this.userInputDigits[2]
+                        this.userInputDigits[2] = (keyIndex + 1) % 10
+                        this.displayInputNumber.set(
+                            this.userInputDigits[0] * 100 +
+                            this.userInputDigits[1] * 10 +
+                            this.userInputDigits[2])
+                    } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+                        const number = this.displayInputNumber.get()
+                        console.debug(`setMainKeyValue(${number})`)
+                        this.mode.setMainKeyValue(number)
+                        this.stopUserNumberInput()
+                    }
+                } else {
+                    if (event.shiftKey && !this.multiTapsEmulated.has(key) && keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+                        const consumed = this.mode.onMainKeyPress(keyIndex)
+                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`)
+                        if (consumed) {
+                            this.stopUserNumberInput()
+                        } else {
+                            this.multiTapsEmulated.set(key, Options.valueOf(new Finger(this.parentNode).align(key)))
+                        }
+                    } else {
+                        const consumed = this.mode.onMainKeyPress(keyIndex)
+                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed})`)
+                    }
+                }
+            }))
+            this.terminator.with(key.bind('pointerup', () => {
+                if (!this.multiTapsEmulated.has(key)) {
+                    key.setPressed(false)
                 }
             }))
         })
@@ -454,6 +454,7 @@ export class UIContext implements Terminable {
             return this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex])
         } else {
             const label = FunctionKeyLabel.NormalKeys[keyIndex]
+            console.log('add', label)
             this.activeLabels[keyIndex].push(label)
             if (label === FunctionKeyLabel.Tempo) {
                 this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider)
@@ -471,8 +472,9 @@ export class UIContext implements Terminable {
             if (label === FunctionKeyLabel.Tempo) {
                 this.tempoDisplaySubscription.terminate()
                 this.tempoDisplaySubscription = TerminableVoid
+            } else {
+                this.mode.onFunctionKeyRelease(label)
             }
-            this.mode.onFunctionKeyRelease(label)
         })
     }
 

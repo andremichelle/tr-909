@@ -73,6 +73,11 @@ export class Machine implements Terminable {
                             .addObserver(() => this
                                 .bundledUpdate(bankIndex, pattern.location), false))]
             }).flat())
+        this.terminator.with(this.processorTrackMeasure.addObserver(measure => {
+            if (!this.transport.isPlaying()) {
+                this.worklet.port.postMessage({type: 'update-track-measure', measure} as ToWorkletMessage)
+            }
+        }, false))
         this.worklet.port.onmessage = event => {
             const message = event.data as ToMainMessage
             const schedule = (exec: () => void) => this.scheduleUpdates.push({

@@ -140,6 +140,16 @@ class SelectMode extends Mode {
     }
 }
 
+class CopyMode extends Mode {
+    constructor(context: UIContext) {
+        super(context)
+    }
+
+    name(): string {
+        return 'copy'
+    }
+}
+
 class StepInputMode extends Mode {
     private editLastStep: boolean = false
     private clearSubscription: Terminable = TerminableVoid

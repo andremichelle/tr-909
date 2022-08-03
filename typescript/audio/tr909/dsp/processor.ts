@@ -52,6 +52,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
             } else if (message.type === 'update-memory-state') {
                 this.memory.state.deserialize(message.format)
                 this.patternProvider.reevaluate()
+            } else if (message.type === 'update-track-measure') {
+                this.patternProvider.setTrackMeasure(message.measure)
             } else if (message.type === 'update-track') {
                 this.memory.banks[message.bankIndex]
                     .tracks[message.arrayIndex]
