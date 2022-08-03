@@ -4,7 +4,7 @@ Roland TR-909 drum-machine with only hand-made html, svg & css. 100% vector grap
 
 ### Update!
 
-We have sounds! Also, about 90% of the 909 features are already implemented. The original is quite cumbersome to use but I didn't want to break the retro feeling. Hence this version is even worse to operate since we only have one mouse cursor. To simultanously hit more than one key, hold the SHIFT key on your keyboard. It is a good idea to download the original manual until I add my own manual.
+We have sounds! Also, about 90% of the 909 features are already implemented. The original is quite cumbersome to operate but I didn't want to break the retro feeling. Hence this version is even worse to operate since we only have one mouse cursor. To simultanously hit more than one key, hold the SHIFT key on your keyboard. It is a good idea to download the original manual until I will have added my own manual.
 
 *To preview the sounds, just click the main-keys in the bottom row. They all play their sounds as the original machine does.*
 
