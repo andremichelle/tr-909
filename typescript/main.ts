@@ -32,6 +32,7 @@ const showProgress = (() => {
 
     const main: HTMLElement = HTML.query('main')
     const parentNode: HTMLElement = HTML.query('div.tr-909')
+    const wrapper: HTMLElement = HTML.query('div.wrapper')
     const debugZoom = HTML.query('[data-output=zoom]')
     const debugMode = HTML.query('[data-output=mode]')
     const debugTransporting = HTML.query('[data-output=transporting]')
@@ -44,13 +45,9 @@ const showProgress = (() => {
     document.addEventListener('contextmenu', event => event.preventDefault())
     const resize = () => {
         document.body.style.height = `${window.innerHeight}px`
-        const padding = 96
-        let scale = Math.min(
-            window.innerWidth / (parentNode.clientWidth + padding),
-            window.innerHeight / (parentNode.clientHeight + padding))
-        if (scale > 1.0) {
-            scale = 1.0
-        }
+        const padding = 32
+        const scale = Math.min(wrapper.clientWidth / (1226 + padding), wrapper.clientHeight / (728 + padding))
+        console.log(wrapper.clientHeight, 728, scale)
         debugZoom.textContent = `${Math.round(scale * 100)}%`
         parentNode.style.setProperty("--scale", `${scale}`)
     }
@@ -70,7 +67,7 @@ const showProgress = (() => {
     machine.master.connect(meter).connect(context.destination)
 
     meter.domElement.classList.add('meter')
-    HTML.query('body').appendChild(meter.domElement)
+    HTML.query('div.top-center').appendChild(meter.domElement)
 
     // TODO > Test Data < REMOVE WHEN DONE TESTING
     if (location.hostname.includes('localhost')) {
