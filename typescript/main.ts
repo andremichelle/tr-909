@@ -47,7 +47,6 @@ const showProgress = (() => {
         document.body.style.height = `${window.innerHeight}px`
         const padding = 32
         const scale = Math.min(wrapper.clientWidth / (1226 + padding), wrapper.clientHeight / (728 + padding))
-        console.log(wrapper.clientHeight, 728, scale)
         debugZoom.textContent = `${Math.round(scale * 100)}%`
         parentNode.style.setProperty("--scale", `${scale}`)
     }
