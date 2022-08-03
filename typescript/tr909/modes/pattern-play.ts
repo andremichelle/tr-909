@@ -1,4 +1,3 @@
-import {PatternIndex} from "../../audio/tr909/memory.js"
 import {UIContext} from "../context.js"
 import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
 import {complete, Mode} from "../mode.js"
@@ -36,19 +35,19 @@ export default class extends Mode {
         const patternGroup = this.context.activePatternGroup()
         if (concurrentMainKeys.size === 0) {
             patternGroup.clearChains()
-            state.patternIndex.set(patternGroup.firstOfChained(keyIndex as number as PatternIndex).location.patternIndex)
+            state.patternIndex.set(patternGroup.firstOfChained(keyIndex).location.patternIndex)
             return false
         } else if (concurrentMainKeys.size === 1) {
             patternGroup.clearChains()
             const tuple: MainKeyIndex[] = [...concurrentMainKeys, keyIndex]
-            const start = Math.min(tuple[0], tuple[1])
-            const end = Math.max(tuple[0], tuple[1])
+            const start: number = Math.min(tuple[0], tuple[1])
+            const end: number = Math.max(tuple[0], tuple[1])
             const chained = patternGroup.getChained().slice()
             for (let index = start; index < end; index++) {
                 chained[index] = true
             }
             patternGroup.writeChain(chained)
-            state.patternIndex.set(start as number as PatternIndex)
+            state.patternIndex.set(start)
             this.context.updatePatternLocationKeys(this.context.activePattern().location)
             return true
         } else {

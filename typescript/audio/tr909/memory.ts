@@ -139,7 +139,8 @@ export class PatternGroup implements Observable<void>, Serializer<PatternGroupFo
      * @returns May return same pattern if pattern is not part of a chained sequence.
      * Otherwise, it returns the first of the chain.
      */
-    firstOfChained(patternIndex: PatternIndex): Pattern {
+    firstOfChained(patternIndex: PatternIndex | number): Pattern {
+        console.assert(patternIndex >= 0 && patternIndex < PatternGroup.NUM_PATTERNS)
         let index = patternIndex
         while (index > 0 && this.chained[index - 1]) {
             index--
