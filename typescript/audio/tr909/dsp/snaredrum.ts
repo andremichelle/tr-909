@@ -13,8 +13,8 @@ export class SnaredrumVoice extends Voice {
 
     private tonePosition: number = 0.0
     private noisePosition: number = 0.0
-    private noiseGain: number
-    private noiseGainCoefficient: number
+    private noiseGain: number = 1.0
+    private noiseGainCoefficient: number = 1.0
 
     constructor(resources: { tone: Float32Array; noise: Float32Array }, preset: SnaredrumPreset, sampleRate: number, level: decibel) {
         super(sampleRate)

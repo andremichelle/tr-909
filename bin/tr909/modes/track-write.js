@@ -12,7 +12,7 @@ export default class extends Mode {
                 return TerminableVoid;
             }
             displayValue() {
-                return;
+                return 'none';
             }
             terminate() {
             }

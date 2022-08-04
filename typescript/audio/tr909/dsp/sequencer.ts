@@ -1,5 +1,5 @@
-import {ifDefined} from "../../../lib/common.js"
-import {Pattern} from "../memory.js"
+import { ifDefined } from "../../../lib/common.js"
+import { Pattern } from "../memory.js"
 
 export interface StepSequencerEnvironment {
     currentPattern(): Pattern | null
@@ -28,24 +28,25 @@ export class StepSequencer {
             ifDefined(environment.currentPattern(), pattern => environment.onPatternStep(pattern, 0, 0.0))
             this.firstRun = false
         }
-        if (environment.currentPattern() === null) {
+        let pattern = environment.currentPattern()
+        if (pattern === null) {
             return
         }
         const p0 = this.position
         const p1 = p0 + increment
-        const duration = environment.currentPattern().duration()
+        const duration = pattern.duration()
         if (p1 >= duration) {
-            this.sequenceSection(p0, duration)
+            this.sequenceSection(pattern, p0, duration)
             this.position = 0.0
             environment.nextPattern()
-            if (environment.currentPattern() === null) {
-            } else {
+            pattern = environment.currentPattern()
+            if (pattern !== null) {
                 const pTarget = p1 % duration
-                this.sequenceSection(this.position, pTarget)
+                this.sequenceSection(pattern, this.position, pTarget)
                 this.position = pTarget
             }
         } else {
-            this.sequenceSection(p0, p1)
+            this.sequenceSection(pattern, p0, p1)
             this.position = p1
         }
     }
@@ -56,8 +57,7 @@ export class StepSequencer {
         this.position = 0.0
     }
 
-    private sequenceSection(p0: number, p1: number): void {
-        const pattern = this.environment.currentPattern()
+    private sequenceSection(pattern: Pattern, p0: number, p1: number): void {
         const scale = pattern.scaleRatio()
         const searchStart = pattern.shuffleInverse(p0)
         const searchLimit = pattern.shuffleInverse(p1)

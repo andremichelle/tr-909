@@ -5,7 +5,9 @@ export class BassdrumVoice extends Voice {
     constructor(resources, preset, sampleRate, level) {
         super(sampleRate);
         this.gainEnvelope = 1.0;
+        this.gainCoefficient = 1.0;
         this.freqEnvelope = BassdrumVoice.FreqStart;
+        this.freqCoefficient = 1.0;
         this.time = 0.0;
         this.phase = 0.0;
         this.attackPosition = 0.0;

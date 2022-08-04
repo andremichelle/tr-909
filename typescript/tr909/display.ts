@@ -53,8 +53,8 @@ export interface DisplayValueProvider extends Observable<DisplayValue> {
 }
 
 export class DisplayObservableValueProvider implements DisplayValueProvider {
-    static Identity = x => x
-    static PlusOne = x => x + 1
+    static Identity = (x: number): number => x
+    static PlusOne = (x: number): number => x + 1
 
     readonly terminator: Terminator = new Terminator()
 

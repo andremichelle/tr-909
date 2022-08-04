@@ -1,7 +1,7 @@
-import {Pattern} from "../memory.js"
-import {ToMainMessage} from "../messages.js"
-import {State} from "../state.js"
-import {Track} from "../track.js"
+import { Pattern } from "../memory.js"
+import { ToMainMessage } from "../messages.js"
+import { State } from "../state.js"
+import { Track } from "../track.js"
 
 export interface PatternProvider {
     readonly state: State
@@ -16,8 +16,8 @@ export interface PatternProvider {
 }
 
 export class UserPatternSelect implements PatternProvider {
-    private current: Pattern
-    private waiting: Pattern = null
+    private current: Pattern | null
+    private waiting: Pattern | null = null
     private respectChain: boolean = false
 
     constructor(readonly state: State, private readonly port: MessagePort, private readonly isMoving: () => boolean) {
@@ -43,7 +43,7 @@ export class UserPatternSelect implements PatternProvider {
         const current = this.current
         if (current === null) {
             this.respectChain = false
-            return null
+            return
         }
         if (this.waiting === null) {
             if (this.respectChain) {
@@ -61,8 +61,8 @@ export class UserPatternSelect implements PatternProvider {
             this.respectChain = true
             this.waiting = null
         }
-        if (current !== this.current) {
-            this.port.postMessage({type: "update-pattern", location: this.current.location} as ToMainMessage)
+        if (current !== this.current && this.current !== null) {
+            this.port.postMessage({ type: "update-pattern", location: this.current.location } as ToMainMessage)
         }
     }
 
@@ -77,7 +77,7 @@ export class UserPatternSelect implements PatternProvider {
 
 export class TrackPatternPlay implements PatternProvider {
     private measure: number = 0
-    private current: Pattern = null
+    private current: Pattern | null = null
 
     constructor(readonly state: State, private readonly port: MessagePort) {
         this.reevaluate()
@@ -134,10 +134,10 @@ export class TrackPatternPlay implements PatternProvider {
     }
 
     private postUpdateTrackMeasure() {
-        this.port.postMessage({type: "update-track-measure", measure: this.measure} as ToMainMessage)
+        this.port.postMessage({ type: "update-track-measure", measure: this.measure } as ToMainMessage)
     }
 
     private postTrackComplete() {
-        this.port.postMessage({type: "track-complete"} as ToMainMessage)
+        this.port.postMessage({ type: "track-complete" } as ToMainMessage)
     }
 }

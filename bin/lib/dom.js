@@ -1,4 +1,3 @@
-import { Events, Options, Terminator } from "./common.js";
 const applyOptional = (element, attributes) => {
     Object.entries(attributes)
         .forEach(([name, value]) => {
@@ -140,70 +139,6 @@ export class SVG {
             .moveTo(0, fy(0))
             .for(step, w + step, step, (builder, x) => builder.lineTo(x, fy(x * scaleX)))
             .build();
-    }
-}
-export class ActionEvents {
-    constructor(receiver) {
-        this.receiver = receiver;
-        this.terminator = new Terminator();
-        this.process = Options.None;
-        this.touchId = -1;
-        this.onActionBegin = (event) => {
-            this.process.ifPresent(this.onActionEnd);
-            event.preventDefault();
-            if (event instanceof MouseEvent) {
-                this.process = Options.valueOf(this.receiver.actionBegin(event, event.clientX, event.clientY));
-                window.addEventListener('mousemove', this.onMoveMove);
-                window.addEventListener('mouseup', this.onActionEnd);
-            }
-            else if (event instanceof TouchEvent) {
-                const touch = event.targetTouches.item(0);
-                this.touchId = touch.identifier;
-                this.process = Options.valueOf(this.receiver.actionBegin(event, touch.clientX, touch.clientY));
-                window.addEventListener('touchmove', this.onTouchMove);
-                window.addEventListener('touchend', this.onActionEnd);
-            }
-        };
-        this.onMoveMove = (event) => {
-            event.preventDefault();
-            if (this.process.ifPresent(process => process.actionMove(event, event.clientX, event.clientY))) {
-                this.onActionEnd();
-            }
-        };
-        this.onTouchMove = (event) => {
-            event.preventDefault();
-            const touches = event.targetTouches;
-            for (let i = 0; i < touches.length; i++) {
-                const touch = touches.item(i);
-                if (touch.identifier === this.touchId) {
-                    if (this.process.ifPresent(process => process.actionMove(event, touch.clientX, touch.clientY))) {
-                        this.onActionEnd();
-                    }
-                    return;
-                }
-            }
-            console.debug('touch cancelled');
-            this.onActionEnd();
-        };
-        this.onActionEnd = () => {
-            this.process.ifPresent(process => process.actionEnd());
-            this.process = Options.None;
-            window.removeEventListener('touchmove', this.onTouchMove);
-            window.removeEventListener('mousemove', this.onMoveMove);
-            window.removeEventListener('mouseup', this.onActionEnd);
-            window.removeEventListener('touchend', this.onActionEnd);
-        };
-    }
-    listen(target) {
-        this.terminator.with(Events.bindEventListener(target, 'mousedown', this.onActionBegin));
-        this.terminator.with(Events.bindEventListener(target, 'touchstart', this.onActionBegin));
-    }
-    withEvent(event) {
-        this.onActionBegin(event);
-    }
-    terminate() {
-        this.onActionEnd();
-        this.terminator.terminate();
     }
 }
 export class RenderRequest {

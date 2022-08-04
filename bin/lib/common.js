@@ -32,7 +32,7 @@ export class Terminator {
         return terminator;
     }
     terminate() {
-        while (this.terminables.length) {
+        while (this.terminables.length > 0) {
             this.terminables.pop().terminate();
         }
     }
@@ -113,7 +113,7 @@ export const ObservableValueVoid = {
     addObserver: (observer, notify) => TerminableVoid,
     get: () => null,
     set: (_) => true,
-    terminate: () => null
+    terminate: () => { }
 };
 export class ObservableValueImpl {
     constructor(value) {
@@ -161,7 +161,7 @@ export class Parameter {
     }
     set(value) {
         if (value === this.value) {
-            return;
+            return false;
         }
         this.value = value;
         this.observable.notify(value);
@@ -408,5 +408,5 @@ export class Events {
         return { terminate: () => button.removeEventListener("mousedown", mouseDownListener) };
     }
 }
-Events.preventDefault = event => event.preventDefault();
+Events.preventDefault = (event) => event.preventDefault();
 //# sourceMappingURL=common.js.map

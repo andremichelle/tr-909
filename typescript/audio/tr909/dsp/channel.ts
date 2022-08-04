@@ -1,6 +1,6 @@
-import {RENDER_QUANTUM} from "../../common.js"
-import {ChannelIndex, Step} from "../memory.js"
-import {Voice} from "./voice.js"
+import { RENDER_QUANTUM } from "../../common.js"
+import { ChannelIndex, Step } from "../memory.js"
+import { Voice } from "./voice.js"
 
 class PlayEvent {
     constructor(readonly frameIndex: number, readonly step: Step, readonly totalAccent: boolean) {
@@ -18,7 +18,7 @@ export class Channel {
     constructor(private readonly factory: VoiceFactory, private readonly index: number) {
     }
 
-    private active: Voice = null
+    private active: Voice | null = null
 
     schedulePlay(frameIndex: number, step: Step, totalAccent: boolean): void {
         this.events.push(new PlayEvent(Math.floor(frameIndex), step, totalAccent))
@@ -44,9 +44,9 @@ export class Channel {
         }
     }
 
-    private* nextEvent(limit: number): Generator<PlayEvent> {
+    private * nextEvent(limit: number): Generator<PlayEvent> {
         while (this.events.length > 0 && this.events[0].frameIndex < limit) {
-            yield this.events.shift()
+            yield this.events.shift()!
         }
     }
 

@@ -23,7 +23,7 @@ export class UserPatternSelect {
         const current = this.current;
         if (current === null) {
             this.respectChain = false;
-            return null;
+            return;
         }
         if (this.waiting === null) {
             if (this.respectChain) {
@@ -44,7 +44,7 @@ export class UserPatternSelect {
             this.respectChain = true;
             this.waiting = null;
         }
-        if (current !== this.current) {
+        if (current !== this.current && this.current !== null) {
             this.port.postMessage({ type: "update-pattern", location: this.current.location });
         }
     }

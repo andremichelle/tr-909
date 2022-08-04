@@ -1,6 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
-import {Observable, ObservableImpl, Observer, Terminable} from "./common.js"
+import { Observable, ObservableImpl, Observer, Terminable } from "./common.js"
 
 export const preloadImagesOfCssFile = async (pathToCss: string): Promise<void> => {
     const href = location.href
@@ -46,7 +46,7 @@ export class Boot implements Observable<Boot> {
 
     registerProcess<T>(promise: Promise<T>): Dependency<T> {
         this.totalTasks++
-        let result = null
+        let result: T | null = null
         promise.then((value: T) => {
             result = value
             this.finishedTasks++
@@ -103,7 +103,7 @@ export const newAudioContext = (options: AudioContextOptions = {
 }): AudioContext => {
     const context = new AudioContext(options)
     if (context.state !== "running") {
-        const eventOptions = {capture: true}
+        const eventOptions = { capture: true }
         const resume = async () => {
             if (context.state !== "running") {
                 try {

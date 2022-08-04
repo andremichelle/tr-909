@@ -1,7 +1,7 @@
-import {dbToGain, decibel, Interpolator} from "../../common.js"
-import {BassdrumPreset} from "../preset.js"
-import {Resources, ResourceSampleRate} from "../resources.js"
-import {isRunning, SilentGain, Voice} from "./voice.js"
+import { dbToGain, decibel, Interpolator } from "../../common.js"
+import { BassdrumPreset } from "../preset.js"
+import { Resources, ResourceSampleRate } from "../resources.js"
+import { isRunning, SilentGain, Voice } from "./voice.js"
 
 export class BassdrumVoice extends Voice {
     private static ReleaseStartTime: number = 0.060
@@ -15,9 +15,9 @@ export class BassdrumVoice extends Voice {
     private readonly attackRate: number
 
     private gainEnvelope: number = 1.0
-    private gainCoefficient: number
+    private gainCoefficient: number = 1.0
     private freqEnvelope: number = BassdrumVoice.FreqStart
-    private freqCoefficient: number
+    private freqCoefficient: number = 1.0
     private time: number = 0.0
     private phase: number = 0.0
     private attackPosition: number = 0.0

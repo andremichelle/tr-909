@@ -6,8 +6,8 @@ export interface DisplayValueProvider extends Observable<DisplayValue> {
 export declare class DisplayObservableValueProvider implements DisplayValueProvider {
     readonly observableValue: ObservableValue<number>;
     readonly mapping: (value: number) => number;
-    static Identity: (x: any) => any;
-    static PlusOne: (x: any) => any;
+    static Identity: (x: number) => number;
+    static PlusOne: (x: number) => number;
     readonly terminator: Terminator;
     constructor(observableValue: ObservableValue<number>, mapping?: (value: number) => number);
     addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable;

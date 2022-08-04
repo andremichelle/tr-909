@@ -1,8 +1,8 @@
 // noinspection JSUnusedGlobalSymbols
 
 export abstract class Range {
-    readonly min: number
-    readonly max: number
+    readonly min: number = NaN
+    readonly max: number = NaN
 
     // noinspection JSUnusedLocalSymbols
     private constructor() {
@@ -101,8 +101,8 @@ export class Pow implements ValueMapping<number>, Range {
     }
 
     private constructor(readonly min: number,
-                        readonly max: number,
-                        readonly exp: number) {
+        readonly max: number,
+        readonly exp: number) {
     }
 
     x(y: number): number {
@@ -150,7 +150,7 @@ export class Volume implements ValueMapping<number>, Range {
      * @param mid The decibel value in the center [0.5]
      * @param max The highest decibel value [1.0]
      */
-    constructor(readonly min, readonly mid, readonly max) {
+    constructor(readonly min: number, readonly mid: number, readonly max: number) {
         const min2 = min * min
         const max2 = max * max
         const mid2 = mid * mid

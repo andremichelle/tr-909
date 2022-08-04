@@ -1,16 +1,16 @@
-import {dbToGain, gainToDb, RENDER_QUANTUM} from "../common.js"
-import {Message} from "./message.js"
+import { dbToGain, gainToDb, RENDER_QUANTUM } from "../common.js"
+import { Message } from "./message.js"
 
 registerProcessor("limiter-processor", class extends AudioWorkletProcessor {
     private lookAheadFrames: number = 0 | 0
-    private buffer: Float32Array[] = null
+    private buffer: Float32Array[] | null = null
     private position: number = 0 | 0
     private remaining: number = 0 | 0
     private slope: number = 0.0
     private envelope: number = 0.0
     private threshold: number = -1.0
-    private releaseTime: number
-    private releaseCoeff: number
+    private releaseTime: number = 0.0
+    private releaseCoeff: number = 0.0
 
     constructor() {
         super()

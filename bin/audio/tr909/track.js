@@ -1,6 +1,4 @@
 import { ObservableImpl } from "../../lib/common.js";
-export class TrackFormat {
-}
 export class Track {
     constructor() {
         this.observable = new ObservableImpl();

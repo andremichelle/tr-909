@@ -16,6 +16,9 @@ export class Knob {
     }
     attachEvents() {
         this.terminator.with(Events.bindEventListener(this.element, 'pointerdown', (event) => {
+            if (!(event instanceof PointerEvent)) {
+                return;
+            }
             this.element.setPointerCapture(event.pointerId);
             let startValue = this.parameter.getUnipolar();
             let startPointer = event.clientY;

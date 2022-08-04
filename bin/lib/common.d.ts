@@ -6,7 +6,7 @@ export declare type NoArgType<T> = {
 export declare const elseIfNull: <T>(value: T, fallback: T) => T;
 export declare const elseIfUndefined: <T>(value: T, fallback: T) => T;
 export declare const elseIfNullOrUndefined: <T>(value: T, fallback: T) => T;
-export declare const ifDefined: <T>(value: T, exec: (value: T) => void) => void;
+export declare const ifDefined: <T>(value: T | null, exec: (value: T) => void) => void;
 export interface Terminable {
     terminate(): void;
 }
@@ -76,7 +76,7 @@ export declare const ObservableValueVoid: ObservableValue<any>;
 export declare class ObservableValueImpl<T> implements ObservableValue<T> {
     private value?;
     private readonly observable;
-    constructor(value?: T);
+    constructor(value?: T | undefined);
     get(): T;
     set(value: T): boolean;
     addObserver(observer: Observer<T>, notify?: boolean): Terminable;
@@ -158,8 +158,8 @@ export declare class Waiting {
     private static forEvents;
 }
 export declare class Events {
-    static preventDefault: (event: any) => any;
+    static preventDefault: (event: Event) => void;
     static toPromise<E extends Event>(target: EventTarget, type: string): Promise<E>;
-    static bindEventListener(target: EventTarget, type: string, listener: EventListenerOrEventListenerObject, options?: AddEventListenerOptions): Terminable;
+    static bindEventListener(target: EventTarget, type: string, listener: EventListener, options?: AddEventListenerOptions): Terminable;
     static configRepeatButton(button: any, callback: any): Terminable;
 }

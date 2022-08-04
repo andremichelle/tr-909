@@ -1,7 +1,7 @@
-import {Observable, ObservableImpl, Observer, Serializer, Terminable} from "../../lib/common.js"
-import {PatternLocation} from "./memory.js"
+import { Observable, ObservableImpl, Observer, Serializer, Terminable } from "../../lib/common.js"
+import { PatternLocation } from "./memory.js"
 
-export class TrackFormat {
+export interface TrackFormat {
     sequence: PatternLocation[]
 }
 
@@ -20,7 +20,7 @@ export class Track implements Serializer<TrackFormat>, Observable<void> {
     }
 
     serialize(): TrackFormat {
-        return {sequence: this.sequence}
+        return { sequence: this.sequence }
     }
 
     writeLocation(location: PatternLocation, index: number = Number.MAX_SAFE_INTEGER): void {

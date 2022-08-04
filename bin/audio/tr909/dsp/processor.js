@@ -14,6 +14,7 @@ const LevelMapping = new Linear(-18.0, 0.0);
 registerProcessor('tr-909', class extends AudioWorkletProcessor {
     constructor(options) {
         super(options);
+        this.patternProvider = null;
         this.moving = false;
         this.tapMode = false;
         this.bpm = 120.0;

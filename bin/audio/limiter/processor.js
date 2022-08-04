@@ -9,6 +9,8 @@ registerProcessor("limiter-processor", class extends AudioWorkletProcessor {
         this.slope = 0.0;
         this.envelope = 0.0;
         this.threshold = -1.0;
+        this.releaseTime = 0.0;
+        this.releaseCoeff = 0.0;
         this.port.onmessage = event => {
             const data = event.data;
             if (data.type === "set-lookahead") {

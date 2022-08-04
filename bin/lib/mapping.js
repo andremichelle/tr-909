@@ -1,5 +1,7 @@
 export class Range {
     constructor() {
+        this.min = NaN;
+        this.max = NaN;
     }
     clamp(value) {
         return Math.min(this.max, Math.max(this.min, value));

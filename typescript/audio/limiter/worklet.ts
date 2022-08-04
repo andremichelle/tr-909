@@ -1,5 +1,5 @@
-import {Parameter, PrintMapping, Terminable, Terminator} from "../../lib/common.js"
-import {Linear} from "../../lib/mapping.js"
+import { Parameter, PrintMapping, Terminable, Terminator } from "../../lib/common.js"
+import { Linear } from "../../lib/mapping.js"
 
 export class LimiterWorklet extends AudioWorkletNode implements Terminable {
     static loadModule(context: AudioContext): Promise<void> {
@@ -18,7 +18,7 @@ export class LimiterWorklet extends AudioWorkletNode implements Terminable {
     readonly parameterThreshold: Parameter<number> =
         this.terminator.with(new Parameter<number>(LimiterWorklet.THRESHOLD_MAPPING, LimiterWorklet.THRESHOLD_PRINT, -3.0))
 
-    constructor(context) {
+    constructor(context: AudioContext) {
         super(context, "limiter-processor", {
             numberOfInputs: 1,
             numberOfOutputs: 1,
@@ -29,9 +29,9 @@ export class LimiterWorklet extends AudioWorkletNode implements Terminable {
         })
 
         this.parameterLookAhead.addObserver(seconds =>
-            this.port.postMessage({type: "set-lookahead", seconds: seconds}), true)
+            this.port.postMessage({ type: "set-lookahead", seconds: seconds }), true)
         this.parameterThreshold.addObserver(db =>
-            this.port.postMessage({type: "set-threshold", db: db}), true)
+            this.port.postMessage({ type: "set-threshold", db: db }), true)
     }
 
     terminate(): void {

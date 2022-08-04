@@ -1,5 +1,5 @@
-import {BankIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
-import {Events, Terminable} from "../lib/common.js"
+import { BankIndex, PatternGroupIndex, TrackIndex } from "../audio/tr909/memory.js"
+import { Events, Terminable } from "../lib/common.js"
 
 export enum PatternEditMode {
     Step, Tap
@@ -160,11 +160,11 @@ export class Key {
     private state: KeyState = KeyState.Off
 
     constructor(readonly element: HTMLButtonElement,
-                readonly type: 'main' | 'function',
-                readonly keyIndex: number) {
+        readonly type: 'main' | 'function',
+        readonly keyIndex: number) {
     }
 
-    bind(type: string, listener: EventListenerOrEventListenerObject, options?: AddEventListenerOptions): Terminable {
+    bind(type: string, listener: (evt: Event) => void, options?: AddEventListenerOptions): Terminable {
         return Events.bindEventListener(this.element, type, listener, options)
     }
 
@@ -198,7 +198,7 @@ export class Key {
 
     touchPoint(): { x: number, y: number } {
         const rect = this.element.getBoundingClientRect()
-        return {x: rect.x + rect.width / 2, y: rect.y + rect.height / 2}
+        return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
     }
 
     isMainKey() {
@@ -214,7 +214,7 @@ export class KeyGroup<INDEX extends number> {
     constructor(readonly keys: ReadonlyArray<Key>) {
     }
 
-    forEach(fn: (key: Key, index: INDEX) => void): void {
+    forEach(fn: (key: Key, index: number) => void): void {
         this.keys.forEach(fn)
     }
 

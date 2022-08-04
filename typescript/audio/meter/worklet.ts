@@ -82,7 +82,7 @@ export class StereoMeterWorklet extends MeterWorklet {
         this.canvas = document.createElement("canvas")
         this.canvas.style.width = this.width + "px"
         this.canvas.style.height = this.height + "px"
-        this.graphics = this.canvas.getContext("2d")
+        this.graphics = this.canvas.getContext("2d")!
 
         const lowGain = "rgba(60,60,60)"
         const highGain = "rgb(60,60,60)"

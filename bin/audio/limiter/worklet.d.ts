@@ -9,6 +9,6 @@ export declare class LimiterWorklet extends AudioWorkletNode implements Terminab
     private readonly terminator;
     readonly parameterLookAhead: Parameter<number>;
     readonly parameterThreshold: Parameter<number>;
-    constructor(context: any);
+    constructor(context: AudioContext);
     terminate(): void;
 }

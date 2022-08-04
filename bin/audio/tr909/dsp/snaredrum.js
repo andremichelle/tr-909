@@ -7,6 +7,8 @@ export class SnaredrumVoice extends Voice {
         this.initPhase = true;
         this.tonePosition = 0.0;
         this.noisePosition = 0.0;
+        this.noiseGain = 1.0;
+        this.noiseGainCoefficient = 1.0;
         this.tune = resources.tone;
         this.noise = resources.noise;
         this.tuneRate = ResourceSampleRate * this.sampleRateInv * Math.pow(2.0, preset.tune.get());

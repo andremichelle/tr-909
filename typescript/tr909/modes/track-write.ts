@@ -1,9 +1,9 @@
-import {Memory, PatternIndex} from "../../audio/tr909/memory.js"
-import {ObservableValue, ObservableValueImpl, Observer, Terminable, TerminableVoid} from "../../lib/common.js"
-import {UIContext} from "../context.js"
-import {DisplayObservableValueProvider, DisplayValue, DisplayValueProvider} from "../display.js"
-import {FunctionKeyLabel, MainKeyIndex} from "../keys.js"
-import {complete, Mode} from "../mode.js"
+import { Memory, PatternIndex } from "../../audio/tr909/memory.js"
+import { ObservableValue, ObservableValueImpl, Observer, Terminable, TerminableVoid } from "../../lib/common.js"
+import { UIContext } from "../context.js"
+import { DisplayObservableValueProvider, DisplayValue, DisplayValueProvider } from "../display.js"
+import { FunctionKeyLabel, MainKeyIndex } from "../keys.js"
+import { complete, Mode } from "../mode.js"
 
 export default class extends Mode {
     private terminableAvailableMeasureDisplay: Terminable = TerminableVoid
@@ -16,7 +16,7 @@ export default class extends Mode {
         }
 
         displayValue(): DisplayValue {
-            return
+            return 'none'
         }
 
         terminate(): void {

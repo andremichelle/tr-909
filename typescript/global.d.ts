@@ -9,6 +9,10 @@ declare var AudioWorkletProcessor: {
     process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [name: string]: Float32Array }): boolean
 }
 
+interface AudioContext {
+    outputLatency: number
+}
+
 declare var sampleRate: number
 
 declare function registerProcessor<T extends AudioWorkletProcessor>(name: string, processorCtor: T): void
@@ -27,7 +31,7 @@ interface FontFace {
 interface FontFaceSet {
     readonly ready: Promise<FontFaceSet>
 
-    add(FontFace): FontFace
+    add(arg0: FontFace): FontFace
 }
 
 declare interface Document {

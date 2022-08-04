@@ -1,18 +1,18 @@
-import {ArrayUtils} from "../../../lib/common.js"
-import {Linear} from "../../../lib/mapping.js"
-import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage} from "../../common.js"
-import {ChannelIndex, Memory, Pattern, Step} from "../memory.js"
-import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "../messages.js"
-import {Preset} from "../preset.js"
-import {Resources} from "../resources.js"
-import {PlayMode} from "../state.js"
-import {BasicTuneDecayVoice} from "./basic-voice.js"
-import {BassdrumVoice} from "./bassdrum.js"
-import {Channel, VoiceFactory} from "./channel.js"
-import {PatternProvider, TrackPatternPlay, UserPatternSelect} from "./pattern.js"
-import {StepSequencer, StepSequencerEnvironment} from "./sequencer.js"
-import {SnaredrumVoice} from "./snaredrum.js"
-import {Voice} from "./voice.js"
+import { ArrayUtils } from "../../../lib/common.js"
+import { Linear } from "../../../lib/mapping.js"
+import { barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage } from "../../common.js"
+import { ChannelIndex, Memory, Pattern, Step } from "../memory.js"
+import { ProcessorOptions, ToMainMessage, ToWorkletMessage } from "../messages.js"
+import { Preset } from "../preset.js"
+import { Resources } from "../resources.js"
+import { PlayMode } from "../state.js"
+import { BasicTuneDecayVoice } from "./basic-voice.js"
+import { BassdrumVoice } from "./bassdrum.js"
+import { Channel, VoiceFactory } from "./channel.js"
+import { PatternProvider, TrackPatternPlay, UserPatternSelect } from "./pattern.js"
+import { StepSequencer, StepSequencerEnvironment } from "./sequencer.js"
+import { SnaredrumVoice } from "./snaredrum.js"
+import { Voice } from "./voice.js"
 
 const LevelMapping = new Linear(-18.0, 0.0) // min active, half accent, full, accent + total accent
 
@@ -23,7 +23,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
     private readonly channels: Channel[]
     private readonly sequencer: StepSequencer
 
-    private patternProvider: PatternProvider
+    private patternProvider: PatternProvider | null = null
     private moving: boolean = false
     private tapMode: boolean = false
     private bpm: number = 120.0
@@ -52,14 +52,14 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
                 this.preset.find(message.path).get().setUnipolar(message.unipolar)
             } else if (message.type === 'update-memory-state') {
                 this.memory.state.deserialize(message.format)
-                this.patternProvider.reevaluate()
+                this.patternProvider!.reevaluate()
             } else if (message.type === 'update-track-measure') {
-                this.patternProvider.setTrackMeasure(message.measure)
+                this.patternProvider!.setTrackMeasure(message.measure)
             } else if (message.type === 'update-track') {
                 this.memory.banks[message.bankIndex]
                     .tracks[message.arrayIndex]
                     .deserialize(message.format)
-                this.patternProvider.reevaluate()
+                this.patternProvider!.reevaluate()
             } else if (message.type === 'update-pattern') {
                 this.memory.banks[message.bankIndex]
                     .patternByLocation(message.location)
@@ -95,11 +95,11 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
     }
 
     currentPattern(): Pattern | null {
-        return this.patternProvider.pattern()
+        return this.patternProvider!.pattern()
     }
 
     nextPattern(): void {
-        this.patternProvider.next()
+        this.patternProvider!.next()
     }
 
     onPatternStep(pattern: Pattern, stepIndex: number, position: number): void {
@@ -124,7 +124,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
                 this.schedulePlay(channelIndex, frameIndexDelayed, step, totalAccent)
             }
         }
-        this.port.postMessage({type: "update-step", stepIndex: stepIndex} as ToMainMessage)
+        this.port.postMessage({ type: "update-step", stepIndex: stepIndex } as ToMainMessage)
     }
 
     schedulePlay(channelIndex: ChannelIndex, frameIndex: number, step: Step, totalAccent: boolean): void {

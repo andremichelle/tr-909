@@ -117,7 +117,7 @@ export declare class Key {
 export declare class KeyGroup<INDEX extends number> {
     readonly keys: ReadonlyArray<Key>;
     constructor(keys: ReadonlyArray<Key>);
-    forEach(fn: (key: Key, index: INDEX) => void): void;
+    forEach(fn: (key: Key, index: number) => void): void;
     byIndex(index: INDEX): Key;
     activate(map: (zeroBasedIndex: number) => KeyState, indices: ReadonlyArray<INDEX>): void;
     deactivate(indices?: ReadonlyArray<INDEX>): void;

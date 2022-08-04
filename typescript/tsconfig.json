@@ -8,8 +8,7 @@
       "es2020",
       "DOM"
     ],
-    "alwaysStrict": true,
-    "declaration": true
+    "strict": true
   },
   "include": [
     "**/*.ts"

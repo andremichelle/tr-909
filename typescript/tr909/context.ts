@@ -1,5 +1,5 @@
-import {secondsToBars} from "../audio/common.js"
-import {Machine} from "../audio/tr909/machine.js"
+import { secondsToBars } from "../audio/common.js"
+import { Machine } from "../audio/tr909/machine.js"
 import {
     BankIndex,
     Memory,
@@ -11,8 +11,8 @@ import {
     ScaleIndex,
     TrackIndex
 } from "../audio/tr909/memory.js"
-import {PlayMode, State} from "../audio/tr909/state.js"
-import {Track} from "../audio/tr909/track.js"
+import { PlayMode, State } from "../audio/tr909/state.js"
+import { Track } from "../audio/tr909/track.js"
 import {
     ArrayUtils,
     elseIfUndefined,
@@ -26,8 +26,8 @@ import {
     TerminableVoid,
     Terminator
 } from "../lib/common.js"
-import {HTML, SVG} from "../lib/dom.js"
-import {Display, DisplayObservableValueProvider} from "./display.js"
+import { HTML, SVG } from "../lib/dom.js"
+import { Display, DisplayObservableValueProvider } from "./display.js"
 import {
     FunctionKeyboardShortcuts,
     FunctionKeyIndex,
@@ -39,13 +39,13 @@ import {
     PatternEditMode,
     ZeroBasedIndices
 } from "./keys.js"
-import {Knob} from "./knobs.js"
-import {complete, Mode} from "./mode.js"
+import { Knob } from "./knobs.js"
+import { complete, Mode } from "./mode.js"
 import PatternPlayMode from "./modes/pattern-play.js"
 import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
-import {InstrumentMode, Utils} from "./utils.js"
+import { InstrumentMode, Utils } from "./utils.js"
 
 export class UIContext implements Terminable {
     private readonly terminator = new Terminator()
@@ -72,14 +72,14 @@ export class UIContext implements Terminable {
     private userInputSubscription: Terminable = TerminableVoid
 
     constructor(readonly machine: Machine,
-                readonly parentNode: HTMLElement) {
+        readonly parentNode: HTMLElement) {
         this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode))
         this.mainKeys = new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
             HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
-            HTML.query('[data-control=main-key][data-parameter=total-accent]')]
-            .map((element: HTMLButtonElement, index: number) => new Key(element, 'main', index)))
+        HTML.query('[data-control=main-key][data-parameter=total-accent]')]
+            .map((element: Element, index: number) => new Key(element as HTMLButtonElement, 'main', index)))
         this.functionKeys = new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
-            .map((element: HTMLButtonElement, keyIndex: number) => new Key(element, 'function', keyIndex)))
+            .map((element: Element, keyIndex: number) => new Key(element as HTMLButtonElement, 'function', keyIndex)))
 
         this.instrumentMode = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
         this.patternEditMode = new ObservableValueImpl<PatternEditMode>(PatternEditMode.Step)
@@ -187,8 +187,8 @@ export class UIContext implements Terminable {
     }
 
     mayToggle(label: FunctionKeyLabel<any>,
-              compare: FunctionKeyLabel<any>,
-              value: ObservableValue<boolean>): boolean {
+        compare: FunctionKeyLabel<any>,
+        value: ObservableValue<boolean>): boolean {
         if (label === compare) {
             value.set(!value.get())
             return true
@@ -329,7 +329,7 @@ export class UIContext implements Terminable {
 
     startStepRunningAnimation(): Terminable {
         const terminator = new Terminator()
-        let flashing: Key = null
+        let flashing: Key | null = null
         terminator.with({
             terminate: () => {
                 if (flashing !== null) {
@@ -387,8 +387,8 @@ export class UIContext implements Terminable {
     }
 
     private static mayExecOnIndexedChoice<T>(label: FunctionKeyLabel<any>,
-                                             choices: ReadonlyArray<FunctionKeyLabel<T>>,
-                                             exec: (value: T) => void): boolean {
+        choices: ReadonlyArray<FunctionKeyLabel<T>>,
+        exec: (value: T) => void): boolean {
         const index = choices.indexOf(label)
         if (index === -1) return false
         exec(choices[index].value)
@@ -397,7 +397,10 @@ export class UIContext implements Terminable {
 
     private installKeys(): void {
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
-            this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
+            this.terminator.with(key.bind('pointerdown', (event: Event) => {
+                if (!(event instanceof PointerEvent)) {
+                    return
+                }
                 key.setPointerCapture(event.pointerId)
                 if (event.shiftKey && !this.multiTapsEmulated.has(key)) {
                     const complete = keyIndex !== FunctionKeyIndex.Shift && this.onFunctionKeyPress(keyIndex)
@@ -417,7 +420,10 @@ export class UIContext implements Terminable {
             }))
         })
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
-            this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
+            this.terminator.with(key.bind('pointerdown', (event: Event) => {
+                if (!(event instanceof PointerEvent)) {
+                    return
+                }
                 key.setPointerCapture(event.pointerId)
                 key.setPressed(true)
                 if (this.isShiftKeyPressed() && !this.isPlaying()) {
@@ -488,14 +494,20 @@ export class UIContext implements Terminable {
     }
 
     private installKeyboard() {
-        this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
+        this.terminator.with(Events.bindEventListener(window, 'keydown', (event: Event) => {
+            if (!(event instanceof KeyboardEvent)) {
+                return
+            }
             if (event.repeat) {
                 return
             }
             ifDefined(FunctionKeyboardShortcuts.get(event.code),
                 (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
         }))
-        this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
+        this.terminator.with(Events.bindEventListener(window, 'keyup', (event: Event) => {
+            if (!(event instanceof KeyboardEvent)) {
+                return
+            }
             if (!event.shiftKey && this.multiTapsEmulated.size > 0) {
                 this.stopUserNumberInput()
                 this.multiTapsEmulated.forEach((finger: Option<Finger>, key: Key) => {
@@ -602,12 +614,12 @@ export class UIContext implements Terminable {
             }
         }
         requestAnimationFrame(next)
-        this.terminator.with({terminate: () => running = false})
+        this.terminator.with({ terminate: () => running = false })
     }
 }
 
 class Finger implements Terminable {
-    private readonly svg = SVG.createUse('#finger', 64, 64, {class: 'tap-finger'})
+    private readonly svg = SVG.createUse('#finger', 64, 64, { class: 'tap-finger' })
 
     constructor(private readonly parentNode: HTMLElement) {
         this.parentNode.appendChild(this.svg)

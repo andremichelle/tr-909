@@ -204,7 +204,9 @@ button.default {
   min-width: 21px;
   border-radius: 2px;
   text-align: center;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   padding: 0;
   border: none;
   outline: none;
@@ -226,13 +228,17 @@ label.checkbox {
   border: none;
   outline: none;
   white-space: nowrap;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   margin: 0;
   padding: 0;
   position: relative;
 }
 label.checkbox input[type=checkbox] {
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   display: none;
 }
 label.checkbox.slider {
@@ -297,6 +303,9 @@ input[type=text] {
 input[type=text]:focus {
   box-shadow: 0 0 0 1px rgba(39, 107, 174, 0.6) inset;
 }
+input[type=text]::-moz-selection {
+  background-color: #276bae;
+}
 input[type=text]::selection {
   background-color: #276bae;
 }
@@ -310,7 +319,9 @@ select {
   padding: 0;
   font-size: 11px;
   background-color: rgba(0, 0, 0, 0.3);
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
 }
 
 div.two-columns {
@@ -318,8 +329,11 @@ div.two-columns {
   align-items: center;
   grid-template-columns: minmax(80px, 1fr) 84px;
   row-gap: 3px;
-  column-gap: 4px;
+  -moz-column-gap: 4px;
+       column-gap: 4px;
   line-height: 21px;
+  height: -webkit-min-content;
+  height: -moz-min-content;
   height: min-content;
 }
 div.two-columns > * {
@@ -345,7 +359,8 @@ div.two-columns label.bold {
 div.two-columns fieldset.stepper {
   display: grid;
   grid-template-columns: 21px 40px 21px;
-  column-gap: 1px;
+  -moz-column-gap: 1px;
+       column-gap: 1px;
   font-size: 11px;
   outline: none;
   border: none;
@@ -360,7 +375,9 @@ div.two-columns fieldset.stepper > button {
   width: 21px;
   height: 21px;
   text-align: center;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   border-radius: 0;
   padding: 0;
   border: none;
@@ -371,6 +388,15 @@ div.two-columns fieldset.stepper > button:hover {
 }
 div.two-columns fieldset.stepper > button:active {
   color: white;
+}
+
+@-webkit-keyframes rotate {
+  from {
+    transform: rotate(-150deg) translate(0, -20px);
+  }
+  to {
+    transform: rotate(150deg) translate(0, -20px);
+  }
 }
 
 @keyframes rotate {
@@ -486,7 +512,9 @@ button.switch, button.trigger {
   padding: 0;
   border: none;
   outline: none;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   width: 48px;
   height: 48px;
   background: conic-gradient(at 24px 22px, #bebbb6 0deg 40deg, #a7a39d 50deg 132deg, #6d6862 138deg 222deg, #a7a39d 228deg 310deg, #bebbb6 320deg);
@@ -543,7 +571,9 @@ button.translucent-button {
   padding: 0;
   border: none;
   outline: none;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   width: 20px;
   height: 20px;
   display: flex;
@@ -580,7 +610,9 @@ div.tr-909 {
   width: 1226px;
   height: 728px;
   position: relative;
-  image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: pixelated;
   background: radial-gradient(at 50% 0, rgba(255, 255, 255, 0.25), transparent), linear-gradient(to bottom, #d0cbc5, #c7c1b9);
   overflow: hidden;
   border-radius: 3px;
@@ -643,7 +675,8 @@ div.tr-909 > div.action-button-group {
   display: grid;
   grid-template: 24px 20px 16px 16px/repeat(4, 20px);
   position: absolute;
-  column-gap: 11px;
+  -moz-column-gap: 11px;
+       column-gap: 11px;
 }
 div.tr-909 > div.action-button-group.six {
   grid-template: 24px 20px 16px 16px/repeat(6, 20px);
@@ -722,6 +755,8 @@ div.tr-909 > div.pattern-functions > span {
   font-size: 7px;
   line-height: 1em;
   text-align: center;
+  height: -webkit-min-content;
+  height: -moz-min-content;
   height: min-content;
   color: #43484a;
   border-radius: 1px;
@@ -756,7 +791,8 @@ div.tr-909 > div.main-button-group > hr {
 div.tr-909 > div.main-button-group > div.two {
   display: grid;
   grid-template-columns: repeat(2, 48px);
-  column-gap: 8px;
+  -moz-column-gap: 8px;
+       column-gap: 8px;
   height: 48px;
 }
 div.tr-909 > div.main-button-group > div.two > * {
@@ -775,7 +811,9 @@ div.tr-909 > div.func-label-group > div.func {
   padding: 0;
   border: none;
   outline: none;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   background: none;
   height: 14px;
   font-size: 8px;
@@ -926,7 +964,8 @@ main > div.top-center > div.debug {
   grid-template-columns: auto 130px;
   color: rgba(0, 0, 0, 0.7);
   font-size: 1vmin;
-  column-gap: 4px;
+  -moz-column-gap: 4px;
+       column-gap: 4px;
   border: 1px rgba(0, 0, 0, 0.2) solid;
 }
 main > div.top-center > div.debug > label {
@@ -967,6 +1006,4 @@ div.components {
 }
 div.components > * {
   position: relative;
-}
-
-/*# sourceMappingURL=main.css.map */
+}/*# sourceMappingURL=main.css.map */

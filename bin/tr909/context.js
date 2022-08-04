@@ -290,6 +290,9 @@ export class UIContext {
     installKeys() {
         this.functionKeys.forEach((key, keyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event) => {
+                if (!(event instanceof PointerEvent)) {
+                    return;
+                }
                 key.setPointerCapture(event.pointerId);
                 if (event.shiftKey && !this.multiTapsEmulated.has(key)) {
                     const complete = keyIndex !== FunctionKeyIndex.Shift && this.onFunctionKeyPress(keyIndex);
@@ -311,6 +314,9 @@ export class UIContext {
         });
         this.mainKeys.forEach((key, keyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event) => {
+                if (!(event instanceof PointerEvent)) {
+                    return;
+                }
                 key.setPointerCapture(event.pointerId);
                 key.setPressed(true);
                 if (this.isShiftKeyPressed() && !this.isPlaying()) {
@@ -383,12 +389,18 @@ export class UIContext {
     }
     installKeyboard() {
         this.terminator.with(Events.bindEventListener(window, 'keydown', (event) => {
+            if (!(event instanceof KeyboardEvent)) {
+                return;
+            }
             if (event.repeat) {
                 return;
             }
             ifDefined(FunctionKeyboardShortcuts.get(event.code), (keyIndex) => this.onFunctionKeyPress(keyIndex));
         }));
         this.terminator.with(Events.bindEventListener(window, 'keyup', (event) => {
+            if (!(event instanceof KeyboardEvent)) {
+                return;
+            }
             if (!event.shiftKey && this.multiTapsEmulated.size > 0) {
                 this.stopUserNumberInput();
                 this.multiTapsEmulated.forEach((finger, key) => {

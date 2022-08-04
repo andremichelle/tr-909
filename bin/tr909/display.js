@@ -62,8 +62,8 @@ export class DisplayObservableValueProvider {
         this.terminator.terminate();
     }
 }
-DisplayObservableValueProvider.Identity = x => x;
-DisplayObservableValueProvider.PlusOne = x => x + 1;
+DisplayObservableValueProvider.Identity = (x) => x;
+DisplayObservableValueProvider.PlusOne = (x) => x + 1;
 export class Display {
     constructor(svg) {
         this.providerStack = [];

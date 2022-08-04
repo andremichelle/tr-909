@@ -1,5 +1,5 @@
-import {ArrayUtils} from "../../lib/common.js"
-import {RENDER_QUANTUM, RMS} from "../common.js"
+import { ArrayUtils } from "../../lib/common.js"
+import { RENDER_QUANTUM, RMS } from "../common.js"
 
 registerProcessor("meter-processor", class extends AudioWorkletProcessor {
     private readonly numberOfLines: number
@@ -12,7 +12,7 @@ registerProcessor("meter-processor", class extends AudioWorkletProcessor {
 
     private updateCount: number = 0 | 0
 
-    constructor(options) {
+    constructor(options: any) {
         super(options)
 
         this.numberOfLines = options.numberOfInputs
@@ -56,7 +56,7 @@ registerProcessor("meter-processor", class extends AudioWorkletProcessor {
         this.updateCount += RENDER_QUANTUM
         if (this.updateCount >= this.updateRate) {
             this.updateCount -= this.updateRate
-            this.port.postMessage({type: "update-meter", maxSquares: this.maxSquares, maxPeaks: this.maxPeaks})
+            this.port.postMessage({ type: "update-meter", maxSquares: this.maxSquares, maxPeaks: this.maxPeaks })
             for (let lineIndex = 0; lineIndex < this.numberOfLines; lineIndex++) {
                 for (let channelIndex: number = 0; channelIndex < this.channelCount; ++channelIndex) {
                     this.maxPeaks[lineIndex][channelIndex] *= 0.93
