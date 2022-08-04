@@ -4,7 +4,8 @@ declare type Attributes = {
 };
 export declare class HTML {
     static create<K extends keyof HTMLElementTagNameMap>(tagName: K, attributes?: Attributes): HTMLElementTagNameMap[K];
-    static query<E extends Element>(selectors: string): E;
+    static query<E extends Element>(selectors: string, parent?: ParentNode): E;
+    static queryAll<E extends Element>(selectors: string, parent?: ParentNode): E[];
 }
 export interface SVGPathBuilder {
     moveTo(x: number, y: number): this;

@@ -11,7 +11,6 @@ import { ObservableImpl } from "./common.js";
 export const preloadImagesOfCssFile = (pathToCss) => __awaiter(void 0, void 0, void 0, function* () {
     const href = location.href;
     const base = href.substring(0, href.lastIndexOf("/")) + "/bin/";
-    console.debug(`preloadImagesOfCssFile... base: ${base}`);
     const urls = yield fetch(pathToCss)
         .then(x => x.text()).then(x => {
         const matches = x.match(/url\(.+(?=\))/g);
@@ -28,6 +27,7 @@ export const preloadImagesOfCssFile = (pathToCss) => __awaiter(void 0, void 0, v
         })
             .map(path => new URL(path, base));
     });
+    console.debug(`preloadImagesOfCssFile... base: ${base} (${urls.length})`);
     return Promise.all(urls.map(url => fetch(url.href))).then(() => Promise.resolve());
 });
 export class Boot {
@@ -39,9 +39,6 @@ export class Boot {
     }
     addObserver(observer) {
         return this.observable.addObserver(observer);
-    }
-    removeObserver(observer) {
-        return this.observable.removeObserver(observer);
     }
     terminate() {
         this.observable.terminate();
@@ -108,13 +105,11 @@ export const newAudioContext = (options = {
                 catch (e) {
                     return;
                 }
-                window.removeEventListener("mousedown", resume, eventOptions);
-                window.removeEventListener("touchstart", resume, eventOptions);
+                window.removeEventListener("pointerdown", resume, eventOptions);
                 window.removeEventListener("keydown", resume, eventOptions);
             }
         });
-        window.addEventListener("mousedown", resume, eventOptions);
-        window.addEventListener("touchstart", resume, eventOptions);
+        window.addEventListener("pointerdown", resume, eventOptions);
         window.addEventListener("keydown", resume, eventOptions);
     }
     return context;

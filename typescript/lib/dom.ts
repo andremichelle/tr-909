@@ -1,4 +1,4 @@
-import {Events, Option, Options, Terminable, Terminator} from "./common.js"
+import { Events, Option, Options, Terminable, Terminator } from "./common.js"
 
 type Attributes = {
     [name in 'textContent' | 'class' | string]: number | string | boolean
@@ -35,12 +35,16 @@ export class HTML {
         return element
     }
 
-    static query<E extends Element>(selectors: string): E {
-        const element = document.querySelector(selectors)
+    static query<E extends Element>(selectors: string, parent: ParentNode = document): E {
+        const element = parent.querySelector(selectors)
         if (selectors === null) {
             throw new Error(`'${selectors}' not found.`)
         }
         return element as E
+    }
+
+    static queryAll<E extends Element>(selectors: string, parent: ParentNode = document): E[] {
+        return Array.from(parent.querySelectorAll(selectors))
     }
 }
 
@@ -74,8 +78,8 @@ export class SVG {
     }
 
     static createUse(href: string, width: number, height: number, attributes?: Attributes): SVGSVGElement & HTMLElement {
-        const svg = SVG.create("svg", {xlink: "http://www.w3.org/1999/xlink", width, height, ...attributes})
-        svg.appendChild(SVG.create("use", {href}))
+        const svg = SVG.create("svg", { xlink: "http://www.w3.org/1999/xlink", width, height, ...attributes })
+        svg.appendChild(SVG.create("use", { href }))
         return svg
     }
 
@@ -176,90 +180,6 @@ export class SVG {
             .moveTo(0, fy(0))
             .for(step, w + step, step, (builder, x) => builder.lineTo(x, fy(x * scaleX)))
             .build()
-    }
-}
-
-export interface ActionReceiver {
-    actionBegin(event: UserEvent, clientX: number, clientY: number): ActionProcess
-}
-
-export interface ActionProcess {
-    actionMove(event: UserEvent, clientX: number, clientY: number): boolean
-
-    actionEnd(): void
-}
-
-export type UserEvent = MouseEvent | TouchEvent
-
-export class ActionEvents implements Terminable {
-    private readonly terminator = new Terminator()
-
-    private process: Option<ActionProcess> = Options.None
-    private touchId: number = -1
-
-    constructor(private readonly receiver: ActionReceiver) {
-    }
-
-    listen(target: EventTarget): void {
-        this.terminator.with(Events.bindEventListener(target, 'mousedown', this.onActionBegin))
-        this.terminator.with(Events.bindEventListener(target, 'touchstart', this.onActionBegin))
-    }
-
-    withEvent(event: UserEvent): void {
-        this.onActionBegin(event)
-    }
-
-    private onActionBegin = (event: UserEvent): void => {
-        this.process.ifPresent(this.onActionEnd)
-        event.preventDefault()
-        if (event instanceof MouseEvent) {
-            this.process = Options.valueOf(this.receiver.actionBegin(event, event.clientX, event.clientY))
-            window.addEventListener('mousemove', this.onMoveMove)
-            window.addEventListener('mouseup', this.onActionEnd)
-        } else if (event instanceof TouchEvent) {
-            const touch = event.targetTouches.item(0)
-            this.touchId = touch.identifier
-            this.process = Options.valueOf(this.receiver.actionBegin(event, touch.clientX, touch.clientY))
-            window.addEventListener('touchmove', this.onTouchMove)
-            window.addEventListener('touchend', this.onActionEnd)
-        }
-    }
-
-    private onMoveMove = (event: MouseEvent): void => {
-        event.preventDefault()
-        if (this.process.ifPresent(process => process.actionMove(event, event.clientX, event.clientY))) {
-            this.onActionEnd()
-        }
-    }
-
-    private onTouchMove = (event: TouchEvent): void => {
-        event.preventDefault()
-        const touches = event.targetTouches
-        for (let i = 0; i < touches.length; i++) {
-            const touch = touches.item(i)
-            if (touch.identifier === this.touchId) {
-                if (this.process.ifPresent(process => process.actionMove(event, touch.clientX, touch.clientY))) {
-                    this.onActionEnd()
-                }
-                return
-            }
-        }
-        console.debug('touch cancelled')
-        this.onActionEnd()
-    }
-
-    private onActionEnd = (): void => {
-        this.process.ifPresent(process => process.actionEnd())
-        this.process = Options.None
-        window.removeEventListener('touchmove', this.onTouchMove)
-        window.removeEventListener('mousemove', this.onMoveMove)
-        window.removeEventListener('mouseup', this.onActionEnd)
-        window.removeEventListener('touchend', this.onActionEnd)
-    }
-
-    terminate(): void {
-        this.onActionEnd()
-        this.terminator.terminate()
     }
 }
 

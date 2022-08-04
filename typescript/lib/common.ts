@@ -1,9 +1,16 @@
 // noinspection JSUnusedGlobalSymbols
 
-import {ValueMapping} from "./mapping.js"
-import {Random} from "./math.js"
+import { ValueMapping } from "./mapping.js"
+import { Random } from "./math.js"
 
 export type NoArgType<T> = { new(): T }
+
+export const elseIfNull = <T>(value: T | null, fallback: T): T => value === null ? fallback : value
+export const elseIfUndefined = <T>(value: T | undefined, fallback: T): T => value === undefined ? fallback : value
+export const elseIfNullOrUndefined = <T>(value: T | undefined | null, fallback: T): T => value === undefined || value === null ? fallback : value
+export const ifDefined = <T>(value: T | undefined | null, exec: (value: T) => void) => {
+    if (value !== undefined && value !== null) exec(value)
+}
 
 export interface Terminable {
     terminate(): void
@@ -22,9 +29,15 @@ export class Terminator implements Terminable {
         return terminable
     }
 
+    merge<T extends Terminable>(terminables: T[]): Terminable {
+        const terminator = new Terminator()
+        terminables.forEach(terminable => terminator.with(terminable))
+        return terminator
+    }
+
     terminate(): void {
-        while (this.terminables.length) {
-            this.terminables.pop().terminate()
+        while (this.terminables.length > 0) {
+            this.terminables.pop()!.terminate()
         }
     }
 }
@@ -48,7 +61,7 @@ export class Options {
         return null === value || undefined === value ? Options.None : new Options.Some(value)
     }
 
-    static Some = class<T> implements Option<T> {
+    static Some = class <T> implements Option<T> {
         constructor(readonly value: T) {
             console.assert(null !== value && undefined !== value, "Cannot be null or undefined")
         }
@@ -92,29 +105,38 @@ export type Observer<VALUE> = (value: VALUE) => void
 
 export interface Observable<VALUE> extends Terminable {
     addObserver(observer: Observer<VALUE>, notify: boolean): Terminable
-
-    removeObserver(observer: Observer<VALUE>): boolean
 }
 
 export class ObservableImpl<T> implements Observable<T> {
     private readonly observers: Observer<T>[] = []
 
-    notify(value: T) {
+    private muted: boolean = false
+
+    mute(): void {
+        this.muted = true
+    }
+
+    unmute(): void {
+        this.muted = false
+    }
+
+    notify(value: T): void {
+        if (this.muted) {
+            return
+        }
         this.observers.forEach(observer => observer(value))
     }
 
     addObserver(observer: Observer<T>): Terminable {
         this.observers.push(observer)
-        return {terminate: () => this.removeObserver(observer)}
-    }
-
-    removeObserver(observer: Observer<T>): boolean {
-        let index = this.observers.indexOf(observer)
-        if (-1 < index) {
-            this.observers.splice(index, 1)
-            return true
+        return {
+            terminate: () => {
+                const index = this.observers.indexOf(observer)
+                if (-1 < index) {
+                    this.observers.splice(index, 1)
+                }
+            }
         }
-        return false
     }
 
     terminate(): void {
@@ -140,15 +162,14 @@ export interface ObservableValue<T> extends Value<T>, Observable<T> {
 export const ObservableValueVoid: ObservableValue<any> = {
     addObserver: (observer: Observer<any>, notify: boolean): Terminable => TerminableVoid,
     get: (): any => null,
-    removeObserver: (observer: Observer<any>): boolean => false,
-    set: (value: any): boolean => true,
-    terminate: (): void => null
+    set: (_: any): boolean => true,
+    terminate: (): void => { }
 }
 
 export class ObservableValueImpl<T> implements ObservableValue<T> {
     private readonly observable = new ObservableImpl<T>()
 
-    constructor(private value?: T) {
+    constructor(private value: T) {
     }
 
     get(): T {
@@ -169,10 +190,6 @@ export class ObservableValueImpl<T> implements ObservableValue<T> {
         return this.observable.addObserver(observer)
     }
 
-    removeObserver(observer: Observer<T>): boolean {
-        return this.observable.removeObserver(observer)
-    }
-
     terminate(): void {
         this.observable.terminate()
     }
@@ -182,8 +199,8 @@ export class Parameter<T> implements ObservableValue<T> {
     private readonly observable = new ObservableImpl<T>()
 
     constructor(readonly valueMapping: ValueMapping<T>,
-                readonly printMapping: PrintMapping<T>,
-                private value: T) {
+        readonly printMapping: PrintMapping<T>,
+        private value: T) {
     }
 
     getUnipolar(): number {
@@ -191,7 +208,7 @@ export class Parameter<T> implements ObservableValue<T> {
     }
 
     setUnipolar(value: number): void {
-        this.set(this.valueMapping.y(value))
+        this.set(this.valueMapping.y(Math.min(1.0, Math.max(0.0, value))))
     }
 
     print(): string {
@@ -204,7 +221,7 @@ export class Parameter<T> implements ObservableValue<T> {
 
     set(value: T): boolean {
         if (value === this.value) {
-            return
+            return false
         }
         this.value = value
         this.observable.notify(value)
@@ -214,10 +231,6 @@ export class Parameter<T> implements ObservableValue<T> {
     addObserver(observer: Observer<T>, notify: boolean = false): Terminable {
         if (notify) observer(this.value)
         return this.observable.addObserver(observer)
-    }
-
-    removeObserver(observer: Observer<T>): boolean {
-        return this.observable.removeObserver(observer)
     }
 
     terminate(): void {
@@ -231,6 +244,7 @@ export type Printer<Y> = (value: Y) => string
 export class PrintMapping<Y> {
     static INTEGER = PrintMapping.integer("")
     static FLOAT_ONE = PrintMapping.float(1, "", "")
+    static DECIBEL = PrintMapping.float(1, "", "db")
 
     static createBoolean(trueValue: string, falseValue: string) {
         return new PrintMapping(text => {
@@ -292,9 +306,9 @@ export class PrintMapping<Y> {
     }
 
     constructor(private readonly parser: Parser<Y>,
-                private readonly printer: Printer<Y>,
-                private readonly preUnit = "",
-                private readonly postUnit = "") {
+        private readonly printer: Printer<Y>,
+        private readonly preUnit = "",
+        private readonly postUnit = "") {
     }
 
     parse(text: string): Y | null {
@@ -337,16 +351,16 @@ export class ArrayUtils {
         return array
     }
 
-    static shuffle(array: ArrayBufferLike, n: number, random: Random) {
+    static shuffle(array: [], n: number, random: Random) {
         for (let i = 0; i < n; i++) {
             const element = array[i]
-            const randomIndex = random.nextInt(0, n - 1)
+            const randomIndex: number = random.nextInt(0, n - 1)
             array[i] = array[randomIndex]
             array[randomIndex] = element
         }
     }
 
-    static binarySearch = (array: ArrayBufferLike, length: number, key: number): number => {
+    static binarySearch = (array: [], length: number, key: number): number => {
         let low = 0 | 0
         let high = (length - 1) | 0
         while (low <= high) {
@@ -386,7 +400,7 @@ export abstract class Settings<DATA> implements Observable<Settings<DATA>>, Seri
 
     abstract serialize(): SettingsFormat<DATA>
 
-    protected pack(data?: DATA): SettingsFormat<DATA> {
+    protected pack(data: DATA): SettingsFormat<DATA> {
         return {
             class: this.constructor.name,
             data: data
@@ -405,10 +419,6 @@ export abstract class Settings<DATA> implements Observable<Settings<DATA>>, Seri
 
     addObserver(observer: Observer<Settings<DATA>>): Terminable {
         return this.observable.addObserver(observer)
-    }
-
-    removeObserver(observer: Observer<Settings<DATA>>): boolean {
-        return this.observable.removeObserver(observer)
     }
 
     terminate(): void {
@@ -441,7 +451,7 @@ export class Waiting {
 
     static forEvent(element: Element, type: string): Promise<void> {
         return new Promise<void>((resolve) =>
-            element.addEventListener(type, () => resolve(), {once: true}))
+            element.addEventListener(type, () => resolve(), { once: true }))
     }
 
     private static forEvents(element: Element, startType: string, endType: string): Promise<void> {
@@ -464,21 +474,23 @@ export class Waiting {
 }
 
 export class Events {
-    static preventDefault = event => event.preventDefault()
+    static preventDefault = (event: Event): void => event.preventDefault()
 
     static async toPromise<E extends Event>(target: EventTarget, type: string): Promise<E> {
         return new Promise<E>(resolve => target
-            .addEventListener(type, (event: E) => resolve(event), {once: true}))
+            .addEventListener(type, (event: Event): void => resolve(event as E), { once: true }))
     }
+
+    // TODO https://stackoverflow.com/questions/72365139/strongly-typed-event-listener-function
 
     static bindEventListener(target: EventTarget,
-                             type: string, listener: EventListenerOrEventListenerObject,
-                             options?: AddEventListenerOptions): Terminable {
+        type: string, listener: (event: Event) => void,
+        options?: AddEventListenerOptions): Terminable {
         target.addEventListener(type, listener, options)
-        return {terminate: () => target.removeEventListener(type, listener, options)}
+        return { terminate: () => target.removeEventListener(type, listener, options) }
     }
 
-    static configRepeatButton(button, callback): Terminable {
+    static configRepeatButton(button: EventTarget, callback: () => void): Terminable {
         const mouseDownListener = () => {
             let lastTime = Date.now()
             let delay = 500.0
@@ -497,9 +509,9 @@ export class Events {
             window.addEventListener("mouseup", () => {
                 lastTime = NaN
                 delay = Number.MAX_VALUE
-            }, {once: true})
+            }, { once: true })
         }
         button.addEventListener("mousedown", mouseDownListener)
-        return {terminate: () => button.removeEventListener("mousedown", mouseDownListener)}
+        return { terminate: () => button.removeEventListener("mousedown", mouseDownListener) }
     }
 }

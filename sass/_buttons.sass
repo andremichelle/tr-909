@@ -1,0 +1,104 @@
+@import vars
+
+$color-led: #ee3b2e
+$color-led-glow: lighten($color-led, 25)
+$color-top: #bebbb6
+$color-right: #a7a39d
+$color-bottom: #6d6862
+$color-left: #a7a39d
+
+button.switch, button.trigger
+  //does not work with switch (led)
+  &.bright
+    filter: sepia(20%) brightness(125%)
+
+  margin: 0
+  padding: 0
+  border: none
+  outline: none
+  appearance: none
+  width: 48px
+  height: 48px
+  background: conic-gradient(at 24px 22px, $color-top 0deg 40deg, $color-right 50deg 132deg, $color-bottom 138deg 222deg, $color-left 228deg 310deg, $color-top 320deg)
+  position: absolute
+  box-shadow: 0 0 1px 2px rgba(black, 0.6) inset, 0 -1px 2px 0 rgba(white, 0.7), 0 2px 2px 0 rgba(black, 0.4)
+  pointer-events: all
+
+  &:active, &.active
+    box-shadow: 0 0 3px 2px rgba(black, 0.8) inset, 0 -1px 2px 0 rgba(white, 0.7), 0 2px 2px 0 rgba(black, 0.4)
+
+    &:before
+      transform: scale(0.97)
+      transform-origin: 16px 12px
+
+    &.switch:after
+      transform: scale(0.97)
+      transform-origin: 6px 12px
+
+  &.switch.blink-enabled:after,
+  &.switch.flash-enabled:after
+    background-color: darken($color-led, 10%)
+
+  &.switch.enabled:after
+    background-color: $color-led
+    box-shadow: 0 0 0.5px 0.5px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.3), 0 -0.5px 4px 0.5px $color-led-glow
+
+  &:before
+    content: ''
+    top: 6px
+    left: 8px
+    width: 32px
+    height: 32px
+    border-radius: 4px
+    background: linear-gradient(#9f9d98, #a6a4a1)
+    position: absolute
+    box-shadow: 0 0 2px 0 rgba(white, 0.2), 0 0 2px 0 rgba(white, 0.2) inset, 0 1px 1px 0 rgba(black, 0.1) inset
+
+  &.switch:after
+    content: ''
+    top: 7px
+    left: 17px
+    width: 14px
+    height: 6px
+    position: absolute
+    border-radius: 1px
+    background-color: #4c3b3b
+    box-shadow: 0 0 0.5px 1px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.4)
+
+button.translucent-button
+  margin: 0
+  padding: 0
+  border: none
+  outline: none
+  appearance: none
+  width: 20px
+  height: 20px
+  display: flex
+  border-radius: 1px
+  background-color: #444
+  background-position: 0 0
+  background-repeat: no-repeat
+  background-image: url('../svg/translucent-button-normal.svg')
+  box-shadow: 0 0 1px 1px rgba(black, 0.6) inset, 0 0.5px 2px 0 rgba(white, 0.8), 0 0 1px 1px rgba(white, 0.4) inset
+  color: lighten(#ee3b2e, 10)
+  pointer-events: all
+
+  // workaround to prevent flickr when changing background-image
+  &:after
+    content: ''
+    top: 0
+    left: 0
+    width: 20px
+    height: 20px
+    position: absolute
+    visibility: hidden
+    background-image: url('../svg/translucent-button-active.svg')
+
+  &.active
+    box-shadow: 0 0 16px 0 rgba(black, 0.2) inset, 0 0.5px 2px 0 rgba(white, 0.8)
+
+  &.blink-enabled:after
+    opacity: 0.5
+
+  &.enabled:after
+    visibility: visible

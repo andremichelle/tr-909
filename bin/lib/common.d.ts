@@ -3,6 +3,10 @@ import { Random } from "./math.js";
 export declare type NoArgType<T> = {
     new (): T;
 };
+export declare const elseIfNull: <T>(value: T, fallback: T) => T;
+export declare const elseIfUndefined: <T>(value: T, fallback: T) => T;
+export declare const elseIfNullOrUndefined: <T>(value: T, fallback: T) => T;
+export declare const ifDefined: <T>(value: T | null, exec: (value: T) => void) => void;
 export interface Terminable {
     terminate(): void;
 }
@@ -10,6 +14,7 @@ export declare const TerminableVoid: Terminable;
 export declare class Terminator implements Terminable {
     private readonly terminables;
     with<T extends Terminable>(terminable: T): T;
+    merge<T extends Terminable>(terminables: T[]): Terminable;
     terminate(): void;
 }
 export interface Option<T> {
@@ -47,13 +52,14 @@ export declare class Options {
 export declare type Observer<VALUE> = (value: VALUE) => void;
 export interface Observable<VALUE> extends Terminable {
     addObserver(observer: Observer<VALUE>, notify: boolean): Terminable;
-    removeObserver(observer: Observer<VALUE>): boolean;
 }
 export declare class ObservableImpl<T> implements Observable<T> {
     private readonly observers;
+    private muted;
+    mute(): void;
+    unmute(): void;
     notify(value: T): void;
     addObserver(observer: Observer<T>): Terminable;
-    removeObserver(observer: Observer<T>): boolean;
     terminate(): void;
 }
 export interface Serializer<T> {
@@ -70,11 +76,10 @@ export declare const ObservableValueVoid: ObservableValue<any>;
 export declare class ObservableValueImpl<T> implements ObservableValue<T> {
     private value?;
     private readonly observable;
-    constructor(value?: T);
+    constructor(value?: T | undefined);
     get(): T;
     set(value: T): boolean;
     addObserver(observer: Observer<T>, notify?: boolean): Terminable;
-    removeObserver(observer: Observer<T>): boolean;
     terminate(): void;
 }
 export declare class Parameter<T> implements ObservableValue<T> {
@@ -89,7 +94,6 @@ export declare class Parameter<T> implements ObservableValue<T> {
     get(): T;
     set(value: T): boolean;
     addObserver(observer: Observer<T>, notify?: boolean): Terminable;
-    removeObserver(observer: Observer<T>): boolean;
     terminate(): void;
 }
 export declare type Parser<Y> = (text: string) => Y | null;
@@ -101,6 +105,7 @@ export declare class PrintMapping<Y> {
     private readonly postUnit;
     static INTEGER: PrintMapping<number>;
     static FLOAT_ONE: PrintMapping<number>;
+    static DECIBEL: PrintMapping<number>;
     static createBoolean(trueValue: string, falseValue: string): PrintMapping<boolean>;
     static UnipolarPercent: PrintMapping<number>;
     static RGB: PrintMapping<number>;
@@ -142,7 +147,6 @@ export declare abstract class Settings<DATA> implements Observable<Settings<DATA
     protected unpack(format: SettingsFormat<DATA>): DATA;
     protected bindValue<T>(property: ObservableValue<T>): ObservableValue<T>;
     addObserver(observer: Observer<Settings<DATA>>): Terminable;
-    removeObserver(observer: Observer<Settings<DATA>>): boolean;
     terminate(): void;
 }
 export declare class Waiting {
@@ -154,8 +158,8 @@ export declare class Waiting {
     private static forEvents;
 }
 export declare class Events {
-    static preventDefault: (event: any) => any;
+    static preventDefault: (event: Event) => void;
     static toPromise<E extends Event>(target: EventTarget, type: string): Promise<E>;
-    static bindEventListener(target: EventTarget, type: string, listener: EventListenerOrEventListenerObject, options?: AddEventListenerOptions): Terminable;
+    static bindEventListener(target: EventTarget, type: string, listener: EventListener, options?: AddEventListenerOptions): Terminable;
     static configRepeatButton(button: any, callback: any): Terminable;
 }

@@ -7,6 +7,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+export const elseIfNull = (value, fallback) => value === null ? fallback : value;
+export const elseIfUndefined = (value, fallback) => value === undefined ? fallback : value;
+export const elseIfNullOrUndefined = (value, fallback) => value === undefined || value === null ? fallback : value;
+export const ifDefined = (value, exec) => {
+    if (value !== undefined && value !== null)
+        exec(value);
+};
 export const TerminableVoid = {
     terminate() {
     }
@@ -19,8 +26,13 @@ export class Terminator {
         this.terminables.push(terminable);
         return terminable;
     }
+    merge(terminables) {
+        const terminator = new Terminator();
+        terminables.forEach(terminable => terminator.with(terminable));
+        return terminator;
+    }
     terminate() {
-        while (this.terminables.length) {
+        while (this.terminables.length > 0) {
             this.terminables.pop().terminate();
         }
     }
@@ -68,21 +80,30 @@ Options.None = new class {
 export class ObservableImpl {
     constructor() {
         this.observers = [];
+        this.muted = false;
+    }
+    mute() {
+        this.muted = true;
+    }
+    unmute() {
+        this.muted = false;
     }
     notify(value) {
+        if (this.muted) {
+            return;
+        }
         this.observers.forEach(observer => observer(value));
     }
     addObserver(observer) {
         this.observers.push(observer);
-        return { terminate: () => this.removeObserver(observer) };
-    }
-    removeObserver(observer) {
-        let index = this.observers.indexOf(observer);
-        if (-1 < index) {
-            this.observers.splice(index, 1);
-            return true;
-        }
-        return false;
+        return {
+            terminate: () => {
+                const index = this.observers.indexOf(observer);
+                if (-1 < index) {
+                    this.observers.splice(index, 1);
+                }
+            }
+        };
     }
     terminate() {
         this.observers.splice(0, this.observers.length);
@@ -91,9 +112,8 @@ export class ObservableImpl {
 export const ObservableValueVoid = {
     addObserver: (observer, notify) => TerminableVoid,
     get: () => null,
-    removeObserver: (observer) => false,
-    set: (value) => true,
-    terminate: () => null
+    set: (_) => true,
+    terminate: () => { }
 };
 export class ObservableValueImpl {
     constructor(value) {
@@ -116,9 +136,6 @@ export class ObservableValueImpl {
             observer(this.value);
         return this.observable.addObserver(observer);
     }
-    removeObserver(observer) {
-        return this.observable.removeObserver(observer);
-    }
     terminate() {
         this.observable.terminate();
     }
@@ -134,7 +151,7 @@ export class Parameter {
         return this.valueMapping.x(this.value);
     }
     setUnipolar(value) {
-        this.set(this.valueMapping.y(value));
+        this.set(this.valueMapping.y(Math.min(1.0, Math.max(0.0, value))));
     }
     print() {
         return this.printMapping.print(this.value);
@@ -144,7 +161,7 @@ export class Parameter {
     }
     set(value) {
         if (value === this.value) {
-            return;
+            return false;
         }
         this.value = value;
         this.observable.notify(value);
@@ -154,9 +171,6 @@ export class Parameter {
         if (notify)
             observer(this.value);
         return this.observable.addObserver(observer);
-    }
-    removeObserver(observer) {
-        return this.observable.removeObserver(observer);
     }
     terminate() {
         this.observable.terminate();
@@ -220,6 +234,7 @@ export class PrintMapping {
 }
 PrintMapping.INTEGER = PrintMapping.integer("");
 PrintMapping.FLOAT_ONE = PrintMapping.float(1, "", "");
+PrintMapping.DECIBEL = PrintMapping.float(1, "", "db");
 PrintMapping.UnipolarPercent = new PrintMapping(text => {
     const value = parseFloat(text);
     if (isNaN(value))
@@ -312,9 +327,6 @@ export class Settings {
     addObserver(observer) {
         return this.observable.addObserver(observer);
     }
-    removeObserver(observer) {
-        return this.observable.removeObserver(observer);
-    }
     terminate() {
         this.terminator.terminate();
     }
@@ -396,5 +408,5 @@ export class Events {
         return { terminate: () => button.removeEventListener("mousedown", mouseDownListener) };
     }
 }
-Events.preventDefault = event => event.preventDefault();
+Events.preventDefault = (event) => event.preventDefault();
 //# sourceMappingURL=common.js.map

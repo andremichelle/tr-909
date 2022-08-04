@@ -1,5 +1,7 @@
 export class Range {
     constructor() {
+        this.min = NaN;
+        this.max = NaN;
     }
     clamp(value) {
         return Math.min(this.max, Math.max(this.min, value));
@@ -52,6 +54,25 @@ export class Exp {
     }
     y(x) {
         return this.min * Math.exp(x * this.range);
+    }
+    clamp(y) {
+        return Math.min(this.max, Math.max(this.min, y));
+    }
+}
+export class Pow {
+    constructor(min, max, exp) {
+        this.min = min;
+        this.max = max;
+        this.exp = exp;
+    }
+    static byCenter(center, min, max) {
+        return new Pow(min, max, Math.log((max - min) / (center - min)) / Math.log(2.0));
+    }
+    x(y) {
+        return Math.pow((y - this.min) / (this.max - this.min), 1.0 / this.exp);
+    }
+    y(x) {
+        return this.min + Math.pow(x, this.exp) * (this.max - this.min);
     }
     clamp(y) {
         return Math.min(this.max, Math.max(this.min, y));

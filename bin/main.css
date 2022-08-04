@@ -19,6 +19,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   min-width: 100vw;
   min-height: 100vh;
   /* mobile viewport bug fix */
@@ -83,6 +84,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   min-width: 100vw;
   min-height: 100vh;
   /* mobile viewport bug fix */
@@ -167,12 +169,12 @@ div.instruments div.instrument > h1 {
   margin: 0;
   padding: 0;
   font-size: 8px;
-  line-height: 15px;
   text-align: center;
   color: #d97e41;
   background-color: #43484a;
   width: 100%;
-  height: 14px;
+  height: 15px;
+  line-height: 15px;
   align-self: start;
   white-space: nowrap;
 }
@@ -202,7 +204,9 @@ button.default {
   min-width: 21px;
   border-radius: 2px;
   text-align: center;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   padding: 0;
   border: none;
   outline: none;
@@ -224,13 +228,17 @@ label.checkbox {
   border: none;
   outline: none;
   white-space: nowrap;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   margin: 0;
   padding: 0;
   position: relative;
 }
 label.checkbox input[type=checkbox] {
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   display: none;
 }
 label.checkbox.slider {
@@ -295,6 +303,9 @@ input[type=text] {
 input[type=text]:focus {
   box-shadow: 0 0 0 1px rgba(39, 107, 174, 0.6) inset;
 }
+input[type=text]::-moz-selection {
+  background-color: #276bae;
+}
 input[type=text]::selection {
   background-color: #276bae;
 }
@@ -308,7 +319,9 @@ select {
   padding: 0;
   font-size: 11px;
   background-color: rgba(0, 0, 0, 0.3);
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
 }
 
 div.two-columns {
@@ -316,8 +329,11 @@ div.two-columns {
   align-items: center;
   grid-template-columns: minmax(80px, 1fr) 84px;
   row-gap: 3px;
-  column-gap: 4px;
+  -moz-column-gap: 4px;
+       column-gap: 4px;
   line-height: 21px;
+  height: -webkit-min-content;
+  height: -moz-min-content;
   height: min-content;
 }
 div.two-columns > * {
@@ -343,7 +359,8 @@ div.two-columns label.bold {
 div.two-columns fieldset.stepper {
   display: grid;
   grid-template-columns: 21px 40px 21px;
-  column-gap: 1px;
+  -moz-column-gap: 1px;
+       column-gap: 1px;
   font-size: 11px;
   outline: none;
   border: none;
@@ -358,7 +375,9 @@ div.two-columns fieldset.stepper > button {
   width: 21px;
   height: 21px;
   text-align: center;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   border-radius: 0;
   padding: 0;
   border: none;
@@ -371,6 +390,15 @@ div.two-columns fieldset.stepper > button:active {
   color: white;
 }
 
+@-webkit-keyframes rotate {
+  from {
+    transform: rotate(-150deg) translate(0, -20px);
+  }
+  to {
+    transform: rotate(150deg) translate(0, -20px);
+  }
+}
+
 @keyframes rotate {
   from {
     transform: rotate(-150deg) translate(0, -20px);
@@ -380,6 +408,7 @@ div.two-columns fieldset.stepper > button:active {
   }
 }
 .knob-control {
+  --angle: -150deg;
   width: 42px;
   height: 56px;
   position: absolute;
@@ -419,7 +448,7 @@ div.two-columns fieldset.stepper > button:active {
   border-radius: 0.5px;
   position: absolute;
   background-color: #d97e41;
-  transform: rotate(-150deg) translate(0, -11.5px);
+  transform: rotate(var(--angle)) translate(0, -11.5px);
   box-shadow: 0 0.5px 0.5px 0 rgba(255, 255, 255, 0.2);
   z-index: 1;
 }
@@ -453,7 +482,7 @@ div.two-columns fieldset.stepper > button:active {
   top: -7.5px;
   left: 26px;
   height: 13px;
-  transform: rotate(-150deg) translate(0, -20px);
+  transform: rotate(var(--angle)) translate(0, -20px);
 }
 .knob-control.big > .knob:after {
   top: -28px;
@@ -483,30 +512,34 @@ button.switch, button.trigger {
   padding: 0;
   border: none;
   outline: none;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   width: 48px;
   height: 48px;
   background: conic-gradient(at 24px 22px, #bebbb6 0deg 40deg, #a7a39d 50deg 132deg, #6d6862 138deg 222deg, #a7a39d 228deg 310deg, #bebbb6 320deg);
   position: absolute;
   box-shadow: 0 0 1px 2px rgba(0, 0, 0, 0.6) inset, 0 -1px 2px 0 rgba(255, 255, 255, 0.7), 0 2px 2px 0 rgba(0, 0, 0, 0.4);
-  transition: all 50ms linear;
   pointer-events: all;
 }
 button.switch.bright, button.trigger.bright {
   filter: sepia(20%) brightness(125%);
 }
-button.switch:active, button.trigger:active {
+button.switch:active, button.switch.active, button.trigger:active, button.trigger.active {
   box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.8) inset, 0 -1px 2px 0 rgba(255, 255, 255, 0.7), 0 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
-button.switch:active:before, button.trigger:active:before {
+button.switch:active:before, button.switch.active:before, button.trigger:active:before, button.trigger.active:before {
   transform: scale(0.97);
   transform-origin: 16px 12px;
 }
-button.switch:active.switch:after, button.trigger:active.switch:after {
+button.switch:active.switch:after, button.switch.active.switch:after, button.trigger:active.switch:after, button.trigger.active.switch:after {
   transform: scale(0.97);
   transform-origin: 6px 12px;
 }
-button.switch.switch.active:after, button.trigger.switch.active:after {
+button.switch.switch.blink-enabled:after, button.switch.switch.flash-enabled:after, button.trigger.switch.blink-enabled:after, button.trigger.switch.flash-enabled:after {
+  background-color: #d71f12;
+}
+button.switch.switch.enabled:after, button.trigger.switch.enabled:after {
   background-color: #ee3b2e;
   box-shadow: 0 0 0.5px 0.5px rgba(0, 0, 0, 0.2) inset, 0 1px 0.5px 0 rgba(255, 255, 255, 0.3), 0 -0.5px 4px 0.5px #f8aaa4;
 }
@@ -530,7 +563,6 @@ button.switch.switch:after, button.trigger.switch:after {
   position: absolute;
   border-radius: 1px;
   background-color: #4c3b3b;
-  transition: all 50ms linear;
   box-shadow: 0 0 0.5px 1px rgba(0, 0, 0, 0.2) inset, 0 1px 0.5px 0 rgba(255, 255, 255, 0.4);
 }
 
@@ -539,33 +571,54 @@ button.translucent-button {
   padding: 0;
   border: none;
   outline: none;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   width: 20px;
   height: 20px;
   display: flex;
   border-radius: 1px;
+  background-color: #444;
+  background-position: 0 0;
   background-repeat: no-repeat;
   background-image: url("../svg/translucent-button-normal.svg");
   box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.6) inset, 0 0.5px 2px 0 rgba(255, 255, 255, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.4) inset;
   color: #f2675d;
   pointer-events: all;
 }
-button.translucent-button:active {
-  filter: brightness(98%);
+button.translucent-button:after {
+  content: "";
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  visibility: hidden;
+  background-image: url("../svg/translucent-button-active.svg");
 }
 button.translucent-button.active {
-  background-image: url("../svg/translucent-button-active.svg");
+  box-shadow: 0 0 16px 0 rgba(0, 0, 0, 0.2) inset, 0 0.5px 2px 0 rgba(255, 255, 255, 0.8);
+}
+button.translucent-button.blink-enabled:after {
+  opacity: 0.5;
+}
+button.translucent-button.enabled:after {
+  visibility: visible;
 }
 
 div.tr-909 {
   width: 1226px;
   height: 728px;
   position: relative;
-  image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: pixelated;
   background: radial-gradient(at 50% 0, rgba(255, 255, 255, 0.25), transparent), linear-gradient(to bottom, #d0cbc5, #c7c1b9);
   overflow: hidden;
   border-radius: 3px;
   box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.6), 0 24px 16px 4px rgba(0, 0, 0, 0.4), 0 2px 1px 0 rgba(255, 255, 255, 0.6) inset;
+  --scale: 1;
+  transform: scale(var(--scale));
 }
 div.tr-909 > * {
   position: absolute;
@@ -582,6 +635,7 @@ div.tr-909:before, div.tr-909:after {
   background-color: #939188;
   position: absolute;
   border-right: 1px #646462 solid;
+  box-shadow: 0 1px 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
 div.tr-909 > div.roland-logo {
   top: 36px;
@@ -621,7 +675,8 @@ div.tr-909 > div.action-button-group {
   display: grid;
   grid-template: 24px 20px 16px 16px/repeat(4, 20px);
   position: absolute;
-  column-gap: 11px;
+  -moz-column-gap: 11px;
+       column-gap: 11px;
 }
 div.tr-909 > div.action-button-group.six {
   grid-template: 24px 20px 16px 16px/repeat(6, 20px);
@@ -658,10 +713,6 @@ div.tr-909 > div.action-button-group > h2 {
 }
 div.tr-909 > div.wrapper-label.digits {
   transform: translate(268px, 423px);
-  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.8), 0 2px 1px 1px rgba(255, 255, 255, 0.8);
-}
-div.tr-909 > div.wrapper-label.digits > svg {
-  height: 48px;
 }
 div.tr-909 > div.pattern-functions {
   transform: translate(90px, 498px);
@@ -704,6 +755,8 @@ div.tr-909 > div.pattern-functions > span {
   font-size: 7px;
   line-height: 1em;
   text-align: center;
+  height: -webkit-min-content;
+  height: -moz-min-content;
   height: min-content;
   color: #43484a;
   border-radius: 1px;
@@ -718,13 +771,13 @@ div.tr-909 > svg.scales {
   width: 920px;
   transform: translate(198px, 498px);
 }
-div.tr-909 > div.step-button-group {
+div.tr-909 > div.main-button-group {
   transform: translate(212px, 582px);
   display: grid;
   grid-template-columns: repeat(8, 104px 10px);
   justify-items: center;
 }
-div.tr-909 > div.step-button-group > hr {
+div.tr-909 > div.main-button-group > hr {
   margin: 0;
   padding: 0;
   width: 1px;
@@ -735,13 +788,14 @@ div.tr-909 > div.step-button-group > hr {
   position: relative;
   border-radius: 1px;
 }
-div.tr-909 > div.step-button-group > div.two {
+div.tr-909 > div.main-button-group > div.two {
   display: grid;
   grid-template-columns: repeat(2, 48px);
-  column-gap: 8px;
+  -moz-column-gap: 8px;
+       column-gap: 8px;
   height: 48px;
 }
-div.tr-909 > div.step-button-group > div.two > * {
+div.tr-909 > div.main-button-group > div.two > * {
   position: relative;
 }
 div.tr-909 > div.func-label-group {
@@ -757,7 +811,9 @@ div.tr-909 > div.func-label-group > div.func {
   padding: 0;
   border: none;
   outline: none;
-  appearance: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   background: none;
   height: 14px;
   font-size: 8px;
@@ -794,7 +850,7 @@ div.tr-909 > div.trigger-labels > div > span {
   color: #43484a;
   white-space: nowrap;
 }
-div.tr-909 > hr.step-border {
+div.tr-909 > hr.main-border {
   margin: 0;
   padding: 0;
   height: 1px;
@@ -856,23 +912,80 @@ div.wrapper-label:after {
   white-space: nowrap;
 }
 
+svg.digits {
+  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.8), 0 2px 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+svg.tap-finger {
+  transform: translate(-22px, -2px);
+  overflow: visible;
+  position: absolute;
+  filter: drop-shadow(0 12px 4px rgba(0, 0, 0, 0.3));
+  fill: #d97e41;
+  stroke: black;
+  stroke-width: 12;
+}
+
 main {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-items: center;
-  --scale: 1;
-  transform: scale(var(--scale)) rotate(0deg);
+  width: 100vmax;
+  height: 100vmin;
+  display: grid;
+  grid-template: 8vmin 1fr 3vmin/2vmin 1fr 2vmin;
+  transform: rotate(0deg);
+  position: relative;
 }
 @media (orientation: portrait) {
   main {
-    transform: scale(var(--scale)) rotate(90deg);
+    transform: rotate(90deg);
   }
 }
-
-a.github {
+main > div.wrapper {
+  grid-area: 2/2/3/3;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+main > div.wrapper > div.tr-909 {
+  top: 50%;
+  bottom: 50%;
+  transform: translate(0, -50%) scale(var(--scale));
+  position: absolute;
+}
+main > div.top-center {
+  grid-area: 1/2/2/3;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+main > div.top-center > div.debug {
+  display: grid;
+  grid-template-columns: auto 130px;
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 1vmin;
+  -moz-column-gap: 4px;
+       column-gap: 4px;
+  border: 1px rgba(0, 0, 0, 0.2) solid;
+}
+main > div.top-center > div.debug > label {
+  text-align: right;
+}
+main > div.top-center > div.debug > label:after {
+  content: ":";
+}
+main > div.top-center > div.debug > output {
+  font-weight: bold;
+}
+main > div.top-center > canvas.meter {
+  padding: 4px 0;
+  background-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+main > a.github {
+  grid-area: 3/2/4/3;
   color: #43484a;
-  font-size: 11px;
+  font-size: 2vmin;
   font-family: inherit;
   text-decoration: none;
   left: 50%;
@@ -883,22 +996,14 @@ a.github {
   pointer-events: all;
 }
 
-div.zoom-control {
-  left: 8px;
-  bottom: 8px;
-  position: absolute;
+div.components {
+  padding: 16vmin;
+  border-radius: 8px;
+  background: radial-gradient(at 50% 0, rgba(255, 255, 255, 0.25), transparent), linear-gradient(to bottom, #d0cbc5, #c7c1b9);
   display: grid;
-  grid-template-columns: min-content 32px;
-  column-gap: 4px;
-  align-items: center;
+  gap: 16px;
+  grid-auto-flow: column;
 }
-div.zoom-control span.zoom {
-  font-size: 9px;
-  white-space: nowrap;
-  color: rgba(0, 0, 0, 0.5);
-}
-div.zoom-control label.zoom {
-  pointer-events: all;
-}
-
-/*# sourceMappingURL=main.css.map */
+div.components > * {
+  position: relative;
+}/*# sourceMappingURL=main.css.map */
