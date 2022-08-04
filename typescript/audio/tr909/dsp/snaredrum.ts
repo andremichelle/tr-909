@@ -1,7 +1,7 @@
-import {dbToGain, decibel, Interpolator} from "../../common.js"
-import {SnaredrumPreset} from "../preset.js"
-import {ResourceSampleRate} from "../resources.js"
-import {isRunning, SilentGain, Voice} from "./voice.js"
+import { dbToGain, decibel, Interpolator } from "../../common.js"
+import { SnaredrumPreset } from "../preset.js"
+import { ResourceSampleRate } from "../resources.js"
+import { isRunning, SilentGain, Voice } from "./voice.js"
 
 export class SnaredrumVoice extends Voice {
     private readonly gainInterpolator: Interpolator

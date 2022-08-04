@@ -1,6 +1,6 @@
-import {ChannelIndex, Pattern, Step} from "../audio/tr909/memory.js"
-import {elseIfUndefined} from "../lib/common.js"
-import {KeyState, MainKeyIndex} from "./keys.js"
+import { ChannelIndex, Pattern, Step } from "../audio/tr909/memory.js"
+import { elseIfUndefined } from "../lib/common.js"
+import { KeyState, MainKeyIndex } from "./keys.js"
 
 interface StepModifier {
     weakFull(step: Step): Step
@@ -69,37 +69,37 @@ export class Utils {
 
     static keyIndexToPlayInstrument(keyIndex: MainKeyIndex, other: Set<MainKeyIndex>): { channelIndex: ChannelIndex, step: Step } {
         if (keyIndex === MainKeyIndex.Step1) {
-            return {channelIndex: ChannelIndex.Bassdrum, step: Step.Full}
+            return { channelIndex: ChannelIndex.Bassdrum, step: Step.Full }
         } else if (keyIndex === MainKeyIndex.Step2) {
-            return {channelIndex: ChannelIndex.Bassdrum, step: Step.Weak}
+            return { channelIndex: ChannelIndex.Bassdrum, step: Step.Weak }
         } else if (keyIndex === MainKeyIndex.Step3) {
-            return {channelIndex: ChannelIndex.Snaredrum, step: Step.Full}
+            return { channelIndex: ChannelIndex.Snaredrum, step: Step.Full }
         } else if (keyIndex === MainKeyIndex.Step4) {
-            return {channelIndex: ChannelIndex.Snaredrum, step: Step.Weak}
+            return { channelIndex: ChannelIndex.Snaredrum, step: Step.Weak }
         } else if (keyIndex === MainKeyIndex.Step5) {
-            return {channelIndex: ChannelIndex.TomLow, step: Step.Full}
+            return { channelIndex: ChannelIndex.TomLow, step: Step.Full }
         } else if (keyIndex === MainKeyIndex.Step6) {
-            return {channelIndex: ChannelIndex.TomLow, step: Step.Weak}
+            return { channelIndex: ChannelIndex.TomLow, step: Step.Weak }
         } else if (keyIndex === MainKeyIndex.Step7) {
-            return {channelIndex: ChannelIndex.TomMid, step: Step.Full}
+            return { channelIndex: ChannelIndex.TomMid, step: Step.Full }
         } else if (keyIndex === MainKeyIndex.Step8) {
-            return {channelIndex: ChannelIndex.TomMid, step: Step.Weak}
+            return { channelIndex: ChannelIndex.TomMid, step: Step.Weak }
         } else if (keyIndex === MainKeyIndex.Step9) {
-            return {channelIndex: ChannelIndex.TomHi, step: Step.Full}
+            return { channelIndex: ChannelIndex.TomHi, step: Step.Full }
         } else if (keyIndex === MainKeyIndex.Step10) {
-            return {channelIndex: ChannelIndex.TomHi, step: Step.Weak}
+            return { channelIndex: ChannelIndex.TomHi, step: Step.Weak }
         } else if (keyIndex === MainKeyIndex.Step11) {
-            return {channelIndex: ChannelIndex.Rim, step: Step.Full}
+            return { channelIndex: ChannelIndex.Rim, step: Step.Full }
         } else if (keyIndex === MainKeyIndex.Step12) {
-            return {channelIndex: ChannelIndex.Clap, step: Step.Full}
+            return { channelIndex: ChannelIndex.Clap, step: Step.Full }
         } else if (keyIndex === MainKeyIndex.Step13) {
-            return {channelIndex: ChannelIndex.Hihat, step: other.has(MainKeyIndex.Step14) ? Step.Extra : Step.Full}
+            return { channelIndex: ChannelIndex.Hihat, step: other.has(MainKeyIndex.Step14) ? Step.Extra : Step.Full }
         } else if (keyIndex === MainKeyIndex.Step14) {
-            return {channelIndex: ChannelIndex.Hihat, step: other.has(MainKeyIndex.Step13) ? Step.Extra : Step.Weak}
+            return { channelIndex: ChannelIndex.Hihat, step: other.has(MainKeyIndex.Step13) ? Step.Extra : Step.Weak }
         } else if (keyIndex === MainKeyIndex.Step15) {
-            return {channelIndex: ChannelIndex.Crash, step: Step.Full}
+            return { channelIndex: ChannelIndex.Crash, step: Step.Full }
         } else if (keyIndex === MainKeyIndex.Step16) {
-            return {channelIndex: ChannelIndex.Ride, step: Step.Full}
+            return { channelIndex: ChannelIndex.Ride, step: Step.Full }
         } else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             throw new Error(`Total Accent cannot be played`)
         }

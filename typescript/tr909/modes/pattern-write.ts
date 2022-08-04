@@ -1,10 +1,10 @@
-import {FlamIndex, Pattern, ShuffleIndex, Step} from "../../audio/tr909/memory.js"
-import {ToWorkletMessage} from "../../audio/tr909/messages.js"
-import {ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
-import {UIContext} from "../context.js"
-import {FunctionKeyLabel, Key, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices} from "../keys.js"
-import {complete, Mode} from "../mode.js"
-import {InstrumentMode, Utils} from "../utils.js"
+import { FlamIndex, Pattern, ShuffleIndex, Step } from "../../audio/tr909/memory.js"
+import { ToWorkletMessage } from "../../audio/tr909/messages.js"
+import { ObservableValue, ObservableValueImpl, Terminable, TerminableVoid, Terminator } from "../../lib/common.js"
+import { UIContext } from "../context.js"
+import { FunctionKeyLabel, Key, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices } from "../keys.js"
+import { complete, Mode } from "../mode.js"
+import { InstrumentMode, Utils } from "../utils.js"
 
 enum TransientEditing {
     Off, ShuffleFlam, InstrumentSelect
@@ -154,7 +154,7 @@ class StepInputMode extends Mode {
 
         this.with(this.context.watchPatternStepsKeys())
         this.with(this.context.startStepRunningAnimation())
-        this.with({terminate: () => this.clearSubscription.terminate()})
+        this.with({ terminate: () => this.clearSubscription.terminate() })
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {

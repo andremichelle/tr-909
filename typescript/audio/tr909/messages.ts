@@ -1,7 +1,7 @@
-import {BankIndex, ChannelIndex, PatternFormat, PatternGroupIndex, PatternLocation, Step} from "./memory.js"
-import {Resources} from "./resources.js"
-import {StateFormat} from "./state.js"
-import {TrackFormat} from "./track.js"
+import { BankIndex, ChannelIndex, PatternFormat, PatternGroupIndex, PatternLocation, Step } from "./memory.js"
+import { Resources } from "./resources.js"
+import { StateFormat } from "./state.js"
+import { TrackFormat } from "./track.js"
 
 export type ToWorkletMessage =
     | { type: 'update-parameter', path: string[], unipolar: number }

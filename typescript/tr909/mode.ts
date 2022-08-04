@@ -1,6 +1,6 @@
-import {Terminable, Terminator} from "../lib/common.js"
-import {UIContext} from "./context.js"
-import {FunctionKeyLabel, MainKeyIndex} from "./keys.js"
+import { Terminable, Terminator } from "../lib/common.js"
+import { UIContext } from "./context.js"
+import { FunctionKeyLabel, MainKeyIndex } from "./keys.js"
 
 /**
  * complete is for emulating multi-touch on keys to reach extended functionalities.

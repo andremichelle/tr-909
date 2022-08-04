@@ -1,15 +1,15 @@
-import {BankIndex, TrackIndex} from "../../audio/tr909/memory.js"
-import {UIContext} from "../context.js"
-import {DisplayObservableValueProvider} from "../display.js"
-import {FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices,} from "../keys.js"
-import {complete, Mode} from "../mode.js"
+import { BankIndex, TrackIndex } from "../../audio/tr909/memory.js"
+import { UIContext } from "../context.js"
+import { DisplayObservableValueProvider } from "../display.js"
+import { FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices, } from "../keys.js"
+import { complete, Mode } from "../mode.js"
 
 export default class extends Mode {
     constructor(context: UIContext) {
         super(context)
 
         this.with(this.context.startStepRunningAnimation())
-        this.with({terminate: () => this.context.functionKeys.deactivate(ZeroBasedIndices.TrackKeys)})
+        this.with({ terminate: () => this.context.functionKeys.deactivate(ZeroBasedIndices.TrackKeys) })
         this.with(this.context.memoryState().trackIndex.addObserver(() => this.initButtons(), false))
         this.with(this.context.display.pushProvider(new DisplayObservableValueProvider(
             this.context.machine.processorTrackMeasure, DisplayObservableValueProvider.PlusOne)))

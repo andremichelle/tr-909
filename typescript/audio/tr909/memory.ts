@@ -8,14 +8,14 @@ import {
     Terminable,
     Terminator
 } from "../../lib/common.js"
-import {State} from "./state.js"
-import {Track} from "./track.js"
+import { State } from "./state.js"
+import { Track } from "./track.js"
 
-export enum BankIndex {I, II}
+export enum BankIndex { I, II }
 
-export enum TrackIndex {I, II, III, IV} // times 2 for each bank
+export enum TrackIndex { I, II, III, IV } // times 2 for each bank
 
-export enum PatternGroupIndex {I, II, III} // times 2 for each bank
+export enum PatternGroupIndex { I, II, III } // times 2 for each bank
 
 export enum PatternIndex {
     // noinspection JSUnusedGlobalSymbols
@@ -109,7 +109,7 @@ export class PatternGroup implements Observable<void>, Serializer<PatternGroupFo
 
     constructor(patternGroupIndex: PatternGroupIndex) {
         this.patterns = ArrayUtils.fill(PatternGroup.NUM_PATTERNS,
-            (patternIndex: PatternIndex) => new Pattern({patternGroupIndex, patternIndex}))
+            (patternIndex: PatternIndex) => new Pattern({ patternGroupIndex, patternIndex }))
     }
 
     getChained(): ReadonlyArray<boolean> {
@@ -160,7 +160,7 @@ export class PatternGroup implements Observable<void>, Serializer<PatternGroupFo
     }
 
     serialize(): PatternGroupFormat {
-        return {chained: this.chained, patterns: this.patterns.map(pattern => pattern.serialize())}
+        return { chained: this.chained, patterns: this.patterns.map(pattern => pattern.serialize()) }
     }
 
     addObserver(observer: Observer<void>, notify: boolean): Terminable {
@@ -391,7 +391,7 @@ class Shuffle implements Terminable {
     private duration: number = 1.0 / 8.0
 
     constructor(shuffleIndex: ObservableValueImpl<ShuffleIndex>,
-                scale: ObservableValueImpl<ScaleIndex>) {
+        scale: ObservableValueImpl<ScaleIndex>) {
         const update = () => {
             switch (scale.get()) {
                 case 0: // N6D16

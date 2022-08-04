@@ -16,7 +16,7 @@ import {
     PatternIndex,
     TrackIndex
 } from "./memory.js"
-import {Track} from "./track.js"
+import { Track } from "./track.js"
 
 export enum PlayMode {
     Track, Pattern

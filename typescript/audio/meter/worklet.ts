@@ -1,8 +1,8 @@
 // noinspection JSUnusedGlobalSymbols
 
-import {ArrayUtils} from "../../lib/common.js"
-import {dbToGain, gainToDb} from "../common.js"
-import {UpdateMeterMessage} from "./message.js"
+import { ArrayUtils } from "../../lib/common.js"
+import { dbToGain, gainToDb } from "../common.js"
+import { UpdateMeterMessage } from "./message.js"
 
 export class MeterWorklet extends AudioWorkletNode {
     static loadModule(context: AudioContext): Promise<void> {
@@ -18,8 +18,8 @@ export class MeterWorklet extends AudioWorkletNode {
     readonly releasePeakHoldTime: Float32Array[]
 
     constructor(context: BaseAudioContext,
-                readonly numLines: number,
-                readonly channelCount: number) {
+        readonly numLines: number,
+        readonly channelCount: number) {
         super(context, "meter-processor", {
             numberOfInputs: numLines,
             numberOfOutputs: numLines,

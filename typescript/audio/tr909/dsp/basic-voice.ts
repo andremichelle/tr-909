@@ -1,7 +1,7 @@
-import {dbToGain, decibel, Interpolator} from "../../common.js"
-import {CrashOrRidePreset, HihatPreset, RimOrClapPreset, TomPreset} from "../preset.js"
-import {ResourceSampleRate} from "../resources.js"
-import {isRunning, Voice} from "./voice.js"
+import { dbToGain, decibel, Interpolator } from "../../common.js"
+import { CrashOrRidePreset, HihatPreset, RimOrClapPreset, TomPreset } from "../preset.js"
+import { ResourceSampleRate } from "../resources.js"
+import { isRunning, Voice } from "./voice.js"
 
 export class BasicTuneDecayVoice extends Voice {
     private readonly releaseStartFrame: number
@@ -14,10 +14,10 @@ export class BasicTuneDecayVoice extends Voice {
     private envelopeCoefficient: number
 
     constructor(private readonly array: Float32Array,
-                preset: TomPreset | RimOrClapPreset | HihatPreset | CrashOrRidePreset,
-                sampleRate: number,
-                releaseStartTime: number,
-                level: decibel) {
+        preset: TomPreset | RimOrClapPreset | HihatPreset | CrashOrRidePreset,
+        sampleRate: number,
+        releaseStartTime: number,
+        level: decibel) {
         super(sampleRate)
 
         this.releaseStartFrame = (releaseStartTime * sampleRate) | 0

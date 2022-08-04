@@ -79,7 +79,7 @@ export class Interpolator {
     }
 }
 
-import {Observable, ObservableImpl, Observer, Terminable} from "../lib/common.js"
+import { Observable, ObservableImpl, Observer, Terminable } from "../lib/common.js"
 
 export type TransportMessage =
     | { type: "transport-play" }
@@ -105,18 +105,18 @@ export class Transport implements Observable<TransportMessage> {
     play(): void {
         if (this.moving) return
         this.moving = true
-        this.observable.notify({type: "transport-play"})
+        this.observable.notify({ type: "transport-play" })
     }
 
     restart(): void {
-        this.observable.notify({type: "transport-move", position: 0.0})
+        this.observable.notify({ type: "transport-move", position: 0.0 })
         this.play()
     }
 
     pause(): void {
         if (!this.moving) return
         this.moving = false
-        this.observable.notify({type: "transport-pause"})
+        this.observable.notify({ type: "transport-pause" })
     }
 
     togglePlayback(): void {
@@ -133,7 +133,7 @@ export class Transport implements Observable<TransportMessage> {
     }
 
     moveTo(position: number): void {
-        this.observable.notify({type: "transport-move", position: position})
+        this.observable.notify({ type: "transport-move", position: position })
     }
 
     isPlaying(): boolean {

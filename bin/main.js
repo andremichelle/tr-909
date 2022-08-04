@@ -64,8 +64,8 @@ const showProgress = (() => {
     machine.master.connect(meter).connect(context.destination);
     meter.domElement.classList.add('meter');
     HTML.query('div.top-center').appendChild(meter.domElement);
-    if (location.hostname.includes('localhost')) {
-        console.log("TEST DATA");
+    if (location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1')) {
+        console.log("INSTALLED TEST DATA");
         const memory = machine.memory;
         const memoryBank = memory.banks[0];
         memoryBank.patternByIndices(0, 0).testA();

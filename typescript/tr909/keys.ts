@@ -1,5 +1,4 @@
 import { BankIndex, PatternGroupIndex, TrackIndex } from "../audio/tr909/memory.js"
-import { Events, Terminable } from "../lib/common.js"
 
 export enum PatternEditMode {
     Step, Tap

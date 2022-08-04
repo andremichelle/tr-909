@@ -1,5 +1,5 @@
-import {Terminable, Terminator} from "../../../lib/common.js"
-import {dbToGain} from "../../common.js"
+import { Terminable, Terminator } from "../../../lib/common.js"
+import { dbToGain } from "../../common.js"
 
 export const SilentGain = dbToGain(-72.0)
 

@@ -1,4 +1,4 @@
-import {Boot, Dependency} from "../../lib/boot.js"
+import { Boot, Dependency } from "../../lib/boot.js"
 
 export const ResourceSampleRate = 44100.0
 export type Resources<T> = {

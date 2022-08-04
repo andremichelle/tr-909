@@ -1,4 +1,4 @@
-import {Observable, ObservableValue, Observer, Terminable, Terminator} from "../lib/common.js"
+import { Observable, ObservableValue, Observer, Terminable, Terminator } from "../lib/common.js"
 
 enum Segment {
     TT = 1 << 0, TR = 1 << 1, BR = 1 << 2, BB = 1 << 3, BL = 1 << 4, TL = 1 << 5, CR = 1 << 6
@@ -59,7 +59,7 @@ export class DisplayObservableValueProvider implements DisplayValueProvider {
     readonly terminator: Terminator = new Terminator()
 
     constructor(readonly observableValue: ObservableValue<number>,
-                readonly mapping: (value: number) => number = DisplayObservableValueProvider.Identity) {
+        readonly mapping: (value: number) => number = DisplayObservableValueProvider.Identity) {
     }
 
     addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable {

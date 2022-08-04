@@ -1,5 +1,5 @@
-import {Option, Options, Parameter, PrintMapping, Terminable, Terminator} from "../../lib/common.js"
-import {Exp, Linear, Pow, Volume} from "../../lib/mapping.js"
+import { Option, Options, Parameter, PrintMapping, Terminable, Terminator } from "../../lib/common.js"
+import { Exp, Linear, Pow, Volume } from "../../lib/mapping.js"
 
 export type BassdrumPreset = {
     tune: Parameter<number>
@@ -100,8 +100,8 @@ export class Preset {
     })
 
     constructor() {
-        Object.defineProperty(this.closedHihat, 'level', {enumerable: false})
-        Object.defineProperty(this.openedHihat, 'level', {enumerable: false})
+        Object.defineProperty(this.closedHihat, 'level', { enumerable: false })
+        Object.defineProperty(this.openedHihat, 'level', { enumerable: false })
     }
 
     observeAll(callback: (parameter: Parameter<any>, path: string[]) => void): Terminable {
