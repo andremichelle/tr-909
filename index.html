@@ -1,520 +1,531 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Roland TR-909</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
-    <meta content="no-cache" http-equiv="Pragma"/>
-    <meta content="0" http-equiv="Expires"/>
+    <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control" />
+    <meta content="no-cache" http-equiv="Pragma" />
+    <meta content="0" http-equiv="Expires" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="icon" href="favicon.ico" type=“image/x-icon”>
     <link rel="shortcut icon" href="./favicon.ico" type=“image/x-icon”>
     <link rel="preload" href="./fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin>
-    <link href="./bin/main.css" rel="stylesheet"/>
+    <link href="./bin/main.css" rel="stylesheet" />
     <script src="./bin/main.js" type="module"></script>
 </head>
-<body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-    <defs>
-        <symbol id="finger" viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg" width="48">
-            <path d="M554.96 265.44c0-20.16-14.559-38.078-34.16-40.879-14-1.68-26.32 3.36-34.719 12.879-4.48-17.359-19.602-30.238-38.641-30.238-12.32 0-22.961 5.602-30.238 14-5.04-16.238-20.16-27.441-37.52-27.441-11.199 0-20.719 4.48-28 11.762V55.443c0-20.16-14.559-38.078-34.16-40.879-24.078-3.36-44.801 15.68-44.801 39.199v267.12c0 5.602-6.719 7.281-10.078 2.8l-45.922-70c-10.641-16.237-34.719-20.16-52.641-7.839-17.922 11.762-24.078 35.281-13.441 51.52 0 0 128.8 194.88 129.92 196 23.52 32.48 61.039 52.641 102.48 52.641h45.922c68.879 0 126-55.441 126.56-124.32v-2.8l-.004-153.45z"/>
-        </symbol>
-    </defs>
-</svg>
-<main class="invisible">
-    <div class="top-center">
-        <div class="debug">
-            <label>Zoom</label>
-            <output data-output="zoom"></output>
-            <label>Mode</label>
-            <output data-output="mode"></output>
-            <label>Transporting</label>
-            <output data-output="transporting"></output>
-            <label>Instrument</label>
-            <output data-output="instrument"></output>
-            <label>Keys</label>
-            <output data-output="number-of-keys"></output>
-        </div>
-    </div>
-    <div class="wrapper">
-        <div class="tr-909">
-            <div class="roland-logo"></div>
-            <div class="tr-909-logo"></div>
-            <div class="rhythm-composer-logo"></div>
-            <div class="instruments">
-                <hr>
-                <div class="instrument" data-instrument="global">
-                    <h1 class="single">TOTAL ACCENT</h1>
-                    <div class="knob-control accent" data-label="" data-parameter="accent">
-                        <div class="knob small"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="instrument" data-instrument="bassdrum">
-                    <h1 class="single">BASS DRUM</h1>
-                    <div class="knob-control" data-label="TUNE" data-parameter="tune">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="level">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="ATTACK" data-parameter="attack">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="DECAY" data-parameter="decay">
-                        <div class="knob small"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="instrument" data-instrument="snaredrum">
-                    <h1 class="single">SNARE DRUM</h1>
-                    <div class="knob-control" data-label="TUNE" data-parameter="tune">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="level">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="TONE" data-parameter="tone">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="SNAPPY" data-parameter="snappy">
-                        <div class="knob small"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="instrument" data-instrument="low-tom">
-                    <h1 class="single">LOW TOM</h1>
-                    <div class="knob-control" data-label="TUNE" data-parameter="tune">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="level">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="DECAY" data-parameter="decay">
-                        <div class="knob small"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="instrument" data-instrument="mid-tom">
-                    <h1 class="single">MID TOM</h1>
-                    <div class="knob-control" data-label="TUNE" data-parameter="tune">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="level">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="DECAY" data-parameter="decay">
-                        <div class="knob small"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="instrument" data-instrument="hi-tom">
-                    <h1 class="single">HI TOM</h1>
-                    <div class="knob-control" data-label="TUNE" data-parameter="tune">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="level">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="DECAY" data-parameter="decay">
-                        <div class="knob small"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="instrument" data-instrument="rim-clap">
-                    <h1>RIM SHOT</h1>
-                    <h1>HAND CLAP</h1>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="rim-level">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="clap-level">
-                        <div class="knob small"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="instrument" data-instrument="hihat">
-                    <h1 class="single">HI HAT</h1>
-                    <div></div>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="level">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="CH DECAY" data-parameter="cl-decay">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="OH DECAY" data-parameter="op-decay">
-                        <div class="knob small"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="instrument" data-instrument="cymbal">
-                    <h1 class="single">CYMBAL</h1>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="crash-level">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="LEVEL" data-parameter="ride-level">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="CRASH TUNE" data-parameter="crash-tune">
-                        <div class="knob small"></div>
-                    </div>
-                    <div class="knob-control" data-label="RIDE TUNE" data-parameter="ride-tune">
-                        <div class="knob small"></div>
-                    </div>
-                </div>
-                <hr>
-            </div>
-            <div class="action-button-group" style="transform: translate(496px, 406px)">
-                <h1 style="grid-column: 1 / 5;">TRACK PLAY</h1>
-                <button class="translucent-button tap" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <span>1</span>
-                <span>2</span>
-                <span>3</span>
-                <span>4</span>
-                <h2 style="grid-column: 1 / 5;">TRACK WRITE</h2>
-            </div>
-            <div class="action-button-group" style="transform: translate(630px, 406px)">
-                <h1 style="grid-column: 1 / 4;">PATTERN PLAY</h1>
-                <div></div>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <span>1</span>
-                <span>2</span>
-                <span>3</span>
-                <span></span>
-                <h2 style="grid-column: 1 / 4;">PATTERN WRITE</h2>
-                <h2>EXT INST</h2>
-            </div>
-            <div class="action-button-group six" style="transform: translate(768px, 406px)">
-                <h1>TEMPO</h1>
-                <h1>BACK</h1>
-                <h1>FWD</h1>
-                <h1>AVAILABLE MEAS</h1>
-                <h1>CYCLE /GUIDE</h1>
-                <h1>TAPE SYNC</h1>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <span>STEP</span>
-                <span>TAP</span>
-                <span>I</span>
-                <span>II</span>
-                <span></span>
-                <span></span>
-                <h2 style="grid-column: 1 / 3;">PATTERN WRITE MODE</h2>
-                <h2 style="grid-column: 3 / 5;">BANK</h2>
-                <h2>LAST MEAS</h2>
-                <h2>TEMP MODE</h2>
-            </div>
-            <div class="pattern-functions">
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <span>LAST STEP</span>
-                <span>SCALE</span>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <span>SHUFFLE<br/>/FLAM</span>
-                <span>CLEAR</span>
-                <button class="translucent-button" data-button="function-key"></button>
-                <button class="translucent-button" data-button="function-key"></button>
-                <span>INSTRUMENT<br/>SELECT</span>
-                <span class="shift">SHIFT</span>
-            </div>
-            <svg class="scales" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 80" data-control="scale">
-                <defs>
-                    <filter id="blur-led">
-                        <feGaussianBlur stdDeviation="1"/>
-                    </filter>
-                    <symbol id="note-8" width="11" height="14" xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 744.09 1052.4">
-                        <path fill="#d9d5d0"
-                              d="M418.39 231.34c14.32 21.136 21.682 46.728 40.135 64.982 21.135 27.835 48.146 50.891 69.089 79.058 15.157 19.681 31.771 40.599 36.074 65.357 11.587 31.757 6.556 67.409-5.806 98.498-13.947 16.765-23.482-4.932-19.589-18.365.594-18.535.323-37.021-6.785-54.528-6.305-26.255-17.834-51.101-37.136-70.366-16.772-14.701-35.813-47.095-61.382-35.941-16.885 10.637-9.53 32.139-11.346 48.712-1.004 101.95-1.071 203.94-2.701 305.87-1.246 42.809-38.247 71.529-72.88 89.908-30.854 18.567-67.795 28.966-103.61 20.691-33.304-3.417-67.756-27.73-68.454-63.704-2.22-41.711 27.904-80.552 64.988-97.024 36.404-20.749 82.429-25.246 121.63-10.331 19.156 6.055 24.483-11.721 26.874-28.819 2.212-129.77 3.983-259.54 4.435-389.33.366-12.973 21.496-16.139 26.461-4.66z"/>
-                    </symbol>
-                    <symbol id="note-4" width="11" height="14" xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 744.09 1052.4">
-                        <path fill="#d9d5d0"
-                              d="M418.39 231.34c5.307 163.8 3.01 316.18.553 483.27-1.246 42.809-38.247 71.529-72.88 89.908-30.854 18.567-67.795 28.966-103.61 20.691-33.304-3.417-67.756-27.73-68.454-63.704-2.22-41.711 27.904-80.552 64.988-97.024 36.404-20.749 82.43-25.246 121.63-10.331 19.156 6.055 24.483-11.721 26.874-28.819 2.213-129.77 3.983-259.54 4.436-389.33.366-12.973 26.294-17.166 26.46-4.66z"/>
-                    </symbol>
-                    <symbol id="notes-6-16">
-                        <use xlink:href="#note-8" x="32" y="0" width="11" height="14"/>
-                        <use xlink:href="#note-8" x="146" y="0" width="11" height="14"/>
-                        <use xlink:href="#note-8" x="260" y="0" width="11" height="14"/>
-                        <path d="M18 6.5L26 1.5H334L342 6.5" stroke="#d9d5d0" fill="none"/>
-                    </symbol>
-                    <symbol id="notes-3-8">
-                        <use xlink:href="#note-8" x="32" y="0" width="11" height="14"/>
-                        <use xlink:href="#note-8" x="89" y="0" width="11" height="14"/>
-                        <use xlink:href="#note-8" x="146" y="0" width="11" height="14"/>
-                        <path d="M18 6.5L26 1.5H164L172 6.5" stroke="#d9d5d0" fill="none"/>
-                    </symbol>
-                    <symbol id="notes-1-16">
-                        <use xlink:href="#note-4" x="32" y="0" width="11" height="14"/>
-                        <use xlink:href="#note-4" x="260" y="0" width="11" height="14"/>
-                        <use xlink:href="#note-4" x="488" y="0" width="11" height="14"/>
-                        <use xlink:href="#note-4" x="716" y="0" width="11" height="14"/>
-                    </symbol>
-                    <symbol id="notes-1-32">
-                        <use xlink:href="#note-4" x="32" y="0" width="11" height="14"/>
-                        <use xlink:href="#note-4" x="488" y="0" width="11" height="14"/>
-                    </symbol>
-                    <symbol id="led-on">
-                        <circle cx="8" cy="6" r="4" fill="#ee3b2e"/>
-                        <circle cx="8" cy="8" r="0.75" fill="#f8aaa4"/>
-                        <circle cx="8" cy="4" r="0.75" fill="white"/>
-                    </symbol>
-                </defs>
-                <g>
-                    <rect x="0" y="0" width="350" height="14" rx="1" ry="1"/>
-                    <rect x="352" y="0" width="340" height="14" rx="1" ry="1"/>
-                    <rect x="694" y="0" width="226" height="14" rx="1" ry="1"/>
-                    <use xlink:href="#notes-6-16" x="0" y="1"/>
-                    <use xlink:href="#notes-6-16" x="342" y="1"/>
-                    <use xlink:href="#notes-6-16" x="684" y="1"/>
-                </g>
-                <g>
-                    <rect x="0" y="16" width="179" height="14" rx="1" ry="1"/>
-                    <rect x="181" y="16" width="169" height="14" rx="1" ry="1"/>
-                    <rect x="352" y="16" width="169" height="14" rx="1" ry="1"/>
-                    <rect x="523" y="16" width="169" height="14" rx="1" ry="1"/>
-                    <rect x="694" y="16" width="226" height="14" rx="1" ry="1"/>
-                    <use xlink:href="#notes-3-8" x="0" y="17"/>
-                    <use xlink:href="#notes-3-8" x="171" y="17"/>
-                    <use xlink:href="#notes-3-8" x="342" y="17"/>
-                    <use xlink:href="#notes-3-8" x="513" y="17"/>
-                    <use xlink:href="#notes-3-8" x="684" y="17"/>
-                    <use xlink:href="#notes-3-8" x="855" y="17"/>
-                </g>
-                <g>
-                    <rect x="0" y="32" width="464px" height="14" rx="1" ry="1"/>
-                    <rect x="466px" y="32" width="454px" height="14" rx="1" ry="1"/>
-                    <use xlink:href="#notes-1-32" x="0" y="32"/>
-                </g>
-                <g>
-                    <rect x="0" y="48" width="236" height="14" rx="1" ry="1"/>
-                    <rect x="238" y="48" width="226" height="14" rx="1" ry="1"/>
-                    <rect x="466" y="48" width="226" height="14" rx="1" ry="1"/>
-                    <rect x="694" y="48" width="226" height="14" rx="1" ry="1"/>
-                    <use xlink:href="#notes-1-16" x="0" y="48"/>
-                </g>
-                <g>
-                    <circle cx="8" cy="6" r="4" fill="#1c0809"/>
-                    <circle cx="8" cy="22" r="4" fill="#1c0809"/>
-                    <circle cx="8" cy="38" r="4" fill="#1c0809"/>
-                    <circle cx="8" cy="54" r="4" fill="#1c0809"/>
-                    <use xlink:href="#led-on" x="0" y="48" filter="url(#blur-led)" data-control="indicator"/>
-                </g>
-            </svg>
-            <div class="main-button-group" data-control="main-keys">
-                <div class="two">
-                    <div class="wrapper-label" data-label="1">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                    <div class="wrapper-label" data-label="2">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                </div>
-                <hr/>
-                <div class="two">
-                    <div class="wrapper-label" data-label="3">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                    <div class="wrapper-label" data-label="4">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                </div>
-                <hr/>
-                <div class="two">
-                    <div class="wrapper-label" data-label="5">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                    <div class="wrapper-label" data-label="6">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                </div>
-                <hr/>
-                <div class="two">
-                    <div class="wrapper-label" data-label="7">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                    <div class="wrapper-label" data-label="8">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                </div>
-                <hr/>
-                <div class="two">
-                    <div class="wrapper-label" data-label="9">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                    <div class="wrapper-label" data-label="10">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                </div>
-                <hr/>
-                <div class="two">
-                    <div class="wrapper-label" data-label="11">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                    <div class="wrapper-label" data-label="12">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                </div>
-                <hr/>
-                <div class="two">
-                    <div class="wrapper-label" data-label="13">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                    <div class="wrapper-label" data-label="14">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                </div>
-                <hr/>
-                <div class="two">
-                    <div class="wrapper-label" data-label="15">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                    <div class="wrapper-label" data-label="16">
-                        <button class="switch" data-control="main-key"></button>
-                    </div>
-                </div>
-            </div>
-            <div class="func-label-group">
-                <div class=func>1</div>
-                <div class=func>2</div>
-                <div class=func>3</div>
-                <div class=func>4</div>
-                <div class=func>5</div>
-                <div class=func>6</div>
-                <div class=func>7</div>
-                <div class=func>8</div>
-                <div class=func>9</div>
-                <div class=func>0</div>
-                <div class=func>COPY</div>
-                <div class=func>INS</div>
-                <div class=func>DEL</div>
-                <div class=func>SAVE</div>
-                <div class=func>VERIFY</div>
-                <div class=func>LOAD</div>
-            </div>
-            <div class="trigger-labels">
-                <div class="bend"><span>BASS DRUM</span></div>
-                <div class="bend"><span>SNARE DRUM</span></div>
-                <div class="bend"><span>LOW TOM</span></div>
-                <div class="bend"><span>MID TOM</span></div>
-                <div class="bend"><span>HI TOM</span></div>
-                <div class="light"><span>RIM SHOT</span><span>HAND CLAP</span></div>
-                <div class="bend light"><span>CLOSED</span><span>OPEN</span><span>CLOSED</span></div>
-                <div class="light"><span>CRASH</span><span>RIDE</span></div>
-            </div>
-            <hr class="bottom-right">
-            <hr class="main-border" style="transform: translate(230px, 564px); width: 354px;">
-            <hr class="main-border" style="transform: translate(688px, 564px); width: 408px;">
-            <div class="knob-control big minmax-units" data-parameter="tempo" data-label="TEMPO"
-                 style="transform: translate(390px, 400px)">
-                <div class="knob"></div>
-                <span>SLOW</span>
-                <span>FAST</span>
-            </div>
-            <div class="knob-control big minmax-units" data-parameter="volume" data-label="VOLUME"
-                 style="transform: translate(1038px, 400px)">
-                <div class="knob"></div>
-                <span>MIN</span>
-                <span>MAX</span>
-            </div>
-            <div class="wrapper-label digits" data-label="MEAS/TEMPO">
-                <svg class="digits" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 142 70" width="97" height="48"
-                     data-display="led-display">
-                    <defs>
-                        <filter id="blur-digits">
-                            <feGaussianBlur stdDeviation="1"/>
-                        </filter>
-                        <!--suppress CssUnusedSymbol -->
-                        <style>
-                            path.digit, circle.digit {
-                                fill: black;
-                                fill-opacity: 0.15;
-                            }
 
-                            path.digit.active, circle.digit.active {
-                                fill: #CC4433;
-                                fill-opacity: 0.66;
-                            }
-                        </style>
+<body>
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <defs>
+            <symbol id="finger" viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg" width="48">
+                <path
+                    d="M554.96 265.44c0-20.16-14.559-38.078-34.16-40.879-14-1.68-26.32 3.36-34.719 12.879-4.48-17.359-19.602-30.238-38.641-30.238-12.32 0-22.961 5.602-30.238 14-5.04-16.238-20.16-27.441-37.52-27.441-11.199 0-20.719 4.48-28 11.762V55.443c0-20.16-14.559-38.078-34.16-40.879-24.078-3.36-44.801 15.68-44.801 39.199v267.12c0 5.602-6.719 7.281-10.078 2.8l-45.922-70c-10.641-16.237-34.719-20.16-52.641-7.839-17.922 11.762-24.078 35.281-13.441 51.52 0 0 128.8 194.88 129.92 196 23.52 32.48 61.039 52.641 102.48 52.641h45.922c68.879 0 126-55.441 126.56-124.32v-2.8l-.004-153.45z" />
+            </symbol>
+        </defs>
+    </svg>
+    <main class="invisible">
+        <div class="top-center">
+            <div class="debug">
+                <label>Zoom</label>
+                <output data-output="zoom"></output>
+                <label>Mode</label>
+                <output data-output="mode"></output>
+                <label>Transporting</label>
+                <output data-output="transporting"></output>
+                <label>Instrument</label>
+                <output data-output="instrument"></output>
+                <label>Keys</label>
+                <output data-output="number-of-keys"></output>
+            </div>
+        </div>
+        <div class="wrapper">
+            <div class="tr-909">
+                <div class="roland-logo"></div>
+                <div class="tr-909-logo"></div>
+                <div class="rhythm-composer-logo"></div>
+                <div class="instruments">
+                    <hr>
+                    <div class="instrument" data-instrument="global">
+                        <h1 class="single">TOTAL ACCENT</h1>
+                        <div class="knob-control accent" data-label="" data-parameter="accent">
+                            <div class="knob small"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="instrument" data-instrument="bassdrum">
+                        <h1 class="single">BASS DRUM</h1>
+                        <div class="knob-control" data-label="TUNE" data-parameter="tune">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="level">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="ATTACK" data-parameter="attack">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="DECAY" data-parameter="decay">
+                            <div class="knob small"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="instrument" data-instrument="snaredrum">
+                        <h1 class="single">SNARE DRUM</h1>
+                        <div class="knob-control" data-label="TUNE" data-parameter="tune">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="level">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="TONE" data-parameter="tone">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="SNAPPY" data-parameter="snappy">
+                            <div class="knob small"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="instrument" data-instrument="low-tom">
+                        <h1 class="single">LOW TOM</h1>
+                        <div class="knob-control" data-label="TUNE" data-parameter="tune">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="level">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="DECAY" data-parameter="decay">
+                            <div class="knob small"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="instrument" data-instrument="mid-tom">
+                        <h1 class="single">MID TOM</h1>
+                        <div class="knob-control" data-label="TUNE" data-parameter="tune">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="level">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="DECAY" data-parameter="decay">
+                            <div class="knob small"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="instrument" data-instrument="hi-tom">
+                        <h1 class="single">HI TOM</h1>
+                        <div class="knob-control" data-label="TUNE" data-parameter="tune">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="level">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="DECAY" data-parameter="decay">
+                            <div class="knob small"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="instrument" data-instrument="rim-clap">
+                        <h1>RIM SHOT</h1>
+                        <h1>HAND CLAP</h1>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="rim-level">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="clap-level">
+                            <div class="knob small"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="instrument" data-instrument="hihat">
+                        <h1 class="single">HI HAT</h1>
+                        <div></div>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="level">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="CH DECAY" data-parameter="cl-decay">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="OH DECAY" data-parameter="op-decay">
+                            <div class="knob small"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="instrument" data-instrument="cymbal">
+                        <h1 class="single">CYMBAL</h1>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="crash-level">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="LEVEL" data-parameter="ride-level">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="CRASH TUNE" data-parameter="crash-tune">
+                            <div class="knob small"></div>
+                        </div>
+                        <div class="knob-control" data-label="RIDE TUNE" data-parameter="ride-tune">
+                            <div class="knob small"></div>
+                        </div>
+                    </div>
+                    <hr>
+                </div>
+                <div class="action-button-group" style="transform: translate(496px, 406px)">
+                    <h1 style="grid-column: 1 / 5;">TRACK PLAY</h1>
+                    <button class="translucent-button tap" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <span>1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>4</span>
+                    <h2 style="grid-column: 1 / 5;">TRACK WRITE</h2>
+                </div>
+                <div class="action-button-group" style="transform: translate(630px, 406px)">
+                    <h1 style="grid-column: 1 / 4;">PATTERN PLAY</h1>
+                    <div></div>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <span>1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span></span>
+                    <h2 style="grid-column: 1 / 4;">PATTERN WRITE</h2>
+                    <h2>EXT INST</h2>
+                </div>
+                <div class="action-button-group six" style="transform: translate(768px, 406px)">
+                    <h1>TEMPO</h1>
+                    <h1>BACK</h1>
+                    <h1>FWD</h1>
+                    <h1>AVAILABLE MEAS</h1>
+                    <h1>CYCLE /GUIDE</h1>
+                    <h1>TAPE SYNC</h1>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <span>STEP</span>
+                    <span>TAP</span>
+                    <span>I</span>
+                    <span>II</span>
+                    <span></span>
+                    <span></span>
+                    <h2 style="grid-column: 1 / 3;">PATTERN WRITE MODE</h2>
+                    <h2 style="grid-column: 3 / 5;">BANK</h2>
+                    <h2>LAST MEAS</h2>
+                    <h2>TEMP MODE</h2>
+                </div>
+                <div class="pattern-functions">
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <span>LAST STEP</span>
+                    <span>SCALE</span>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <span>SHUFFLE<br />/FLAM</span>
+                    <span>CLEAR</span>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <button class="translucent-button" data-button="function-key"></button>
+                    <span>INSTRUMENT<br />SELECT</span>
+                    <span class="shift">SHIFT</span>
+                </div>
+                <svg class="scales" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 80" data-control="scale">
+                    <defs>
+                        <filter id="blur-led">
+                            <feGaussianBlur stdDeviation="1" />
+                        </filter>
+                        <symbol id="note-8" width="11" height="14" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 744.09 1052.4">
+                            <path fill="#d9d5d0"
+                                d="M418.39 231.34c14.32 21.136 21.682 46.728 40.135 64.982 21.135 27.835 48.146 50.891 69.089 79.058 15.157 19.681 31.771 40.599 36.074 65.357 11.587 31.757 6.556 67.409-5.806 98.498-13.947 16.765-23.482-4.932-19.589-18.365.594-18.535.323-37.021-6.785-54.528-6.305-26.255-17.834-51.101-37.136-70.366-16.772-14.701-35.813-47.095-61.382-35.941-16.885 10.637-9.53 32.139-11.346 48.712-1.004 101.95-1.071 203.94-2.701 305.87-1.246 42.809-38.247 71.529-72.88 89.908-30.854 18.567-67.795 28.966-103.61 20.691-33.304-3.417-67.756-27.73-68.454-63.704-2.22-41.711 27.904-80.552 64.988-97.024 36.404-20.749 82.429-25.246 121.63-10.331 19.156 6.055 24.483-11.721 26.874-28.819 2.212-129.77 3.983-259.54 4.435-389.33.366-12.973 21.496-16.139 26.461-4.66z" />
+                        </symbol>
+                        <symbol id="note-4" width="11" height="14" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 744.09 1052.4">
+                            <path fill="#d9d5d0"
+                                d="M418.39 231.34c5.307 163.8 3.01 316.18.553 483.27-1.246 42.809-38.247 71.529-72.88 89.908-30.854 18.567-67.795 28.966-103.61 20.691-33.304-3.417-67.756-27.73-68.454-63.704-2.22-41.711 27.904-80.552 64.988-97.024 36.404-20.749 82.43-25.246 121.63-10.331 19.156 6.055 24.483-11.721 26.874-28.819 2.213-129.77 3.983-259.54 4.436-389.33.366-12.973 26.294-17.166 26.46-4.66z" />
+                        </symbol>
+                        <symbol id="notes-6-16">
+                            <use xlink:href="#note-8" x="32" y="0" width="11" height="14" />
+                            <use xlink:href="#note-8" x="146" y="0" width="11" height="14" />
+                            <use xlink:href="#note-8" x="260" y="0" width="11" height="14" />
+                            <path d="M18 6.5L26 1.5H334L342 6.5" stroke="#d9d5d0" fill="none" />
+                        </symbol>
+                        <symbol id="notes-3-8">
+                            <use xlink:href="#note-8" x="32" y="0" width="11" height="14" />
+                            <use xlink:href="#note-8" x="89" y="0" width="11" height="14" />
+                            <use xlink:href="#note-8" x="146" y="0" width="11" height="14" />
+                            <path d="M18 6.5L26 1.5H164L172 6.5" stroke="#d9d5d0" fill="none" />
+                        </symbol>
+                        <symbol id="notes-1-16">
+                            <use xlink:href="#note-4" x="32" y="0" width="11" height="14" />
+                            <use xlink:href="#note-4" x="260" y="0" width="11" height="14" />
+                            <use xlink:href="#note-4" x="488" y="0" width="11" height="14" />
+                            <use xlink:href="#note-4" x="716" y="0" width="11" height="14" />
+                        </symbol>
+                        <symbol id="notes-1-32">
+                            <use xlink:href="#note-4" x="32" y="0" width="11" height="14" />
+                            <use xlink:href="#note-4" x="488" y="0" width="11" height="14" />
+                        </symbol>
+                        <symbol id="led-on">
+                            <circle cx="8" cy="6" r="4" fill="#ee3b2e" />
+                            <circle cx="8" cy="8" r="0.75" fill="#f8aaa4" />
+                            <circle cx="8" cy="4" r="0.75" fill="white" />
+                        </symbol>
                     </defs>
-                    <rect x="0" y="0" width="142" height="70" fill="#601010"/>
-                    <g filter="url(#blur-digits)">
-                        <g transform="translate(6, 6)">
-                            <path class="digit" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
-                            <path class="digit"
-                                  d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                            <path class="digit"
-                                  d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                            <path class="digit" d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
-                            <path class="digit" d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
-                            <path class="digit"
-                                  d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
-                            <path class="digit" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
-                            <circle class="digit" cx="35.11" cy="54.75" r="3.11"/>
-                        </g>
-                        <g transform="translate(52, 6)">
-                            <path class="digit" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
-                            <path class="digit"
-                                  d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                            <path class="digit"
-                                  d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                            <path class="digit"
-                                  d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
-                            <path class="digit"
-                                  d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
-                            <path class="digit"
-                                  d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
-                            <path class="digit" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
-                            <circle class="digit" cx="35.11" cy="54.75" r="3.11"/>
-                        </g>
-                        <g transform="translate(98, 6)">
-                            <path class="digit" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
-                            <path class="digit"
-                                  d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                            <path class="digit"
-                                  d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                            <path class="digit"
-                                  d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
-                            <path class="digit"
-                                  d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
-                            <path class="digit"
-                                  d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
-                            <path class="digit" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
-                            <circle class="digit" cx="35.11" cy="54.75" r="3.11"/>
-                        </g>
+                    <g>
+                        <rect x="0" y="0" width="350" height="14" rx="1" ry="1" />
+                        <rect x="352" y="0" width="340" height="14" rx="1" ry="1" />
+                        <rect x="694" y="0" width="226" height="14" rx="1" ry="1" />
+                        <use xlink:href="#notes-6-16" x="0" y="1" />
+                        <use xlink:href="#notes-6-16" x="342" y="1" />
+                        <use xlink:href="#notes-6-16" x="684" y="1" />
+                    </g>
+                    <g>
+                        <rect x="0" y="16" width="179" height="14" rx="1" ry="1" />
+                        <rect x="181" y="16" width="169" height="14" rx="1" ry="1" />
+                        <rect x="352" y="16" width="169" height="14" rx="1" ry="1" />
+                        <rect x="523" y="16" width="169" height="14" rx="1" ry="1" />
+                        <rect x="694" y="16" width="226" height="14" rx="1" ry="1" />
+                        <use xlink:href="#notes-3-8" x="0" y="17" />
+                        <use xlink:href="#notes-3-8" x="171" y="17" />
+                        <use xlink:href="#notes-3-8" x="342" y="17" />
+                        <use xlink:href="#notes-3-8" x="513" y="17" />
+                        <use xlink:href="#notes-3-8" x="684" y="17" />
+                        <use xlink:href="#notes-3-8" x="855" y="17" />
+                    </g>
+                    <g>
+                        <rect x="0" y="32" width="464px" height="14" rx="1" ry="1" />
+                        <rect x="466px" y="32" width="454px" height="14" rx="1" ry="1" />
+                        <use xlink:href="#notes-1-32" x="0" y="32" />
+                    </g>
+                    <g>
+                        <rect x="0" y="48" width="236" height="14" rx="1" ry="1" />
+                        <rect x="238" y="48" width="226" height="14" rx="1" ry="1" />
+                        <rect x="466" y="48" width="226" height="14" rx="1" ry="1" />
+                        <rect x="694" y="48" width="226" height="14" rx="1" ry="1" />
+                        <use xlink:href="#notes-1-16" x="0" y="48" />
+                    </g>
+                    <g>
+                        <circle cx="8" cy="6" r="4" fill="#1c0809" />
+                        <circle cx="8" cy="22" r="4" fill="#1c0809" />
+                        <circle cx="8" cy="38" r="4" fill="#1c0809" />
+                        <circle cx="8" cy="54" r="4" fill="#1c0809" />
+                        <use xlink:href="#led-on" x="0" y="48" filter="url(#blur-led)" data-control="indicator" />
                     </g>
                 </svg>
+                <div class="main-button-group" data-control="main-keys">
+                    <div class="two">
+                        <div class="wrapper-label" data-label="1">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                        <div class="wrapper-label" data-label="2">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="two">
+                        <div class="wrapper-label" data-label="3">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                        <div class="wrapper-label" data-label="4">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="two">
+                        <div class="wrapper-label" data-label="5">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                        <div class="wrapper-label" data-label="6">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="two">
+                        <div class="wrapper-label" data-label="7">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                        <div class="wrapper-label" data-label="8">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="two">
+                        <div class="wrapper-label" data-label="9">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                        <div class="wrapper-label" data-label="10">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="two">
+                        <div class="wrapper-label" data-label="11">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                        <div class="wrapper-label" data-label="12">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="two">
+                        <div class="wrapper-label" data-label="13">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                        <div class="wrapper-label" data-label="14">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="two">
+                        <div class="wrapper-label" data-label="15">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                        <div class="wrapper-label" data-label="16">
+                            <button class="switch" data-control="main-key"></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="func-label-group">
+                    <div class=func>1</div>
+                    <div class=func>2</div>
+                    <div class=func>3</div>
+                    <div class=func>4</div>
+                    <div class=func>5</div>
+                    <div class=func>6</div>
+                    <div class=func>7</div>
+                    <div class=func>8</div>
+                    <div class=func>9</div>
+                    <div class=func>0</div>
+                    <div class=func>COPY</div>
+                    <div class=func>INS</div>
+                    <div class=func>DEL</div>
+                    <div class=func>SAVE</div>
+                    <div class=func>VERIFY</div>
+                    <div class=func>LOAD</div>
+                </div>
+                <div class="trigger-labels">
+                    <div class="bend"><span>BASS DRUM</span></div>
+                    <div class="bend"><span>SNARE DRUM</span></div>
+                    <div class="bend"><span>LOW TOM</span></div>
+                    <div class="bend"><span>MID TOM</span></div>
+                    <div class="bend"><span>HI TOM</span></div>
+                    <div class="light"><span>RIM SHOT</span><span>HAND CLAP</span></div>
+                    <div class="bend light"><span>CLOSED</span><span>OPEN</span><span>CLOSED</span></div>
+                    <div class="light"><span>CRASH</span><span>RIDE</span></div>
+                </div>
+                <hr class="bottom-right">
+                <hr class="main-border" style="transform: translate(230px, 564px); width: 354px;">
+                <hr class="main-border" style="transform: translate(688px, 564px); width: 408px;">
+                <div class="knob-control big minmax-units" data-parameter="tempo" data-label="TEMPO"
+                    style="transform: translate(390px, 400px)">
+                    <div class="knob"></div>
+                    <span>SLOW</span>
+                    <span>FAST</span>
+                </div>
+                <div class="knob-control big minmax-units" data-parameter="volume" data-label="VOLUME"
+                    style="transform: translate(1038px, 400px)">
+                    <div class="knob"></div>
+                    <span>MIN</span>
+                    <span>MAX</span>
+                </div>
+                <div class="wrapper-label digits" data-label="MEAS/TEMPO">
+                    <svg class="digits" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 142 70" width="97" height="48"
+                        data-display="led-display">
+                        <defs>
+                            <filter id="blur-digits">
+                                <feGaussianBlur stdDeviation="1" />
+                            </filter>
+                            <!--suppress CssUnusedSymbol -->
+                            <style>
+                                path.digit,
+                                circle.digit {
+                                    fill: black;
+                                    fill-opacity: 0.15;
+                                }
+
+                                path.digit.active,
+                                circle.digit.active {
+                                    fill: #CC4433;
+                                    fill-opacity: 0.66;
+                                }
+                            </style>
+                        </defs>
+                        <rect x="0" y="0" width="142" height="70" fill="#601010" />
+                        <g filter="url(#blur-digits)">
+                            <g transform="translate(6, 6)">
+                                <path class="digit" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z" />
+                                <path class="digit"
+                                    d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z" />
+                                <path class="digit"
+                                    d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z" />
+                                <path class="digit"
+                                    d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z" />
+                                <path class="digit"
+                                    d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z" />
+                                <path class="digit"
+                                    d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z" />
+                                <path class="digit"
+                                    d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z" />
+                                <circle class="digit" cx="35.11" cy="54.75" r="3.11" />
+                            </g>
+                            <g transform="translate(52, 6)">
+                                <path class="digit" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z" />
+                                <path class="digit"
+                                    d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z" />
+                                <path class="digit"
+                                    d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z" />
+                                <path class="digit"
+                                    d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z" />
+                                <path class="digit"
+                                    d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z" />
+                                <path class="digit"
+                                    d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z" />
+                                <path class="digit"
+                                    d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z" />
+                                <circle class="digit" cx="35.11" cy="54.75" r="3.11" />
+                            </g>
+                            <g transform="translate(98, 6)">
+                                <path class="digit" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z" />
+                                <path class="digit"
+                                    d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z" />
+                                <path class="digit"
+                                    d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z" />
+                                <path class="digit"
+                                    d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z" />
+                                <path class="digit"
+                                    d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z" />
+                                <path class="digit"
+                                    d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z" />
+                                <path class="digit"
+                                    d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z" />
+                                <circle class="digit" cx="35.11" cy="54.75" r="3.11" />
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+                <div class="wrapper-label start" data-label="START">
+                    <button class="trigger bright" data-control="transport-start"></button>
+                </div>
+                <div class="wrapper-label stop" data-label="STOP/CONT">
+                    <button class="trigger bright" data-control="transport-stop-continue"></button>
+                </div>
+                <div class="wrapper-label cartridge" data-label="CARTRIDGE&#10/ENTER" data-below="TOTAL ACCENT">
+                    <button class="switch" data-control="main-key" data-parameter="total-accent"></button>
+                </div>
+                <footer></footer>
             </div>
-            <div class="wrapper-label start" data-label="START">
-                <button class="trigger bright" data-control="transport-start"></button>
-            </div>
-            <div class="wrapper-label stop" data-label="STOP/CONT">
-                <button class="trigger bright" data-control="transport-stop-continue"></button>
-            </div>
-            <div class="wrapper-label cartridge" data-label="CARTRIDGE&#10/ENTER" data-below="TOTAL ACCENT">
-                <button class="switch" data-control="main-key" data-parameter="total-accent"></button>
-            </div>
-            <footer></footer>
         </div>
-    </div>
-    <a class="github" href="https://github.com/andremichelle/css-909">github project</a>
-</main>
-<svg class="preloader" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-    <circle r="7" cx="10" cy="10" fill="none" stroke="#21242D" stroke-width="5"></circle>
-    <circle r="7" cx="10" cy="10" fill="none" stroke="#666D91" stroke-width="5" class="progress"></circle>
-</svg>
+        <a class="github" href="https://github.com/andremichelle/tr-909">github project</a>
+    </main>
+    <svg class="preloader" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <circle r="7" cx="10" cy="10" fill="none" stroke="#21242D" stroke-width="5"></circle>
+        <circle r="7" cx="10" cy="10" fill="none" stroke="#666D91" stroke-width="5" class="progress"></circle>
+    </svg>
 </body>
+
 </html>
