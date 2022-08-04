@@ -379,7 +379,7 @@ export class Events {
                 .addEventListener(type, (event) => resolve(event), { once: true }));
         });
     }
-    static bindEventListener(target, type, listener, options) {
+    static bind(target, type, listener, options) {
         target.addEventListener(type, listener, options);
         return { terminate: () => target.removeEventListener(type, listener, options) };
     }

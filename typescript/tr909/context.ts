@@ -397,10 +397,7 @@ export class UIContext implements Terminable {
 
     private installKeys(): void {
         this.functionKeys.forEach((key: Key, keyIndex: FunctionKeyIndex) => {
-            this.terminator.with(key.bind('pointerdown', (event: Event) => {
-                if (!(event instanceof PointerEvent)) {
-                    return
-                }
+            this.terminator.with(Events.bind(key.element, 'pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
                 if (event.shiftKey && !this.multiTapsEmulated.has(key)) {
                     const complete = keyIndex !== FunctionKeyIndex.Shift && this.onFunctionKeyPress(keyIndex)
@@ -413,17 +410,14 @@ export class UIContext implements Terminable {
                     console.debug(`onFunctionKeyPress(${keyIndex} => complete: ${complete})`)
                 }
             }))
-            this.terminator.with(key.bind('pointerup', () => {
+            this.terminator.with(Events.bind(key.element, 'pointerup', () => {
                 if (!this.multiTapsEmulated.has(key)) {
                     this.onFunctionKeyRelease(keyIndex)
                 }
             }))
         })
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
-            this.terminator.with(key.bind('pointerdown', (event: Event) => {
-                if (!(event instanceof PointerEvent)) {
-                    return
-                }
+            this.terminator.with(Events.bind(key.element, 'pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
                 key.setPressed(true)
                 if (this.isShiftKeyPressed() && !this.isPlaying()) {
@@ -455,7 +449,7 @@ export class UIContext implements Terminable {
                     }
                 }
             }))
-            this.terminator.with(key.bind('pointerup', () => {
+            this.terminator.with(Events.bind(key.element, 'pointerup', () => {
                 if (!this.multiTapsEmulated.has(key)) {
                     key.setPressed(false)
                 }
@@ -494,7 +488,7 @@ export class UIContext implements Terminable {
     }
 
     private installKeyboard() {
-        this.terminator.with(Events.bindEventListener(window, 'keydown', (event: Event) => {
+        this.terminator.with(Events.bind(window, 'keydown', (event: Event) => {
             if (!(event instanceof KeyboardEvent)) {
                 return
             }
@@ -504,7 +498,7 @@ export class UIContext implements Terminable {
             ifDefined(FunctionKeyboardShortcuts.get(event.code),
                 (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
         }))
-        this.terminator.with(Events.bindEventListener(window, 'keyup', (event: Event) => {
+        this.terminator.with(Events.bind(window, 'keyup', (event: Event) => {
             if (!(event instanceof KeyboardEvent)) {
                 return
             }

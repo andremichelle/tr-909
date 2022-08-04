@@ -473,6 +473,10 @@ export class Waiting {
     }
 }
 
+export type EventMaps = HTMLElementEventMap & WindowEventMap & DocumentEventMap
+export type ListenerElements = HTMLElement | Window | Document
+export type EventType<E> = keyof Pick<EventMaps, { [K in keyof EventMaps]: EventMaps[K] extends E ? K : never }[keyof EventMaps]>
+
 export class Events {
     static preventDefault = (event: Event): void => event.preventDefault()
 
@@ -481,13 +485,13 @@ export class Events {
             .addEventListener(type, (event: Event): void => resolve(event as E), { once: true }))
     }
 
-    // TODO https://stackoverflow.com/questions/72365139/strongly-typed-event-listener-function
-
-    static bindEventListener(target: EventTarget,
-        type: string, listener: (event: Event) => void,
+    static bind<E extends EventMaps[keyof EventMaps]>(
+        target: ListenerElements,
+        type: EventType<E>,
+        listener: (event: E) => void,
         options?: AddEventListenerOptions): Terminable {
-        target.addEventListener(type, listener, options)
-        return { terminate: () => target.removeEventListener(type, listener, options) }
+        target.addEventListener(type, listener as EventListener, options)
+        return { terminate: () => target.removeEventListener(type, listener as EventListener, options) }
     }
 
     static configRepeatButton(button: EventTarget, callback: () => void): Terminable {

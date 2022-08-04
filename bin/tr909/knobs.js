@@ -15,7 +15,7 @@ export class Knob {
         this.terminator.terminate();
     }
     attachEvents() {
-        this.terminator.with(Events.bindEventListener(this.element, 'pointerdown', (event) => {
+        this.terminator.with(Events.bind(this.element, 'pointerdown', (event) => {
             if (!(event instanceof PointerEvent)) {
                 return;
             }
@@ -23,8 +23,8 @@ export class Knob {
             let startValue = this.parameter.getUnipolar();
             let startPointer = event.clientY;
             const moving = new Terminator();
-            moving.with(Events.bindEventListener(this.element, 'pointermove', (event) => this.parameter.setUnipolar(startValue - (event.clientY - startPointer) * 0.01)));
-            moving.with(Events.bindEventListener(this.element, 'pointerup', () => moving.terminate()));
+            moving.with(Events.bind(this.element, 'pointermove', (event) => this.parameter.setUnipolar(startValue - (event.clientY - startPointer) * 0.01)));
+            moving.with(Events.bind(this.element, 'pointerup', () => moving.terminate()));
         }));
     }
 }

@@ -17,7 +17,7 @@ export class Knob implements Terminable {
     }
 
     private attachEvents(): void {
-        this.terminator.with(Events.bindEventListener(this.element, 'pointerdown', (event: Event) => {
+        this.terminator.with(Events.bind(this.element, 'pointerdown', (event: Event) => {
             if (!(event instanceof PointerEvent)) {
                 return
             }
@@ -25,9 +25,9 @@ export class Knob implements Terminable {
             let startValue = this.parameter.getUnipolar()
             let startPointer = event.clientY
             const moving = new Terminator()
-            moving.with(Events.bindEventListener(this.element, 'pointermove', (event: Event): void =>
+            moving.with(Events.bind(this.element, 'pointermove', (event: Event): void =>
                 this.parameter.setUnipolar(startValue - ((event as PointerEvent).clientY - startPointer) * 0.01)))
-            moving.with(Events.bindEventListener(this.element, 'pointerup', (): void => moving.terminate()))
+            moving.with(Events.bind(this.element, 'pointerup', (): void => moving.terminate()))
         }))
     }
 }

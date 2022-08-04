@@ -1,5 +1,4 @@
 import { BankIndex, PatternGroupIndex, TrackIndex } from "../audio/tr909/memory.js";
-import { Events } from "../lib/common.js";
 export var PatternEditMode;
 (function (PatternEditMode) {
     PatternEditMode[PatternEditMode["Step"] = 0] = "Step";
@@ -188,9 +187,6 @@ export class Key {
         this.type = type;
         this.keyIndex = keyIndex;
         this.state = KeyState.Off;
-    }
-    bind(type, listener, options) {
-        return Events.bindEventListener(this.element, type, listener, options);
     }
     setPointerCapture(pointerId) {
         this.element.setPointerCapture(pointerId);

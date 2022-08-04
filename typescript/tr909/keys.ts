@@ -164,10 +164,6 @@ export class Key {
         readonly keyIndex: number) {
     }
 
-    bind(type: string, listener: (evt: Event) => void, options?: AddEventListenerOptions): Terminable {
-        return Events.bindEventListener(this.element, type, listener, options)
-    }
-
     setPointerCapture(pointerId: number): void {
         this.element.setPointerCapture(pointerId)
     }
