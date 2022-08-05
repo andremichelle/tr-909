@@ -19,6 +19,7 @@ export class Mode {
     onMainKeyPress(keyIndex) {
         return true;
     }
+    onMainKeyShiftPress(keyIndex) { }
     setMainKeyValue(value) {
     }
 }

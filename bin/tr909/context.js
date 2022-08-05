@@ -330,6 +330,9 @@ export class UIContext {
                         this.mode.setMainKeyValue(number);
                         this.stopUserNumberInput();
                     }
+                    else {
+                        this.mode.onMainKeyShiftPress(keyIndex);
+                    }
                 }
                 else {
                     if (event.shiftKey && !this.multiTapsEmulated.has(key) && keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {

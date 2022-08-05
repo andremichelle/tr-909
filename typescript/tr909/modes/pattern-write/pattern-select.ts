@@ -48,14 +48,16 @@ export class SelectPatternMode extends Mode {
 
     onMainKeyPress(keyIndex: MainKeyIndex): complete {
         if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-            return false
-        }
-        if (keyIndex === MainKeyIndex.Step11 && this.context.isShiftKeyPressed()) {
-            this.editor.copyPattern()
-            return false
+            return true
         }
         this.context.memoryState().patternIndex.set(keyIndex as number)
         return true
+    }
+
+    onMainKeyShiftPress(keyIndex: MainKeyIndex): void {
+        if (keyIndex === MainKeyIndex.Step11) {
+            this.editor.copyPattern()
+        }
     }
 
     name(): string {

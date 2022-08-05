@@ -3,7 +3,7 @@ import { ClearPatternMode, ClearStepMode, ClearTapMode } from './pattern-write/c
 import { CopyPatternMode } from "./pattern-write/copy.js";
 import { InstrumentSelectInput } from "./pattern-write/instrument-select.js";
 import { LastStepInput } from "./pattern-write/last-step.js";
-import { SelectPatternMode } from "./pattern-write/select.js";
+import { SelectPatternMode } from "./pattern-write/pattern-select.js";
 import { ShuffleFlamInput } from "./pattern-write/shuffle-flam.js";
 import { StepsMode } from "./pattern-write/steps.js";
 import { TapInputMode } from "./pattern-write/tap.js";
@@ -86,6 +86,9 @@ export default class extends Mode {
     }
     onMainKeyPress(keyIndex) {
         return this.inputMode.onMainKeyPress(keyIndex);
+    }
+    onMainKeyShiftPress(keyIndex) {
+        this.inputMode.onMainKeyShiftPress(keyIndex);
     }
     name() {
         return `Pattern Write (${this.inputMode.name()})`;

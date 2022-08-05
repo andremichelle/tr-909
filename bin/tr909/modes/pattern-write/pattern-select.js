@@ -44,7 +44,6 @@ export class SelectPatternMode extends Mode {
         return true;
     }
     onMainKeyShiftPress(keyIndex) {
-        console.log('onMainKeyShiftPress', keyIndex);
         if (keyIndex === MainKeyIndex.Step11) {
             this.editor.copyPattern();
         }
@@ -53,4 +52,4 @@ export class SelectPatternMode extends Mode {
         return 'Select';
     }
 }
-//# sourceMappingURL=select.js.map
+//# sourceMappingURL=pattern-select.js.map
