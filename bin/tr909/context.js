@@ -3,7 +3,7 @@ import { PlayMode } from "../audio/tr909/state.js";
 import { ArrayUtils, elseIfUndefined, Events, ifDefined, ObservableValueImpl, Options, TerminableVoid, Terminator } from "../lib/common.js";
 import { HTML, SVG } from "../lib/dom.js";
 import { Display, DisplayObservableValueProvider } from "./display.js";
-import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, PatternEditMode, ZeroBasedIndices } from "./keys.js";
+import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, PatternEditingMode, ZeroBasedIndices } from "./keys.js";
 import { Knob } from "./knobs.js";
 import PatternPlayMode from "./modes/pattern-play.js";
 import PatternWriteMode from "./modes/pattern-write.js";
@@ -27,7 +27,7 @@ export class UIContext {
         this.functionKeys = new KeyGroup(HTML.queryAll('[data-button=function-key]')
             .map((element, keyIndex) => new Key(element, 'function', keyIndex)));
         this.instrumentMode = new ObservableValueImpl(InstrumentMode.Bassdrum);
-        this.patternEditMode = new ObservableValueImpl(PatternEditMode.Step);
+        this.patternEditMode = new ObservableValueImpl(PatternEditingMode.StepEditing);
         this.activeLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => []);
         this.userInputDigits = new Uint8Array(3);
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo);

@@ -39,7 +39,8 @@ export default class extends Mode {
             return false
         } else if (concurrentMainKeys.size === 1) {
             patternGroup.clearChains()
-            const tuple: MainKeyIndex[] = [...concurrentMainKeys, keyIndex]
+            const [concurrentMainKey] = concurrentMainKeys
+            const tuple: [MainKeyIndex, MainKeyIndex] = [concurrentMainKey, keyIndex]
             const start: number = Math.min(tuple[0], tuple[1])
             const end: number = Math.max(tuple[0], tuple[1])
             const chained = patternGroup.getChained().slice()
