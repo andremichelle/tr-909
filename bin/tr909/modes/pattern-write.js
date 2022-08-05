@@ -1,47 +1,40 @@
-import { StepsEditingMode as StepsEditingMode } from "../keys.js";
-import { Mode } from "../mode.js";
-import { ClearStepsInput } from './pattern-write/clear-steps.js';
+import { Mode, StepsEditingMode } from "../mode.js";
+import { ClearPatternMode, ClearStepMode, ClearTapMode } from './pattern-write/clear.js';
+import { CopyPatternMode } from "./pattern-write/copy.js";
 import { InstrumentSelectInput } from "./pattern-write/instrument-select.js";
 import { LastStepInput } from "./pattern-write/last-step.js";
-import { SelectPatternMode } from "./pattern-write/select-pattern.js";
+import { SelectPatternMode } from "./pattern-write/select.js";
 import { ShuffleFlamInput } from "./pattern-write/shuffle-flam.js";
 import { StepsMode } from "./pattern-write/steps.js";
 import { TapInputMode } from "./pattern-write/tap.js";
-export var PatternEditing;
-(function (PatternEditing) {
-    PatternEditing[PatternEditing["Select"] = 0] = "Select";
-    PatternEditing[PatternEditing["Clear"] = 1] = "Clear";
-})(PatternEditing || (PatternEditing = {}));
 export default class extends Mode {
     constructor(context) {
         super(context);
+        this.backToSelectMode = () => this.inputMode = new SelectPatternMode(this.context, this);
         this.backToStepMode = () => this.inputMode = new StepsMode(this.context, this);
+        this.backToTapMode = () => this.inputMode = new TapInputMode(this.context, this);
         this.context.updatePatternGroupKeys(this.context.memoryState().patternGroupIndex.get(), true);
-        this.inputMode = new class extends Mode {
-            name() { return ''; }
-        }(context);
-        const updateInputMode = () => {
+        this.inputMode = new SelectPatternMode(context, this);
+        const switchInputMode = () => {
             this.inputMode.terminate();
             if (this.context.isPlaying()) {
-                const patternEditMode = this.context.stepsEditMode.get();
-                if (patternEditMode === StepsEditingMode.Step) {
+                const mode = this.context.stepsEditMode.get();
+                if (mode === StepsEditingMode.Step) {
                     this.inputMode = new StepsMode(context, this);
                 }
-                else if (patternEditMode === StepsEditingMode.Tap) {
-                    this.inputMode = new TapInputMode(context);
+                else if (mode === StepsEditingMode.Tap) {
+                    this.inputMode = new TapInputMode(context, this);
                 }
                 else {
-                    throw new Error(`Unknown PatternInputMode(${patternEditMode})`);
+                    throw new Error(`Unknown StepsEditingMode(${mode})`);
                 }
             }
             else {
-                this.inputMode = new SelectPatternMode(context);
+                this.inputMode = new SelectPatternMode(context, this);
             }
-            console.debug(`mode: ${this.context.modeName()}`);
         };
-        updateInputMode();
-        this.with(this.context.machine.transport.addObserver(updateInputMode, false));
-        this.with(this.context.stepsEditMode.addObserver(updateInputMode));
+        this.with(this.context.machine.transport.addObserver(switchInputMode, false));
+        this.with(this.context.stepsEditMode.addObserver(switchInputMode));
         this.with(this.context.watchPatternEditKeys());
         this.with({
             terminate: () => {
@@ -60,10 +53,25 @@ export default class extends Mode {
         this.inputMode.terminate();
         this.inputMode = new ShuffleFlamInput(this.context, this.backToStepMode);
     }
-    clearSteps() {
+    clearPattern() {
+        console.assert(!this.context.isPlaying());
+        this.inputMode.terminate();
+        this.inputMode = new ClearPatternMode(this.context, this.backToSelectMode);
+    }
+    copyPattern() {
+        console.assert(!this.context.isPlaying());
+        this.inputMode.terminate();
+        this.inputMode = new CopyPatternMode(this.context, this.backToSelectMode);
+    }
+    clearStepMode() {
         console.assert(this.context.isPlaying());
         this.inputMode.terminate();
-        this.inputMode = new ClearStepsInput(this.context, this.backToStepMode);
+        this.inputMode = new ClearStepMode(this.context, this.backToStepMode);
+    }
+    clearTapMode() {
+        console.assert(this.context.isPlaying());
+        this.inputMode.terminate();
+        this.inputMode = new ClearTapMode(this.context, this.backToTapMode);
     }
     selectInstrument() {
         console.assert(this.context.isPlaying());

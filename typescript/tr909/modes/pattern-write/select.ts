@@ -2,10 +2,14 @@ import { UIContext } from "../../context.js"
 import { FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices } from "../../keys.js"
 import { complete, Mode } from "../../mode.js"
 
-export class SelectPatternMode extends Mode {
-    private clear: boolean = false
+export interface PatternEditor {
+    clearPattern(): void
 
-    constructor(context: UIContext) {
+    copyPattern(): void
+}
+
+export class SelectPatternMode extends Mode {
+    constructor(context: UIContext, private readonly editor: PatternEditor) {
         super(context)
 
         console.assert(!context.machine.transport.isPlaying())
@@ -36,16 +40,10 @@ export class SelectPatternMode extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.Clear) {
-            this.clear = true
+            this.editor.clearPattern()
             return false
         }
         return true
-    }
-
-    onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
-        if (label === FunctionKeyLabel.Clear) {
-            this.clear = false
-        }
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): complete {
@@ -53,12 +51,10 @@ export class SelectPatternMode extends Mode {
             return false
         }
         if (keyIndex === MainKeyIndex.Step11 && this.context.isShiftKeyPressed()) {
+            this.editor.copyPattern()
             return false
         }
         this.context.memoryState().patternIndex.set(keyIndex as number)
-        if (this.clear) {
-            this.context.memoryState().activePattern().clear()
-        }
         return true
     }
 

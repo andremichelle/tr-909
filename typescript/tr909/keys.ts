@@ -1,8 +1,5 @@
 import { BankIndex, PatternGroupIndex, TrackIndex } from "../audio/tr909/memory.js"
-
-export enum StepsEditingMode {
-    Step, Tap
-}
+import { StepsEditingMode } from "./mode.js"
 
 export enum MainKeyIndex {
     Step1, Step2, Step3, Step4,
@@ -95,7 +92,7 @@ export class FunctionKeyLabel<T> {
         FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup3, PatternGroupIndex.III)
     ]
     static readonly ExtInst: FunctionKeyLabel<string> = FunctionKeyLabel.create(FunctionKeyIndex.EmptyExtInst, 'external instrument')
-    static readonly PatternEditMode: ReadonlyArray<FunctionKeyLabel<StepsEditingMode>> = [
+    static readonly StepsEditingModes: ReadonlyArray<FunctionKeyLabel<StepsEditingMode>> = [
         FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, StepsEditingMode.Step),
         FunctionKeyLabel.create(FunctionKeyIndex.BackTap, StepsEditingMode.Tap)
     ] as const
@@ -132,7 +129,7 @@ export class FunctionKeyLabel<T> {
         ...FunctionKeyLabel.TrackWrite,
         ...FunctionKeyLabel.PatternWrite,
         FunctionKeyLabel.ExtInst,
-        ...FunctionKeyLabel.PatternEditMode,
+        ...FunctionKeyLabel.StepsEditingModes,
         ...FunctionKeyLabel.BankGroup,
         FunctionKeyLabel.LastMeasure,
         FunctionKeyLabel.TempoMode,

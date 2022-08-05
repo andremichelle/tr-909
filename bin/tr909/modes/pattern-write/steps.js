@@ -29,7 +29,7 @@ export class StepsMode extends Mode {
             return false;
         }
         if (label === FunctionKeyLabel.Clear) {
-            this.editor.clearSteps();
+            this.editor.clearStepMode();
             return true;
         }
         return true;

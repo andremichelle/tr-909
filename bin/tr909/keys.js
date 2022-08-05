@@ -1,9 +1,5 @@
 import { BankIndex, PatternGroupIndex, TrackIndex } from "../audio/tr909/memory.js";
-export var StepsEditingMode;
-(function (StepsEditingMode) {
-    StepsEditingMode[StepsEditingMode["Step"] = 0] = "Step";
-    StepsEditingMode[StepsEditingMode["Tap"] = 1] = "Tap";
-})(StepsEditingMode || (StepsEditingMode = {}));
+import { StepsEditingMode } from "./mode.js";
 export var MainKeyIndex;
 (function (MainKeyIndex) {
     MainKeyIndex[MainKeyIndex["Step1"] = 0] = "Step1";
@@ -128,7 +124,7 @@ FunctionKeyLabel.PatternWrite = [
     FunctionKeyLabel.create(FunctionKeyIndex.PatternGroup3, PatternGroupIndex.III)
 ];
 FunctionKeyLabel.ExtInst = FunctionKeyLabel.create(FunctionKeyIndex.EmptyExtInst, 'external instrument');
-FunctionKeyLabel.PatternEditMode = [
+FunctionKeyLabel.StepsEditingModes = [
     FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, StepsEditingMode.Step),
     FunctionKeyLabel.create(FunctionKeyIndex.BackTap, StepsEditingMode.Tap)
 ];
@@ -164,7 +160,7 @@ FunctionKeyLabel.ShiftKeys = [
     ...FunctionKeyLabel.TrackWrite,
     ...FunctionKeyLabel.PatternWrite,
     FunctionKeyLabel.ExtInst,
-    ...FunctionKeyLabel.PatternEditMode,
+    ...FunctionKeyLabel.StepsEditingModes,
     ...FunctionKeyLabel.BankGroup,
     FunctionKeyLabel.LastMeasure,
     FunctionKeyLabel.TempoMode,

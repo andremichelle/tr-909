@@ -3,8 +3,9 @@ import { PlayMode } from "../audio/tr909/state.js";
 import { ArrayUtils, elseIfUndefined, Events, ifDefined, ObservableValueImpl, Options, TerminableVoid, Terminator } from "../lib/common.js";
 import { HTML, SVG } from "../lib/dom.js";
 import { Display, DisplayObservableValueProvider } from "./display.js";
-import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, StepsEditingMode, ZeroBasedIndices } from "./keys.js";
+import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, ZeroBasedIndices } from "./keys.js";
 import { Knob } from "./knobs.js";
+import { StepsEditingMode } from "./mode.js";
 import PatternPlayMode from "./modes/pattern-play.js";
 import PatternWriteMode from "./modes/pattern-write.js";
 import TrackPlayMode from "./modes/track-play.js";
@@ -102,7 +103,7 @@ export class UIContext {
         return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternPlay, index => this.machine.memory.state.patternGroupIndex.set(index));
     }
     maySwitchPatternEditMode(label) {
-        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternEditMode, index => this.stepsEditMode.set(index));
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.StepsEditingModes, index => this.stepsEditMode.set(index));
     }
     mayToggle(label, compare, value) {
         if (label === compare) {

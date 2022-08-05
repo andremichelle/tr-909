@@ -1,4 +1,9 @@
 import { Terminator } from "../lib/common.js";
+export var StepsEditingMode;
+(function (StepsEditingMode) {
+    StepsEditingMode[StepsEditingMode["Step"] = 0] = "Step";
+    StepsEditingMode[StepsEditingMode["Tap"] = 1] = "Tap";
+})(StepsEditingMode || (StepsEditingMode = {}));
 export class Mode {
     constructor(context) {
         this.context = context;

@@ -36,11 +36,10 @@ import {
     KeyGroup,
     KeyState,
     MainKeyIndex,
-    StepsEditingMode,
     ZeroBasedIndices
 } from "./keys.js"
 import { Knob } from "./knobs.js"
-import { complete, Mode } from "./mode.js"
+import { complete, Mode, StepsEditingMode } from "./mode.js"
 import PatternPlayMode from "./modes/pattern-play.js"
 import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
@@ -183,7 +182,7 @@ export class UIContext implements Terminable {
     }
 
     maySwitchPatternEditMode(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternEditMode, index => this.stepsEditMode.set(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.StepsEditingModes, index => this.stepsEditMode.set(index))
     }
 
     mayToggle(label: FunctionKeyLabel<any>,

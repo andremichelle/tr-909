@@ -2,6 +2,10 @@ import { Terminable, Terminator } from "../lib/common.js"
 import { UIContext } from "./context.js"
 import { FunctionKeyLabel, MainKeyIndex } from "./keys.js"
 
+export enum StepsEditingMode {
+    Step, Tap
+}
+
 /**
  * complete is for emulating multi-touch on keys to reach extended functionalities.
  * It will define the life-time of a key sequence. It should return true,
