@@ -2,7 +2,7 @@ import { UIContext } from "../../context.js"
 import { FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices } from "../../keys.js"
 import { complete, Mode } from "../../mode.js"
 
-export class PatternMode extends Mode {
+export class SelectPatternMode extends Mode {
     private clear: boolean = false
 
     constructor(context: UIContext) {

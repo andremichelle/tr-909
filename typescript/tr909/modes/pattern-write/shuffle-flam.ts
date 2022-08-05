@@ -1,14 +1,13 @@
-import { Pattern, ShuffleIndex, FlamIndex } from "../../../audio/tr909/memory.js"
-import { ObservableValue, Terminator } from "../../../lib/common.js"
+import { FlamIndex, Pattern, ShuffleIndex } from "../../../audio/tr909/memory.js"
+import { Terminator } from "../../../lib/common.js"
 import { UIContext } from "../../context.js"
-import { KeyState, MainKeyIndex, FunctionKeyLabel } from "../../keys.js"
-import { Mode, complete } from "../../mode.js"
-import { InputMode } from "../pattern-write.js"
+import { FunctionKeyLabel, KeyState, MainKeyIndex } from "../../keys.js"
+import { complete, Mode } from "../../mode.js"
 
 export class ShuffleFlamInput extends Mode {
     private readonly subscriptions: Terminator = this.with(new Terminator())
 
-    constructor(context: UIContext, readonly transientEditor: ObservableValue<InputMode>) {
+    constructor(context: UIContext, private readonly back: () => void) {
         super(context)
 
         const state = this.context.memoryState()
@@ -36,7 +35,7 @@ export class ShuffleFlamInput extends Mode {
 
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
         if (label === FunctionKeyLabel.ShuffleFlam) {
-            this.transientEditor.set(InputMode.Off)
+            this.back()
         }
     }
 

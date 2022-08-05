@@ -3,17 +3,19 @@ import { UIContext } from "../context.js"
 import { FunctionKeyLabel, MainKeyIndex, PatternEditingMode } from "../keys.js"
 import { complete, Mode } from "../mode.js"
 import { InstrumentSelectInput } from "./pattern-write/instrument-select.js"
-import { PatternMode } from "./pattern-write/pattern.js"
+import { LastStepInput } from "./pattern-write/last-step.js"
+import { SelectPatternMode } from "./pattern-write/select-pattern.js"
 import { ShuffleFlamInput } from "./pattern-write/shuffle-flam.js"
 import { StepsMode } from "./pattern-write/steps.js"
 import { TapInputMode } from "./pattern-write/tap.js"
 
-export enum InputMode {
-    Off, ShuffleFlam, InstrumentSelect
+export enum WhileStepEdit {
+    Off, LastStep, ShuffleFlam, InstrumentSelect
 }
 
 export default class extends Mode {
-    readonly inputModeValue: ObservableValue<InputMode> = new ObservableValueImpl(InputMode.Off)
+    private readonly quickEdit: ObservableValue<WhileStepEdit> = new ObservableValueImpl(WhileStepEdit.Off)
+    private readonly back: () => void = () => this.quickEdit.set(WhileStepEdit.Off)
 
     private inputMode: NonNullable<Mode>
 
@@ -28,31 +30,33 @@ export default class extends Mode {
             this.inputMode.terminate()
 
             if (this.context.isPlaying()) {
-                const editing = this.inputModeValue.get()
-                if (editing === InputMode.Off) {
+                const editing = this.quickEdit.get()
+                if (editing === WhileStepEdit.Off) {
                     const patternEditMode = this.context.patternEditMode.get()
                     if (patternEditMode === PatternEditingMode.StepEditing) {
-                        this.inputMode = new StepsMode(context, this.inputModeValue)
+                        this.inputMode = new StepsMode(context, this.quickEdit)
                     } else if (patternEditMode === PatternEditingMode.TapInput) {
-                        this.inputMode = new TapInputMode(context, this.inputModeValue)
+                        this.inputMode = new TapInputMode(context, this.quickEdit)
                     } else {
                         throw new Error(`Unknown PatternInputMode(${patternEditMode})`)
                     }
-                } else if (editing === InputMode.ShuffleFlam) {
-                    this.inputMode = new ShuffleFlamInput(context, this.inputModeValue)
-                } else if (editing === InputMode.InstrumentSelect) {
-                    this.inputMode = new InstrumentSelectInput(context, this.inputModeValue)
+                } else if (editing === WhileStepEdit.LastStep) {
+                    this.inputMode = new LastStepInput(context, this.back)
+                } else if (editing === WhileStepEdit.ShuffleFlam) {
+                    this.inputMode = new ShuffleFlamInput(context, this.back)
+                } else if (editing === WhileStepEdit.InstrumentSelect) {
+                    this.inputMode = new InstrumentSelectInput(context, this.back)
                 } else {
-                    throw new Error(`Unknown TransientEditing(${InputMode[editing]})`)
+                    throw new Error(`Unknown TransientEditing(${WhileStepEdit[editing]})`)
                 }
             } else {
-                this.inputMode = new PatternMode(context)
+                this.inputMode = new SelectPatternMode(context)
             }
             console.debug(`mode: ${this.context.modeName()}`)
         }
         updateInputMode()
 
-        this.with(this.inputModeValue.addObserver(updateInputMode, false))
+        this.with(this.quickEdit.addObserver(updateInputMode, false))
         this.with(this.context.machine.transport.addObserver(updateInputMode, false))
         this.with(this.context.patternEditMode.addObserver(updateInputMode))
         this.with(this.context.watchPatternEditKeys())

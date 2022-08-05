@@ -1,15 +1,14 @@
 import { ObservableValue, Terminable, TerminableVoid } from "../../../lib/common.js"
 import { UIContext } from "../../context.js"
 import { FunctionKeyLabel, MainKeyIndex } from "../../keys.js"
-import { Mode, complete } from "../../mode.js"
+import { complete, Mode } from "../../mode.js"
 import { Utils } from "../../utils.js"
-import { InputMode } from "../pattern-write.js"
+import { WhileStepEdit } from "../pattern-write.js"
 
 export class StepsMode extends Mode {
-    private editLastStep: boolean = false
     private clearSubscription: Terminable = TerminableVoid
 
-    constructor(context: UIContext, readonly editing: ObservableValue<InputMode>) {
+    constructor(context: UIContext, readonly editing: ObservableValue<WhileStepEdit>) {
         super(context)
 
         this.with(this.context.watchPatternStepsKeys())
@@ -22,7 +21,7 @@ export class StepsMode extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.LastStep) {
-            this.editLastStep = true
+            this.editing.set(WhileStepEdit.LastStep)
             return false
         }
         if (label === FunctionKeyLabel.Scale) {
@@ -30,11 +29,11 @@ export class StepsMode extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.ShuffleFlam) {
-            this.editing.set(InputMode.ShuffleFlam)
+            this.editing.set(WhileStepEdit.ShuffleFlam)
             return false
         }
         if (label === FunctionKeyLabel.InstrumentSelect) {
-            this.editing.set(InputMode.InstrumentSelect)
+            this.editing.set(WhileStepEdit.InstrumentSelect)
             return false
         }
         if (label === FunctionKeyLabel.Clear) {
@@ -52,20 +51,14 @@ export class StepsMode extends Mode {
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
         if (label === FunctionKeyLabel.Clear) {
             this.clearSubscription.terminate()
-        } else if (label === FunctionKeyLabel.LastStep) {
-            this.editLastStep = false
         }
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): complete {
         if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const pattern = this.context.memoryState().activePattern()
-            if (this.editLastStep) {
-                pattern.lastStep.set(keyIndex + 1)
-            } else {
-                const instrumentMode = this.context.instrumentMode.get()
-                Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
-            }
+            const instrumentMode = this.context.instrumentMode.get()
+            Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
             return false
         }
         return false

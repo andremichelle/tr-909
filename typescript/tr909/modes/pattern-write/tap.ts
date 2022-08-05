@@ -5,13 +5,13 @@ import { UIContext } from "../../context.js"
 import { FunctionKeyLabel, MainKeyIndex } from "../../keys.js"
 import { Mode, complete } from "../../mode.js"
 import { Utils, InstrumentMode } from "../../utils.js"
-import { InputMode } from "../pattern-write.js"
+import { WhileStepEdit } from "../pattern-write.js"
 
 export class TapInputMode extends Mode {
     private clearPressed: boolean = false
     private clearStepSubscription: Terminable = TerminableVoid
 
-    constructor(context: UIContext, readonly transientEdit: ObservableValue<InputMode>) {
+    constructor(context: UIContext, readonly transientEdit: ObservableValue<WhileStepEdit>) {
         super(context)
 
         this.context.resetMainKeys()

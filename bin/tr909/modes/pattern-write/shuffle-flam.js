@@ -1,11 +1,10 @@
 import { Terminator } from "../../../lib/common.js";
-import { KeyState, MainKeyIndex, FunctionKeyLabel } from "../../keys.js";
+import { FunctionKeyLabel, KeyState, MainKeyIndex } from "../../keys.js";
 import { Mode } from "../../mode.js";
-import { InputMode } from "../pattern-write.js";
 export class ShuffleFlamInput extends Mode {
-    constructor(context, transientEditor) {
+    constructor(context, back) {
         super(context);
-        this.transientEditor = transientEditor;
+        this.back = back;
         this.subscriptions = this.with(new Terminator());
         const state = this.context.memoryState();
         const update = () => {
@@ -31,7 +30,7 @@ export class ShuffleFlamInput extends Mode {
     }
     onFunctionKeyRelease(label) {
         if (label === FunctionKeyLabel.ShuffleFlam) {
-            this.transientEditor.set(InputMode.Off);
+            this.back();
         }
     }
     onMainKeyPress(keyIndex) {

@@ -1,11 +1,10 @@
 import { FunctionKeyLabel } from "../../keys.js";
 import { Mode } from "../../mode.js";
 import { Utils } from "../../utils.js";
-import { InputMode } from "../pattern-write.js";
 export class InstrumentSelectInput extends Mode {
-    constructor(context, transientEditor) {
+    constructor(context, back) {
         super(context);
-        this.transientEditor = transientEditor;
+        this.back = back;
         this.with(this.context.instrumentMode.addObserver((instrumentMode) => {
             const toButtonStates = Utils.instrumentModeToButtonStates(instrumentMode);
             this.context.mainKeys.forEach((key, keyIndex) => key.setState(toButtonStates(keyIndex)));
@@ -13,7 +12,7 @@ export class InstrumentSelectInput extends Mode {
     }
     onFunctionKeyRelease(label) {
         if (label === FunctionKeyLabel.InstrumentSelect) {
-            this.transientEditor.set(InputMode.Off);
+            this.back();
         }
     }
     onMainKeyPress(keyIndex) {
