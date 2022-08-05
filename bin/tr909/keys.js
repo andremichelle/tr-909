@@ -1,15 +1,9 @@
 import { BankIndex, PatternGroupIndex, TrackIndex } from "../audio/tr909/memory.js";
-export var PatternEditingMode;
-(function (PatternEditingMode) {
-    PatternEditingMode[PatternEditingMode["SelectPattern"] = 0] = "SelectPattern";
-    PatternEditingMode[PatternEditingMode["CopyPattern"] = 1] = "CopyPattern";
-    PatternEditingMode[PatternEditingMode["ClearPattern"] = 2] = "ClearPattern";
-    PatternEditingMode[PatternEditingMode["StepEditing"] = 3] = "StepEditing";
-    PatternEditingMode[PatternEditingMode["TapInput"] = 4] = "TapInput";
-    PatternEditingMode[PatternEditingMode["ShuffleFlamEditing"] = 5] = "ShuffleFlamEditing";
-    PatternEditingMode[PatternEditingMode["InstrumentSelect"] = 6] = "InstrumentSelect";
-    PatternEditingMode[PatternEditingMode["LastStepEditing"] = 7] = "LastStepEditing";
-})(PatternEditingMode || (PatternEditingMode = {}));
+export var StepsEditingMode;
+(function (StepsEditingMode) {
+    StepsEditingMode[StepsEditingMode["Step"] = 0] = "Step";
+    StepsEditingMode[StepsEditingMode["Tap"] = 1] = "Tap";
+})(StepsEditingMode || (StepsEditingMode = {}));
 export var MainKeyIndex;
 (function (MainKeyIndex) {
     MainKeyIndex[MainKeyIndex["Step1"] = 0] = "Step1";
@@ -135,8 +129,8 @@ FunctionKeyLabel.PatternWrite = [
 ];
 FunctionKeyLabel.ExtInst = FunctionKeyLabel.create(FunctionKeyIndex.EmptyExtInst, 'external instrument');
 FunctionKeyLabel.PatternEditMode = [
-    FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, PatternEditingMode.StepEditing),
-    FunctionKeyLabel.create(FunctionKeyIndex.BackTap, PatternEditingMode.TapInput)
+    FunctionKeyLabel.create(FunctionKeyIndex.TempoStep, StepsEditingMode.Step),
+    FunctionKeyLabel.create(FunctionKeyIndex.BackTap, StepsEditingMode.Tap)
 ];
 FunctionKeyLabel.BankGroup = [
     FunctionKeyLabel.create(FunctionKeyIndex.ForwardBankI, BankIndex.I),

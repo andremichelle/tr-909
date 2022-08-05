@@ -36,7 +36,7 @@ import {
     KeyGroup,
     KeyState,
     MainKeyIndex,
-    PatternEditingMode,
+    StepsEditingMode,
     ZeroBasedIndices
 } from "./keys.js"
 import { Knob } from "./knobs.js"
@@ -58,7 +58,7 @@ export class UIContext implements Terminable {
     readonly functionKeys: KeyGroup<FunctionKeyIndex>
 
     readonly instrumentMode: ObservableValueImpl<InstrumentMode>
-    readonly patternEditMode: ObservableValueImpl<PatternEditingMode>
+    readonly stepsEditMode: ObservableValueImpl<StepsEditingMode>
     readonly activeLabels: FunctionKeyLabel<any>[][]
     readonly userInputDigits: Uint8Array
     readonly displayInputNumber: ObservableValue<number> = new ObservableValueImpl<number>(0)
@@ -82,7 +82,7 @@ export class UIContext implements Terminable {
             .map((element: Element, keyIndex: number) => new Key(element as HTMLButtonElement, 'function', keyIndex)))
 
         this.instrumentMode = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
-        this.patternEditMode = new ObservableValueImpl<PatternEditingMode>(PatternEditingMode.StepEditing)
+        this.stepsEditMode = new ObservableValueImpl<StepsEditingMode>(StepsEditingMode.Step)
         this.activeLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
         this.userInputDigits = new Uint8Array(3)
 
@@ -183,7 +183,7 @@ export class UIContext implements Terminable {
     }
 
     maySwitchPatternEditMode(label: FunctionKeyLabel<any>): boolean {
-        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternEditMode, index => this.patternEditMode.set(index))
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternEditMode, index => this.stepsEditMode.set(index))
     }
 
     mayToggle(label: FunctionKeyLabel<any>,
@@ -287,7 +287,7 @@ export class UIContext implements Terminable {
     }
 
     watchPatternEditKeys(): Terminable {
-        return this.patternEditMode.addObserver((patternEditMode: PatternEditingMode) => {
+        return this.stepsEditMode.addObserver((patternEditMode: StepsEditingMode) => {
             this.functionKeys.activate(index => index === patternEditMode
                 ? KeyState.On
                 : KeyState.Off, ZeroBasedIndices.PatternEditModes)

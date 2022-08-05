@@ -1,53 +1,37 @@
-import { ObservableValueImpl } from "../../lib/common.js";
-import { PatternEditingMode } from "../keys.js";
+import { StepsEditingMode as StepsEditingMode } from "../keys.js";
 import { Mode } from "../mode.js";
+import { ClearStepsInput } from './pattern-write/clear-steps.js';
 import { InstrumentSelectInput } from "./pattern-write/instrument-select.js";
 import { LastStepInput } from "./pattern-write/last-step.js";
 import { SelectPatternMode } from "./pattern-write/select-pattern.js";
 import { ShuffleFlamInput } from "./pattern-write/shuffle-flam.js";
 import { StepsMode } from "./pattern-write/steps.js";
 import { TapInputMode } from "./pattern-write/tap.js";
-export var WhileStepEdit;
-(function (WhileStepEdit) {
-    WhileStepEdit[WhileStepEdit["Off"] = 0] = "Off";
-    WhileStepEdit[WhileStepEdit["LastStep"] = 1] = "LastStep";
-    WhileStepEdit[WhileStepEdit["ShuffleFlam"] = 2] = "ShuffleFlam";
-    WhileStepEdit[WhileStepEdit["InstrumentSelect"] = 3] = "InstrumentSelect";
-})(WhileStepEdit || (WhileStepEdit = {}));
+export var PatternEditing;
+(function (PatternEditing) {
+    PatternEditing[PatternEditing["Select"] = 0] = "Select";
+    PatternEditing[PatternEditing["Clear"] = 1] = "Clear";
+})(PatternEditing || (PatternEditing = {}));
 export default class extends Mode {
     constructor(context) {
         super(context);
-        this.quickEdit = new ObservableValueImpl(WhileStepEdit.Off);
-        this.back = () => this.quickEdit.set(WhileStepEdit.Off);
+        this.backToStepMode = () => this.inputMode = new StepsMode(this.context, this);
         this.context.updatePatternGroupKeys(this.context.memoryState().patternGroupIndex.get(), true);
-        this.inputMode = new Idle(context);
+        this.inputMode = new class extends Mode {
+            name() { return ''; }
+        }(context);
         const updateInputMode = () => {
             this.inputMode.terminate();
             if (this.context.isPlaying()) {
-                const editing = this.quickEdit.get();
-                if (editing === WhileStepEdit.Off) {
-                    const patternEditMode = this.context.patternEditMode.get();
-                    if (patternEditMode === PatternEditingMode.StepEditing) {
-                        this.inputMode = new StepsMode(context, this.quickEdit);
-                    }
-                    else if (patternEditMode === PatternEditingMode.TapInput) {
-                        this.inputMode = new TapInputMode(context, this.quickEdit);
-                    }
-                    else {
-                        throw new Error(`Unknown PatternInputMode(${patternEditMode})`);
-                    }
+                const patternEditMode = this.context.stepsEditMode.get();
+                if (patternEditMode === StepsEditingMode.Step) {
+                    this.inputMode = new StepsMode(context, this);
                 }
-                else if (editing === WhileStepEdit.LastStep) {
-                    this.inputMode = new LastStepInput(context, this.back);
-                }
-                else if (editing === WhileStepEdit.ShuffleFlam) {
-                    this.inputMode = new ShuffleFlamInput(context, this.back);
-                }
-                else if (editing === WhileStepEdit.InstrumentSelect) {
-                    this.inputMode = new InstrumentSelectInput(context, this.back);
+                else if (patternEditMode === StepsEditingMode.Tap) {
+                    this.inputMode = new TapInputMode(context);
                 }
                 else {
-                    throw new Error(`Unknown TransientEditing(${WhileStepEdit[editing]})`);
+                    throw new Error(`Unknown PatternInputMode(${patternEditMode})`);
                 }
             }
             else {
@@ -56,9 +40,8 @@ export default class extends Mode {
             console.debug(`mode: ${this.context.modeName()}`);
         };
         updateInputMode();
-        this.with(this.quickEdit.addObserver(updateInputMode, false));
         this.with(this.context.machine.transport.addObserver(updateInputMode, false));
-        this.with(this.context.patternEditMode.addObserver(updateInputMode));
+        this.with(this.context.stepsEditMode.addObserver(updateInputMode));
         this.with(this.context.watchPatternEditKeys());
         this.with({
             terminate: () => {
@@ -66,6 +49,26 @@ export default class extends Mode {
                 this.context.clearPatternEditKeys();
             }
         });
+    }
+    editLastStep() {
+        console.assert(this.context.isPlaying());
+        this.inputMode.terminate();
+        this.inputMode = new LastStepInput(this.context, this.backToStepMode);
+    }
+    editShuffleFlam() {
+        console.assert(this.context.isPlaying());
+        this.inputMode.terminate();
+        this.inputMode = new ShuffleFlamInput(this.context, this.backToStepMode);
+    }
+    clearSteps() {
+        console.assert(this.context.isPlaying());
+        this.inputMode.terminate();
+        this.inputMode = new ClearStepsInput(this.context, this.backToStepMode);
+    }
+    selectInstrument() {
+        console.assert(this.context.isPlaying());
+        this.inputMode.terminate();
+        this.inputMode = new InstrumentSelectInput(this.context, this.backToStepMode);
     }
     onFunctionKeyPress(label) {
         return this.inputMode.onFunctionKeyPress(label);
@@ -78,11 +81,6 @@ export default class extends Mode {
     }
     name() {
         return `Pattern Write (${this.inputMode.name()})`;
-    }
-}
-class Idle extends Mode {
-    name() {
-        return 'Idle';
     }
 }
 //# sourceMappingURL=pattern-write.js.map

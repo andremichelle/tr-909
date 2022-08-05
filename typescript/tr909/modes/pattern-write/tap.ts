@@ -5,13 +5,12 @@ import { UIContext } from "../../context.js"
 import { FunctionKeyLabel, MainKeyIndex } from "../../keys.js"
 import { Mode, complete } from "../../mode.js"
 import { Utils, InstrumentMode } from "../../utils.js"
-import { WhileStepEdit } from "../pattern-write.js"
 
 export class TapInputMode extends Mode {
     private clearPressed: boolean = false
     private clearStepSubscription: Terminable = TerminableVoid
 
-    constructor(context: UIContext, readonly transientEdit: ObservableValue<WhileStepEdit>) {
+    constructor(context: UIContext) {
         super(context)
 
         this.context.resetMainKeys()
@@ -38,7 +37,6 @@ export class TapInputMode extends Mode {
             this.clearStepSubscription = this.context.machine.processorStepIndex.addObserver(stepIndex => {
                 console.log(this.context.getConcurrentMainKeys())
                 const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.getConcurrentMainKeys())
-                // console.log(stepIndex,instrumentMode)
                 if (instrumentMode !== InstrumentMode.None && instrumentMode !== InstrumentMode.TotalAccent) {
                     const pattern = this.context.memoryState().activePattern()
                     Utils.clearPatternStep(pattern, instrumentMode, stepIndex)

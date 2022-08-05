@@ -4,9 +4,8 @@ import { FunctionKeyLabel, MainKeyIndex } from "../../keys.js";
 import { Mode } from "../../mode.js";
 import { Utils, InstrumentMode } from "../../utils.js";
 export class TapInputMode extends Mode {
-    constructor(context, transientEdit) {
+    constructor(context) {
         super(context);
-        this.transientEdit = transientEdit;
         this.clearPressed = false;
         this.clearStepSubscription = TerminableVoid;
         this.context.resetMainKeys();

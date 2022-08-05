@@ -3,7 +3,7 @@ import { PlayMode } from "../audio/tr909/state.js";
 import { ArrayUtils, elseIfUndefined, Events, ifDefined, ObservableValueImpl, Options, TerminableVoid, Terminator } from "../lib/common.js";
 import { HTML, SVG } from "../lib/dom.js";
 import { Display, DisplayObservableValueProvider } from "./display.js";
-import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, PatternEditingMode, ZeroBasedIndices } from "./keys.js";
+import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, StepsEditingMode, ZeroBasedIndices } from "./keys.js";
 import { Knob } from "./knobs.js";
 import PatternPlayMode from "./modes/pattern-play.js";
 import PatternWriteMode from "./modes/pattern-write.js";
@@ -27,7 +27,7 @@ export class UIContext {
         this.functionKeys = new KeyGroup(HTML.queryAll('[data-button=function-key]')
             .map((element, keyIndex) => new Key(element, 'function', keyIndex)));
         this.instrumentMode = new ObservableValueImpl(InstrumentMode.Bassdrum);
-        this.patternEditMode = new ObservableValueImpl(PatternEditingMode.StepEditing);
+        this.stepsEditMode = new ObservableValueImpl(StepsEditingMode.Step);
         this.activeLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => []);
         this.userInputDigits = new Uint8Array(3);
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo);
@@ -102,7 +102,7 @@ export class UIContext {
         return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternPlay, index => this.machine.memory.state.patternGroupIndex.set(index));
     }
     maySwitchPatternEditMode(label) {
-        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternEditMode, index => this.patternEditMode.set(index));
+        return UIContext.mayExecOnIndexedChoice(label, FunctionKeyLabel.PatternEditMode, index => this.stepsEditMode.set(index));
     }
     mayToggle(label, compare, value) {
         if (label === compare) {
@@ -192,7 +192,7 @@ export class UIContext {
             ? KeyState.On : KeyState.Off, ZeroBasedIndices.BankGroupKeys);
     }
     watchPatternEditKeys() {
-        return this.patternEditMode.addObserver((patternEditMode) => {
+        return this.stepsEditMode.addObserver((patternEditMode) => {
             this.functionKeys.activate(index => index === patternEditMode
                 ? KeyState.On
                 : KeyState.Off, ZeroBasedIndices.PatternEditModes);

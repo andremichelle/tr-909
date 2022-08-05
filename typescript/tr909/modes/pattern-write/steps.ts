@@ -1,19 +1,24 @@
-import { ObservableValue, Terminable, TerminableVoid } from "../../../lib/common.js"
 import { UIContext } from "../../context.js"
 import { FunctionKeyLabel, MainKeyIndex } from "../../keys.js"
 import { complete, Mode } from "../../mode.js"
 import { Utils } from "../../utils.js"
-import { WhileStepEdit } from "../pattern-write.js"
+
+export interface StepModeEditor {
+    editLastStep(): void
+
+    editShuffleFlam(): void
+
+    clearSteps(): void
+
+    selectInstrument(): void
+}
 
 export class StepsMode extends Mode {
-    private clearSubscription: Terminable = TerminableVoid
-
-    constructor(context: UIContext, readonly editing: ObservableValue<WhileStepEdit>) {
+    constructor(context: UIContext, private readonly editor: StepModeEditor) {
         super(context)
 
         this.with(this.context.watchPatternStepsKeys())
         this.with(this.context.startStepRunningAnimation())
-        this.with({ terminate: () => this.clearSubscription.terminate() })
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
@@ -21,7 +26,7 @@ export class StepsMode extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.LastStep) {
-            this.editing.set(WhileStepEdit.LastStep)
+            this.editor.editLastStep()
             return false
         }
         if (label === FunctionKeyLabel.Scale) {
@@ -29,29 +34,18 @@ export class StepsMode extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.ShuffleFlam) {
-            this.editing.set(WhileStepEdit.ShuffleFlam)
+            this.editor.editShuffleFlam()
             return false
         }
         if (label === FunctionKeyLabel.InstrumentSelect) {
-            this.editing.set(WhileStepEdit.InstrumentSelect)
+            this.editor.selectInstrument()
             return false
         }
         if (label === FunctionKeyLabel.Clear) {
-            this.clearSubscription = this.context.machine.processorStepIndex
-                .addObserver(stepIndex => {
-                    const instrumentMode = this.context.instrumentMode.get()
-                    const pattern = this.context.memoryState().activePattern()
-                    Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
-                }, true)
+            this.editor.clearSteps()
             return true
         }
         return true
-    }
-
-    onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
-        if (label === FunctionKeyLabel.Clear) {
-            this.clearSubscription.terminate()
-        }
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): complete {
