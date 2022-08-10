@@ -1,4 +1,4 @@
-import { Terminator } from "../lib/common.js";
+import { ObservableValueImpl, TerminableVoid, Terminator } from "../lib/common.js";
 var Segment;
 (function (Segment) {
     Segment[Segment["TT"] = 1] = "TT";
@@ -123,6 +123,54 @@ export class Display {
                 }
             });
         }
+    }
+}
+export class DigitInput {
+    constructor(display) {
+        this.display = display;
+        this.isUserInputting = false;
+        this.userInputSubscription = TerminableVoid;
+        this.digits = new Uint8Array(3);
+        this.value = new ObservableValueImpl(0);
+        this.value.addObserver((integer) => {
+            this.digits[0] = Math.floor(integer / 100) % 10;
+            this.digits[1] = Math.floor(integer / 10) % 10;
+            this.digits[2] = integer % 10;
+        }, false);
+        this.userInputDisplayProvider = new DisplayObservableValueProvider(this.value);
+    }
+    start() {
+        if (!this.isUserInputting) {
+            console.debug('start', this);
+            this.isUserInputting = true;
+            this.digits.fill(0);
+            this.userInputSubscription = this.display.pushProvider(this.userInputDisplayProvider);
+        }
+    }
+    stop() {
+        if (this.isUserInputting) {
+            console.debug('stop', this);
+            this.isUserInputting = false;
+            this.userInputSubscription.terminate();
+            this.userInputSubscription = TerminableVoid;
+        }
+    }
+    push(digit) {
+        this.digits[0] = this.digits[1];
+        this.digits[1] = this.digits[2];
+        this.digits[2] = digit;
+        this.value.set(this.digits[0] * 100 +
+            this.digits[1] * 10 +
+            this.digits[2]);
+    }
+    setValue(value) {
+        this.value.set(value);
+    }
+    getValue() {
+        return this.value.get();
+    }
+    terminate() {
+        this.value.terminate();
     }
 }
 //# sourceMappingURL=display.js.map

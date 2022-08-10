@@ -1,4 +1,4 @@
-import { Observable, ObservableValue, Observer, Terminable, Terminator } from "../lib/common.js"
+import { Observable, ObservableValue, ObservableValueImpl, Observer, Terminable, TerminableVoid, Terminator } from "../lib/common.js"
 
 enum Segment {
     TT = 1 << 0, TR = 1 << 1, BR = 1 << 2, BB = 1 << 3, BL = 1 << 4, TL = 1 << 5, CR = 1 << 6
@@ -139,5 +139,65 @@ export class Display implements Terminable {
                     }
                 })
         }
+    }
+}
+
+export class DigitInput implements Terminable {
+    private readonly digits: Uint8Array
+    private readonly value: ObservableValue<number>
+    private readonly userInputDisplayProvider: DisplayObservableValueProvider
+
+    private isUserInputting: boolean = false
+    private userInputSubscription: Terminable = TerminableVoid
+
+    constructor(private readonly display: Display) {
+        this.digits = new Uint8Array(3)
+        this.value = new ObservableValueImpl<number>(0)
+        this.value.addObserver((integer: number) => {
+            this.digits[0] = Math.floor(integer / 100) % 10
+            this.digits[1] = Math.floor(integer / 10) % 10
+            this.digits[2] = integer % 10
+        }, false)
+        this.userInputDisplayProvider = new DisplayObservableValueProvider(this.value)
+    }
+
+    start() {
+        if (!this.isUserInputting) {
+            console.debug('start', this)
+            this.isUserInputting = true
+            this.digits.fill(0)
+            this.userInputSubscription = this.display.pushProvider(this.userInputDisplayProvider)
+        }
+    }
+
+    stop(): void {
+        if (this.isUserInputting) {
+            console.debug('stop', this)
+            this.isUserInputting = false
+            this.userInputSubscription.terminate()
+            this.userInputSubscription = TerminableVoid
+        }
+    }
+
+    push(digit: number): void {
+        this.digits[0] = this.digits[1]
+        this.digits[1] = this.digits[2]
+        this.digits[2] = digit
+        this.value.set(
+            this.digits[0] * 100 +
+            this.digits[1] * 10 +
+            this.digits[2])
+    }
+
+    setValue(value: number): void {
+        this.value.set(value)
+    }
+
+    getValue(): number {
+        return this.value.get()
+    }
+
+    terminate(): void {
+        this.value.terminate()
     }
 }

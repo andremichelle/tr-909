@@ -22,7 +22,7 @@ import {
     Terminator
 } from "../lib/common.js"
 import { HTML, SVG } from "../lib/dom.js"
-import { Display, DisplayObservableValueProvider } from "./display.js"
+import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js"
 import {
     FunctionKeyboardShortcuts,
     FunctionKeyIndex,
@@ -42,17 +42,13 @@ import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
 import { InstrumentMode, Utils } from "./utils.js"
 
-class DigitInput {
-
-}
-
 export class UIContext implements Terminable {
     private readonly terminator = new Terminator()
 
     private readonly tempoDisplayProvider: DisplayObservableValueProvider
-    private readonly userInputDisplayProvider: DisplayObservableValueProvider
 
     readonly display: Display
+    readonly digitInput: DigitInput
     readonly mainKeys: KeyGroup<MainKeyIndex>
     readonly functionKeys: KeyGroup<FunctionKeyIndex>
 
@@ -60,8 +56,7 @@ export class UIContext implements Terminable {
     readonly stepsEditMode: ObservableValueImpl<StepsEditingMode>
     readonly activeMainLabels: MainKeyLabel<any>[][]
     readonly activeFunctionLabels: FunctionKeyLabel<any>[][]
-    readonly userInputDigits: Uint8Array
-    readonly displayInputNumber: ObservableValue<number> = new ObservableValueImpl<number>(0)
+
 
     // readonly multiTapsEmulated: Map<Key, Option<Finger>> = new Map<Key, Option<Finger>>()
 
@@ -69,11 +64,9 @@ export class UIContext implements Terminable {
     // readonly pressedFunctionKeys: Set<FunctionKeyLabel<any>> = new Set<FunctionKeyLabel<any>>()
 
     mode: NonNullable<Mode>
-    isUserInputting: boolean = false
     isShiftKeyPressed: boolean = false
 
     private tempoDisplaySubscription: Terminable = TerminableVoid
-    private userInputSubscription: Terminable = TerminableVoid
 
     constructor(readonly machine: Machine,
         readonly parentNode: HTMLElement) {
@@ -89,15 +82,9 @@ export class UIContext implements Terminable {
         this.stepsEditMode = new ObservableValueImpl<StepsEditingMode>(StepsEditingMode.Step)
         this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => [])
         this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
-        this.userInputDigits = new Uint8Array(3)
 
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo)
-        this.userInputDisplayProvider = new DisplayObservableValueProvider(this.displayInputNumber)
-        this.terminator.with(this.displayInputNumber.addObserver((integer: number) => {
-            this.userInputDigits[0] = Math.floor(integer / 100) % 10
-            this.userInputDigits[1] = Math.floor(integer / 10) % 10
-            this.userInputDigits[2] = integer % 10
-        }, false))
+        this.digitInput = this.terminator.with(new DigitInput(this.display))
 
         this.mode = new TrackPlayMode(this)
 
@@ -365,24 +352,6 @@ export class UIContext implements Terminable {
         return new Set<MainKeyIndex>() // TODO
     }
 
-    startUserNumberInput() {
-        if (!this.isUserInputting) {
-            console.debug('startUserNumberInput')
-            this.isUserInputting = true
-            this.userInputDigits.fill(0)
-            this.userInputSubscription = this.display.pushProvider(this.userInputDisplayProvider)
-        }
-    }
-
-    stopUserNumberInput(): void {
-        if (this.isUserInputting) {
-            console.debug('stopUserNumberInput')
-            this.isUserInputting = false
-            this.userInputSubscription.terminate()
-            this.userInputSubscription = TerminableVoid
-        }
-    }
-
     terminate(): void {
         this.terminator.terminate()
     }
@@ -448,7 +417,7 @@ export class UIContext implements Terminable {
     private processFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
         if (label === FunctionKeyLabel.Shift) {
             this.isShiftKeyPressed = false
-            this.stopUserNumberInput()
+            this.digitInput.stop()
         } else if (label === FunctionKeyLabel.Tempo) {
             this.tempoDisplaySubscription.terminate()
             this.tempoDisplaySubscription = TerminableVoid
@@ -469,20 +438,14 @@ export class UIContext implements Terminable {
     private processMainKeyPress(label: MainKeyLabel<any>): complete {
         if (!this.isPlaying()) {
             if (label.isDigit()) {
-                this.startUserNumberInput()
-                this.userInputDigits[0] = this.userInputDigits[1]
-                this.userInputDigits[1] = this.userInputDigits[2]
-                this.userInputDigits[2] = label.toDigit()
-                this.displayInputNumber.set(
-                    this.userInputDigits[0] * 100 +
-                    this.userInputDigits[1] * 10 +
-                    this.userInputDigits[2])
+                this.digitInput.start()
+                this.digitInput.push(label.toDigit())
                 return true
             } else if (label.isEnter()) {
-                const number = this.displayInputNumber.get()
+                const number = this.digitInput.getValue()
                 console.debug(`setMainKeyValue(${number})`)
                 this.mode.setMainKeyValue(number)
-                this.stopUserNumberInput()
+                this.digitInput.stop()
                 return true
             }
         }

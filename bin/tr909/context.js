@@ -2,7 +2,7 @@ import { secondsToBars } from "../audio/common.js";
 import { PlayMode } from "../audio/tr909/state.js";
 import { ArrayUtils, Events, ifDefined, ObservableValueImpl, TerminableVoid, Terminator } from "../lib/common.js";
 import { HTML, SVG } from "../lib/dom.js";
-import { Display, DisplayObservableValueProvider } from "./display.js";
+import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js";
 import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, MainKeyLabel, ZeroBasedIndices } from "./keys.js";
 import { Knob } from "./knobs.js";
 import { StepsEditingMode } from "./mode.js";
@@ -11,18 +11,13 @@ import PatternWriteMode from "./modes/pattern-write.js";
 import TrackPlayMode from "./modes/track-play.js";
 import TrackWriteMode from "./modes/track-write.js";
 import { InstrumentMode, Utils } from "./utils.js";
-class DigitInput {
-}
 export class UIContext {
     constructor(machine, parentNode) {
         this.machine = machine;
         this.parentNode = parentNode;
         this.terminator = new Terminator();
-        this.displayInputNumber = new ObservableValueImpl(0);
-        this.isUserInputting = false;
         this.isShiftKeyPressed = false;
         this.tempoDisplaySubscription = TerminableVoid;
-        this.userInputSubscription = TerminableVoid;
         this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode));
         this.mainKeys = new KeyGroup([...Array.from(HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
             HTML.query('[data-control=main-key][data-parameter=total-accent]')]
@@ -33,14 +28,8 @@ export class UIContext {
         this.stepsEditMode = new ObservableValueImpl(StepsEditingMode.Step);
         this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => []);
         this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => []);
-        this.userInputDigits = new Uint8Array(3);
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo);
-        this.userInputDisplayProvider = new DisplayObservableValueProvider(this.displayInputNumber);
-        this.terminator.with(this.displayInputNumber.addObserver((integer) => {
-            this.userInputDigits[0] = Math.floor(integer / 100) % 10;
-            this.userInputDigits[1] = Math.floor(integer / 10) % 10;
-            this.userInputDigits[2] = integer % 10;
-        }, false));
+        this.digitInput = this.terminator.with(new DigitInput(this.display));
         this.mode = new TrackPlayMode(this);
         this.installKeys();
         this.installKeyboard();
@@ -262,22 +251,6 @@ export class UIContext {
     getConcurrentMainKeys() {
         return new Set();
     }
-    startUserNumberInput() {
-        if (!this.isUserInputting) {
-            console.debug('startUserNumberInput');
-            this.isUserInputting = true;
-            this.userInputDigits.fill(0);
-            this.userInputSubscription = this.display.pushProvider(this.userInputDisplayProvider);
-        }
-    }
-    stopUserNumberInput() {
-        if (this.isUserInputting) {
-            console.debug('stopUserNumberInput');
-            this.isUserInputting = false;
-            this.userInputSubscription.terminate();
-            this.userInputSubscription = TerminableVoid;
-        }
-    }
     terminate() {
         this.terminator.terminate();
     }
@@ -338,7 +311,7 @@ export class UIContext {
     processFunctionKeyRelease(label) {
         if (label === FunctionKeyLabel.Shift) {
             this.isShiftKeyPressed = false;
-            this.stopUserNumberInput();
+            this.digitInput.stop();
         }
         else if (label === FunctionKeyLabel.Tempo) {
             this.tempoDisplaySubscription.terminate();
@@ -359,20 +332,15 @@ export class UIContext {
     processMainKeyPress(label) {
         if (!this.isPlaying()) {
             if (label.isDigit()) {
-                this.startUserNumberInput();
-                this.userInputDigits[0] = this.userInputDigits[1];
-                this.userInputDigits[1] = this.userInputDigits[2];
-                this.userInputDigits[2] = label.toDigit();
-                this.displayInputNumber.set(this.userInputDigits[0] * 100 +
-                    this.userInputDigits[1] * 10 +
-                    this.userInputDigits[2]);
+                this.digitInput.start();
+                this.digitInput.push(label.toDigit());
                 return true;
             }
             else if (label.isEnter()) {
-                const number = this.displayInputNumber.get();
+                const number = this.digitInput.getValue();
                 console.debug(`setMainKeyValue(${number})`);
                 this.mode.setMainKeyValue(number);
-                this.stopUserNumberInput();
+                this.digitInput.stop();
                 return true;
             }
         }

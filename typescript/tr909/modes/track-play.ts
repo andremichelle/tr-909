@@ -40,8 +40,8 @@ export default class extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.LastMeasure) {
-            this.context.startUserNumberInput()
-            this.context.displayInputNumber.set(this.context.memoryState().activeTrack().size())
+            this.context.digitInput.start()
+            this.context.digitInput.setValue(this.context.memoryState().activeTrack().size())
             return true
         }
         return true
