@@ -36,20 +36,13 @@ const showProgress = (() => {
     const main = HTML.query('main');
     const parentNode = HTML.query('div.tr-909');
     const wrapper = HTML.query('div.wrapper');
-    const debugZoom = HTML.query('[data-output=zoom]');
-    const debugMode = HTML.query('[data-output=mode]');
-    const debugTransporting = HTML.query('[data-output=transporting]');
-    const debugInstrument = HTML.query('[data-output=instrument]');
-    const debugShiftMode = HTML.query('[data-output=is-shift-mode]');
-    const debugNumberOfKeys = HTML.query('[data-output=number-of-keys]');
     document.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
     document.addEventListener('dblclick', (event) => event.preventDefault(), { passive: false });
     document.addEventListener('contextmenu', event => event.preventDefault());
+    const size = { width: 1226 + 64, height: 728 };
     const resize = () => {
         document.body.style.height = `${window.innerHeight}px`;
-        const padding = 32;
-        const scale = Math.min(wrapper.clientWidth / (1226 + padding), wrapper.clientHeight / (728 + padding));
-        debugZoom.textContent = `${Math.round(scale * 100)}%`;
+        const scale = Math.min(wrapper.clientWidth / size.width, wrapper.clientHeight / size.height);
         parentNode.style.setProperty("--scale", `${scale}`);
     };
     window.addEventListener("resize", resize);
@@ -64,7 +57,7 @@ const showProgress = (() => {
     const meter = new StereoMeterWorklet(context);
     machine.master.connect(meter).connect(context.destination);
     meter.domElement.classList.add('meter');
-    HTML.query('div.top-center').appendChild(meter.domElement);
+    main.appendChild(meter.domElement);
     if (location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1')) {
         console.log("INSTALLED TEST DATA");
         const memory = machine.memory;
@@ -79,14 +72,5 @@ const showProgress = (() => {
         track.writeLocation({ patternGroupIndex: 0, patternIndex: 0 });
         track.writeLocation({ patternGroupIndex: 0, patternIndex: 1 });
     }
-    const run = () => {
-        debugMode.textContent = interfaceContext.modeName();
-        debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused';
-        debugInstrument.textContent = interfaceContext.instrumentMode.get().name;
-        debugShiftMode.textContent = `${interfaceContext.isShiftKeyPressed}`;
-        debugNumberOfKeys.textContent = `${NaN}`;
-        requestAnimationFrame(run);
-    };
-    requestAnimationFrame(run);
 }))();
 //# sourceMappingURL=main.js.map

@@ -17,22 +17,37 @@ export enum FunctionKeyIndex {
     ShuffleFlam, Clear, InstrumentSelect, Shift
 }
 
-export const FunctionKeyboardShortcuts = new Map<string, FunctionKeyIndex>([
+export const MainKeyShortcuts = new Map<string, MainKeyIndex>([
+    ['Digit1', MainKeyIndex.Step1],
+    ['Digit2', MainKeyIndex.Step2],
+    ['Digit3', MainKeyIndex.Step3],
+    ['Digit4', MainKeyIndex.Step4],
+    ['Digit5', MainKeyIndex.Step5],
+    ['Digit6', MainKeyIndex.Step6],
+    ['Digit7', MainKeyIndex.Step7],
+    ['Digit8', MainKeyIndex.Step8],
+    ['Digit9', MainKeyIndex.Step9],
+    ['Digit0', MainKeyIndex.Step10],
+    ['KeyQ', MainKeyIndex.Step11],
+    ['KeyW', MainKeyIndex.Step12],
+    ['KeyE', MainKeyIndex.Step13],
+    ['KeyR', MainKeyIndex.Step14],
+    ['KeyT', MainKeyIndex.Step15],
+    ['KeyY', MainKeyIndex.Step16],
+    ['Enter', MainKeyIndex.CartridgeEnterTotalAccent]
+])
+
+export const FunctionKeyShortcuts = new Map<string, FunctionKeyIndex>([
     ['ShiftLeft', FunctionKeyIndex.Shift],
-    ['Digit1', FunctionKeyIndex.Track1],
-    ['Digit2', FunctionKeyIndex.Track2],
-    ['Digit3', FunctionKeyIndex.Track3],
-    ['Digit4', FunctionKeyIndex.Track4],
-    ['Digit5', FunctionKeyIndex.PatternGroup1],
-    ['Digit6', FunctionKeyIndex.PatternGroup2],
-    ['Digit7', FunctionKeyIndex.PatternGroup3],
-    ['Digit8', FunctionKeyIndex.EmptyExtInst],
-    ['KeyT', FunctionKeyIndex.TempoStep],
+    ['KeyU', FunctionKeyIndex.TempoStep],
+    ['KeyO', FunctionKeyIndex.Scale],
     ['KeyL', FunctionKeyIndex.LastStep],
     ['KeyS', FunctionKeyIndex.ShuffleFlam],
     ['KeyC', FunctionKeyIndex.Clear],
     ['KeyI', FunctionKeyIndex.InstrumentSelect],
 ])
+
+console.assert(!Array.from(FunctionKeyShortcuts.keys()).some(key => MainKeyShortcuts.has(key)))
 
 export class ZeroBasedIndices {
     static readonly BankGroupKeys = [

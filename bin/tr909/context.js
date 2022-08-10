@@ -2,8 +2,9 @@ import { secondsToBars } from "../audio/common.js";
 import { PlayMode } from "../audio/tr909/state.js";
 import { ArrayUtils, Events, ifDefined, ObservableValueImpl, TerminableVoid, Terminator } from "../lib/common.js";
 import { HTML, SVG } from "../lib/dom.js";
+import { Options } from './../lib/common.js';
 import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js";
-import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, MainKeyLabel, ZeroBasedIndices } from "./keys.js";
+import { FunctionKeyIndex, FunctionKeyLabel, FunctionKeyShortcuts, Key, KeyGroup, KeyState, MainKeyIndex, MainKeyLabel, MainKeyShortcuts, ZeroBasedIndices } from "./keys.js";
 import { Knob } from "./knobs.js";
 import { StepsEditingMode } from "./mode.js";
 import PatternPlayMode from "./modes/pattern-play.js";
@@ -16,8 +17,9 @@ export class UIContext {
         this.machine = machine;
         this.parentNode = parentNode;
         this.terminator = new Terminator();
+        this.concurrentMainKeys = new Set();
         this.isShiftKeyPressed = false;
-        this.tempoDisplaySubscription = TerminableVoid;
+        this.tempoProviderSubscription = TerminableVoid;
         this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode));
         this.mainKeys = new KeyGroup([...Array.from(HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
             HTML.query('[data-control=main-key][data-parameter=total-accent]')]
@@ -26,8 +28,8 @@ export class UIContext {
             .map((element, keyIndex) => new Key(element, 'function', keyIndex)));
         this.instrumentMode = new ObservableValueImpl(InstrumentMode.Bassdrum);
         this.stepsEditMode = new ObservableValueImpl(StepsEditingMode.Step);
-        this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => []);
-        this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => []);
+        this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => Options.None);
+        this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None);
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo);
         this.digitInput = this.terminator.with(new DigitInput(this.display));
         this.mode = new TrackPlayMode(this);
@@ -249,7 +251,7 @@ export class UIContext {
         this.machine.play(channelIndex, step);
     }
     getConcurrentMainKeys() {
-        return new Set();
+        return this.concurrentMainKeys;
     }
     terminate() {
         this.terminator.terminate();
@@ -278,15 +280,18 @@ export class UIContext {
             }));
             this.terminator.with(Events.bind(key.element, 'pointerup', () => {
                 key.setPressed(false);
+                this.onMainKeyRelease(keyIndex);
             }));
         });
     }
     onFunctionKeyPress(keyIndex) {
+        if (this.activeFunctionLabels[keyIndex].nonEmpty())
+            return true;
         const label = this.isShiftKeyPressed
             ? FunctionKeyLabel.ShiftKeys[keyIndex]
             : FunctionKeyLabel.NormalKeys[keyIndex];
         this.functionKeys.byIndex(keyIndex).setPressed(true);
-        this.activeFunctionLabels[keyIndex].push(label);
+        this.activeFunctionLabels[keyIndex] = Options.valueOf(label);
         return this.processFunctionKeyPress(label);
     }
     processFunctionKeyPress(label) {
@@ -295,7 +300,7 @@ export class UIContext {
             return true;
         }
         else if (label === FunctionKeyLabel.Tempo) {
-            this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider);
+            this.tempoProviderSubscription = this.display.pushProvider(this.tempoDisplayProvider);
             return true;
         }
         else {
@@ -303,10 +308,12 @@ export class UIContext {
         }
     }
     onFunctionKeyRelease(keyIndex) {
+        const label = this.activeFunctionLabels[keyIndex];
+        if (label.isEmpty())
+            return;
         this.functionKeys.byIndex(keyIndex).setPressed(false);
-        const labels = this.activeFunctionLabels[keyIndex];
-        labels.splice(0, labels.length)
-            .forEach((label) => this.processFunctionKeyRelease(label));
+        this.processFunctionKeyRelease(this.activeFunctionLabels[keyIndex].get());
+        this.activeFunctionLabels[keyIndex] = Options.None;
     }
     processFunctionKeyRelease(label) {
         if (label === FunctionKeyLabel.Shift) {
@@ -314,19 +321,22 @@ export class UIContext {
             this.digitInput.stop();
         }
         else if (label === FunctionKeyLabel.Tempo) {
-            this.tempoDisplaySubscription.terminate();
-            this.tempoDisplaySubscription = TerminableVoid;
+            this.tempoProviderSubscription.terminate();
+            this.tempoProviderSubscription = TerminableVoid;
         }
         else {
             this.mode.onFunctionKeyRelease(label);
         }
     }
     onMainKeyPress(keyIndex) {
+        if (this.activeMainLabels[keyIndex].nonEmpty())
+            return true;
         const label = this.isShiftKeyPressed
             ? MainKeyLabel.ShiftKeys[keyIndex]
             : MainKeyLabel.NormalKeys[keyIndex];
         this.mainKeys.byIndex(keyIndex).setPressed(true);
-        this.activeMainLabels[keyIndex].push(label);
+        this.activeMainLabels[keyIndex] = Options.valueOf(label);
+        this.concurrentMainKeys.add(label.keyIndex);
         return this.processMainKeyPress(label);
     }
     processMainKeyPress(label) {
@@ -346,21 +356,29 @@ export class UIContext {
         }
         return this.mode.onMainKeyPress(label.keyIndex);
     }
+    onMainKeyRelease(keyIndex) {
+        if (this.activeMainLabels[keyIndex].isEmpty())
+            return;
+        this.mainKeys.byIndex(keyIndex).setPressed(false);
+        this.activeMainLabels[keyIndex] = Options.None;
+        this.concurrentMainKeys.delete(keyIndex);
+    }
     installKeyboard() {
         this.terminator.with(Events.bind(window, 'keydown', (event) => {
-            if (!(event instanceof KeyboardEvent)) {
+            if (!(event instanceof KeyboardEvent) || event.repeat) {
                 return;
             }
-            if (event.repeat) {
-                return;
-            }
-            ifDefined(FunctionKeyboardShortcuts.get(event.code), (keyIndex) => this.onFunctionKeyPress(keyIndex));
+            const code = event.code;
+            ifDefined(MainKeyShortcuts.get(code), (keyIndex) => this.onMainKeyPress(keyIndex));
+            ifDefined(FunctionKeyShortcuts.get(event.code), (keyIndex) => this.onFunctionKeyPress(keyIndex));
         }));
         this.terminator.with(Events.bind(window, 'keyup', (event) => {
             if (!(event instanceof KeyboardEvent)) {
                 return;
             }
-            ifDefined(FunctionKeyboardShortcuts.get(event.code), (keyIndex) => this.onFunctionKeyRelease(keyIndex));
+            const code = event.code;
+            ifDefined(MainKeyShortcuts.get(code), (keyIndex) => this.onMainKeyRelease(keyIndex));
+            ifDefined(FunctionKeyShortcuts.get(event.code), (keyIndex) => this.onFunctionKeyRelease(keyIndex));
         }));
     }
     installKnobs() {

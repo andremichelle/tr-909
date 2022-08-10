@@ -22,17 +22,15 @@ import {
     Terminator
 } from "../lib/common.js"
 import { HTML, SVG } from "../lib/dom.js"
+import { Option, Options } from './../lib/common.js'
 import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js"
 import {
-    FunctionKeyboardShortcuts,
     FunctionKeyIndex,
-    FunctionKeyLabel,
-    Key,
+    FunctionKeyLabel, FunctionKeyShortcuts, Key,
     KeyGroup,
     KeyState,
     MainKeyIndex,
-    MainKeyLabel,
-    ZeroBasedIndices
+    MainKeyLabel, MainKeyShortcuts, ZeroBasedIndices
 } from "./keys.js"
 import { Knob } from "./knobs.js"
 import { complete, Mode, StepsEditingMode } from "./mode.js"
@@ -54,19 +52,16 @@ export class UIContext implements Terminable {
 
     readonly instrumentMode: ObservableValueImpl<InstrumentMode>
     readonly stepsEditMode: ObservableValueImpl<StepsEditingMode>
-    readonly activeMainLabels: MainKeyLabel<any>[][]
-    readonly activeFunctionLabels: FunctionKeyLabel<any>[][]
+    readonly activeMainLabels: Option<MainKeyLabel<any>>[]
+    readonly activeFunctionLabels: Option<FunctionKeyLabel<any>>[]
+    readonly concurrentMainKeys = new Set<MainKeyIndex>()
 
-
-    // readonly multiTapsEmulated: Map<Key, Option<Finger>> = new Map<Key, Option<Finger>>()
-
-    // readonly pressedMainKeys: Set<MainKeyLabel<any>> = new Set<MainKeyLabel<any>>()
-    // readonly pressedFunctionKeys: Set<FunctionKeyLabel<any>> = new Set<FunctionKeyLabel<any>>()
+    // TODO readonly multiTapsEmulated: Map<Key, Option<Finger>> = new Map<Key, Option<Finger>>()
 
     mode: NonNullable<Mode>
     isShiftKeyPressed: boolean = false
 
-    private tempoDisplaySubscription: Terminable = TerminableVoid
+    private tempoProviderSubscription: Terminable = TerminableVoid
 
     constructor(readonly machine: Machine,
         readonly parentNode: HTMLElement) {
@@ -80,8 +75,8 @@ export class UIContext implements Terminable {
 
         this.instrumentMode = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
         this.stepsEditMode = new ObservableValueImpl<StepsEditingMode>(StepsEditingMode.Step)
-        this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => [])
-        this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => [])
+        this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => Options.None)
+        this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None)
 
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo)
         this.digitInput = this.terminator.with(new DigitInput(this.display))
@@ -349,7 +344,7 @@ export class UIContext implements Terminable {
     }
 
     getConcurrentMainKeys(): Set<MainKeyIndex> {
-        return new Set<MainKeyIndex>() // TODO
+        return this.concurrentMainKeys
     }
 
     terminate(): void {
@@ -382,16 +377,18 @@ export class UIContext implements Terminable {
             }))
             this.terminator.with(Events.bind(key.element, 'pointerup', () => {
                 key.setPressed(false)
+                this.onMainKeyRelease(keyIndex)
             }))
         })
     }
 
     private onFunctionKeyPress(keyIndex: FunctionKeyIndex): complete {
+        if (this.activeFunctionLabels[keyIndex].nonEmpty()) return true
         const label = this.isShiftKeyPressed
             ? FunctionKeyLabel.ShiftKeys[keyIndex]
             : FunctionKeyLabel.NormalKeys[keyIndex]
         this.functionKeys.byIndex(keyIndex).setPressed(true)
-        this.activeFunctionLabels[keyIndex].push(label)
+        this.activeFunctionLabels[keyIndex] = Options.valueOf(label)
         return this.processFunctionKeyPress(label)
     }
 
@@ -400,7 +397,7 @@ export class UIContext implements Terminable {
             this.isShiftKeyPressed = true
             return true
         } else if (label === FunctionKeyLabel.Tempo) {
-            this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider)
+            this.tempoProviderSubscription = this.display.pushProvider(this.tempoDisplayProvider)
             return true
         } else {
             return this.mode.onFunctionKeyPress(label)
@@ -408,10 +405,11 @@ export class UIContext implements Terminable {
     }
 
     private onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
+        const label = this.activeFunctionLabels[keyIndex]
+        if (label.isEmpty()) return
         this.functionKeys.byIndex(keyIndex).setPressed(false)
-        const labels = this.activeFunctionLabels[keyIndex]
-        labels.splice(0, labels.length)
-            .forEach((label: FunctionKeyLabel<any>) => this.processFunctionKeyRelease(label))
+        this.processFunctionKeyRelease(this.activeFunctionLabels[keyIndex].get())
+        this.activeFunctionLabels[keyIndex] = Options.None
     }
 
     private processFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
@@ -419,19 +417,21 @@ export class UIContext implements Terminable {
             this.isShiftKeyPressed = false
             this.digitInput.stop()
         } else if (label === FunctionKeyLabel.Tempo) {
-            this.tempoDisplaySubscription.terminate()
-            this.tempoDisplaySubscription = TerminableVoid
+            this.tempoProviderSubscription.terminate()
+            this.tempoProviderSubscription = TerminableVoid
         } else {
             this.mode.onFunctionKeyRelease(label)
         }
     }
 
     private onMainKeyPress(keyIndex: MainKeyIndex): complete {
+        if (this.activeMainLabels[keyIndex].nonEmpty()) return true
         const label = this.isShiftKeyPressed
             ? MainKeyLabel.ShiftKeys[keyIndex]
             : MainKeyLabel.NormalKeys[keyIndex]
         this.mainKeys.byIndex(keyIndex).setPressed(true)
-        this.activeMainLabels[keyIndex].push(label)
+        this.activeMainLabels[keyIndex] = Options.valueOf(label)
+        this.concurrentMainKeys.add(label.keyIndex)
         return this.processMainKeyPress(label)
     }
 
@@ -452,23 +452,32 @@ export class UIContext implements Terminable {
         return this.mode.onMainKeyPress(label.keyIndex)
     }
 
+    private onMainKeyRelease(keyIndex: MainKeyIndex): void {
+        if (this.activeMainLabels[keyIndex].isEmpty()) return
+        this.mainKeys.byIndex(keyIndex).setPressed(false)
+        this.activeMainLabels[keyIndex] = Options.None
+        this.concurrentMainKeys.delete(keyIndex)
+    }
+
     private installKeyboard() {
         this.terminator.with(Events.bind(window, 'keydown', (event: Event) => {
-            if (!(event instanceof KeyboardEvent)) {
+            if (!(event instanceof KeyboardEvent) || event.repeat) {
                 return
             }
-            if (event.repeat) {
-                return
-            }
-
-            ifDefined(FunctionKeyboardShortcuts.get(event.code),
+            const code = event.code
+            ifDefined(MainKeyShortcuts.get(code),
+                (keyIndex: MainKeyIndex) => this.onMainKeyPress(keyIndex))
+            ifDefined(FunctionKeyShortcuts.get(event.code),
                 (keyIndex: FunctionKeyIndex) => this.onFunctionKeyPress(keyIndex))
         }))
         this.terminator.with(Events.bind(window, 'keyup', (event: Event) => {
             if (!(event instanceof KeyboardEvent)) {
                 return
             }
-            ifDefined(FunctionKeyboardShortcuts.get(event.code),
+            const code = event.code
+            ifDefined(MainKeyShortcuts.get(code),
+                (keyIndex: MainKeyIndex) => this.onMainKeyRelease(keyIndex))
+            ifDefined(FunctionKeyShortcuts.get(event.code),
                 (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
         }))
     }
