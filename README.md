@@ -18,7 +18,7 @@ Logo SVGs (Roland, TR-909 & Rhythm Composer) by [Isaac Cotec](https://subaqueous
 ### Disclaimer
 _**The use of any trade name or trademark is for identification and educational purposes only and does not imply any association with the trademark holder of their product brand.**_
 
-[OPEN (CHROME only)](https://andremichelle.github.io/tr-909/) | [Wiki](https://en.wikipedia.org/wiki/Roland_TR-909)
+[OPEN (CHROME only)](https://909.kitchen) | [Wiki](https://en.wikipedia.org/wiki/Roland_TR-909)
 ![alt screenshot](screenshot.jpg)
 
 ### Build
