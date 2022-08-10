@@ -507,6 +507,9 @@ div.two-columns fieldset.stepper > button:active {
   transform: translate(100%, 0);
 }
 
+button.switch.bright, button.trigger.bright {
+  filter: sepia(20%) brightness(125%);
+}
 button.switch, button.trigger {
   margin: 0;
   padding: 0;
@@ -517,13 +520,11 @@ button.switch, button.trigger {
           appearance: none;
   width: 48px;
   height: 48px;
+  border-radius: 1px;
   background: conic-gradient(at 24px 22px, #bebbb6 0deg 40deg, #a7a39d 50deg 132deg, #6d6862 138deg 222deg, #a7a39d 228deg 310deg, #bebbb6 320deg);
   position: absolute;
   box-shadow: 0 0 1px 2px rgba(0, 0, 0, 0.6) inset, 0 -1px 2px 0 rgba(255, 255, 255, 0.7), 0 2px 2px 0 rgba(0, 0, 0, 0.4);
   pointer-events: all;
-}
-button.switch.bright, button.trigger.bright {
-  filter: sepia(20%) brightness(125%);
 }
 button.switch:active, button.switch.active, button.trigger:active, button.trigger.active {
   box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.8) inset, 0 -1px 2px 0 rgba(255, 255, 255, 0.7), 0 2px 2px 0 rgba(0, 0, 0, 0.4);
