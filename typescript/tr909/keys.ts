@@ -18,6 +18,7 @@ export enum FunctionKeyIndex {
 }
 
 export const FunctionKeyboardShortcuts = new Map<string, FunctionKeyIndex>([
+    ['ShiftLeft', FunctionKeyIndex.Shift],
     ['Digit1', FunctionKeyIndex.Track1],
     ['Digit2', FunctionKeyIndex.Track2],
     ['Digit3', FunctionKeyIndex.Track3],
@@ -52,6 +53,93 @@ export class ZeroBasedIndices {
         MainKeyIndex.Step9, MainKeyIndex.Step10, MainKeyIndex.Step11, MainKeyIndex.Step12,
         MainKeyIndex.Step13, MainKeyIndex.Step14, MainKeyIndex.Step15, MainKeyIndex.Step16
     ] as const
+}
+
+export class MainKeyLabel<T> {
+    static readonly Step1 = MainKeyLabel.create(MainKeyIndex.Step1, 0, false)
+    static readonly Step2 = MainKeyLabel.create(MainKeyIndex.Step2, 1, false)
+    static readonly Step3 = MainKeyLabel.create(MainKeyIndex.Step3, 2, false)
+    static readonly Step4 = MainKeyLabel.create(MainKeyIndex.Step4, 3, false)
+    static readonly Step5 = MainKeyLabel.create(MainKeyIndex.Step5, 4, false)
+    static readonly Step6 = MainKeyLabel.create(MainKeyIndex.Step6, 5, false)
+    static readonly Step7 = MainKeyLabel.create(MainKeyIndex.Step7, 6, false)
+    static readonly Step8 = MainKeyLabel.create(MainKeyIndex.Step8, 7, false)
+    static readonly Step9 = MainKeyLabel.create(MainKeyIndex.Step9, 8, false)
+    static readonly Step10 = MainKeyLabel.create(MainKeyIndex.Step10, 9, false)
+    static readonly Step11 = MainKeyLabel.create(MainKeyIndex.Step11, 10, false)
+    static readonly Step12 = MainKeyLabel.create(MainKeyIndex.Step12, 11, false)
+    static readonly Step13 = MainKeyLabel.create(MainKeyIndex.Step13, 12, false)
+    static readonly Step14 = MainKeyLabel.create(MainKeyIndex.Step14, 13, false)
+    static readonly Step15 = MainKeyLabel.create(MainKeyIndex.Step15, 14, false)
+    static readonly Step16 = MainKeyLabel.create(MainKeyIndex.Step16, 15, false)
+    static readonly TotalAccent = MainKeyLabel.create(MainKeyIndex.CartridgeEnterTotalAccent, 'total-accent', false)
+
+    static readonly Digit1 = MainKeyLabel.create(MainKeyIndex.Step1, 1, true)
+    static readonly Digit2 = MainKeyLabel.create(MainKeyIndex.Step2, 2, true)
+    static readonly Digit3 = MainKeyLabel.create(MainKeyIndex.Step3, 3, true)
+    static readonly Digit4 = MainKeyLabel.create(MainKeyIndex.Step4, 4, true)
+    static readonly Digit5 = MainKeyLabel.create(MainKeyIndex.Step5, 5, true)
+    static readonly Digit6 = MainKeyLabel.create(MainKeyIndex.Step6, 6, true)
+    static readonly Digit7 = MainKeyLabel.create(MainKeyIndex.Step7, 7, true)
+    static readonly Digit8 = MainKeyLabel.create(MainKeyIndex.Step8, 8, true)
+    static readonly Digit9 = MainKeyLabel.create(MainKeyIndex.Step9, 9, true)
+    static readonly Digit0 = MainKeyLabel.create(MainKeyIndex.Step10, 0, true)
+    static readonly Copy = MainKeyLabel.create(MainKeyIndex.Step11, 'copy', true)
+    static readonly Insert = MainKeyLabel.create(MainKeyIndex.Step12, 'insert', true)
+    static readonly Delete = MainKeyLabel.create(MainKeyIndex.Step13, 'delete', true)
+    static readonly Save = MainKeyLabel.create(MainKeyIndex.Step14, 'save', true)
+    static readonly Verify = MainKeyLabel.create(MainKeyIndex.Step15, 'verify', true)
+    static readonly Load = MainKeyLabel.create(MainKeyIndex.Step16, 'load', true)
+    static readonly Enter = MainKeyLabel.create(MainKeyIndex.CartridgeEnterTotalAccent, 'enter', true)
+
+    static readonly NormalKeys: ReadonlyArray<MainKeyLabel<any>> = [
+        MainKeyLabel.Step1, MainKeyLabel.Step2, MainKeyLabel.Step3, MainKeyLabel.Step4,
+        MainKeyLabel.Step5, MainKeyLabel.Step6, MainKeyLabel.Step7, MainKeyLabel.Step8,
+        MainKeyLabel.Step9, MainKeyLabel.Step10, MainKeyLabel.Step11, MainKeyLabel.Step12,
+        MainKeyLabel.Step13, MainKeyLabel.Step14, MainKeyLabel.Step15, MainKeyLabel.Step16,
+        MainKeyLabel.TotalAccent
+    ]
+
+    static readonly ShiftKeys: ReadonlyArray<MainKeyLabel<any>> = [
+        MainKeyLabel.Digit1, MainKeyLabel.Digit2, MainKeyLabel.Digit3, MainKeyLabel.Digit4,
+        MainKeyLabel.Digit5, MainKeyLabel.Digit6, MainKeyLabel.Digit7, MainKeyLabel.Digit8,
+        MainKeyLabel.Digit9, MainKeyLabel.Digit0, MainKeyLabel.Copy, MainKeyLabel.Insert,
+        MainKeyLabel.Delete, MainKeyLabel.Save, MainKeyLabel.Verify, MainKeyLabel.Load,
+        MainKeyLabel.Enter
+    ]
+
+    private static create<T>(keyIndex: MainKeyIndex, value: T, shift: boolean): MainKeyLabel<T> {
+        return new MainKeyLabel<T>(keyIndex, value, shift)
+    }
+
+    private constructor(readonly keyIndex: MainKeyIndex, readonly value: T, readonly shift: boolean) {
+    }
+
+    isStepButton(): boolean {
+        return !this.shift && this.keyIndex <= MainKeyIndex.Step16
+    }
+
+    toStepIndex(): number {
+        console.assert(this.isStepButton())
+        return this.keyIndex
+    }
+
+    isTotalAccent(): boolean {
+        return !this.shift && this.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent
+    }
+
+    isDigit(): boolean {
+        return this.shift && this.keyIndex <= MainKeyIndex.Step10
+    }
+
+    toDigit(): number {
+        console.assert(this.isDigit())
+        return (this.keyIndex + 1) % 10
+    }
+
+    isEnter(): boolean {
+        return this.shift && this.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent
+    }
 }
 
 export class FunctionKeyLabel<T> {

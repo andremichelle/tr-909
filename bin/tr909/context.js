@@ -1,9 +1,9 @@
 import { secondsToBars } from "../audio/common.js";
 import { PlayMode } from "../audio/tr909/state.js";
-import { ArrayUtils, elseIfUndefined, Events, ifDefined, ObservableValueImpl, Options, TerminableVoid, Terminator } from "../lib/common.js";
+import { ArrayUtils, Events, ifDefined, ObservableValueImpl, TerminableVoid, Terminator } from "../lib/common.js";
 import { HTML, SVG } from "../lib/dom.js";
 import { Display, DisplayObservableValueProvider } from "./display.js";
-import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, ZeroBasedIndices } from "./keys.js";
+import { FunctionKeyboardShortcuts, FunctionKeyIndex, FunctionKeyLabel, Key, KeyGroup, KeyState, MainKeyIndex, MainKeyLabel, ZeroBasedIndices } from "./keys.js";
 import { Knob } from "./knobs.js";
 import { StepsEditingMode } from "./mode.js";
 import PatternPlayMode from "./modes/pattern-play.js";
@@ -11,14 +11,16 @@ import PatternWriteMode from "./modes/pattern-write.js";
 import TrackPlayMode from "./modes/track-play.js";
 import TrackWriteMode from "./modes/track-write.js";
 import { InstrumentMode, Utils } from "./utils.js";
+class DigitInput {
+}
 export class UIContext {
     constructor(machine, parentNode) {
         this.machine = machine;
         this.parentNode = parentNode;
         this.terminator = new Terminator();
         this.displayInputNumber = new ObservableValueImpl(0);
-        this.multiTapsEmulated = new Map();
         this.isUserInputting = false;
+        this.isShiftKeyPressed = false;
         this.tempoDisplaySubscription = TerminableVoid;
         this.userInputSubscription = TerminableVoid;
         this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode));
@@ -29,7 +31,8 @@ export class UIContext {
             .map((element, keyIndex) => new Key(element, 'function', keyIndex)));
         this.instrumentMode = new ObservableValueImpl(InstrumentMode.Bassdrum);
         this.stepsEditMode = new ObservableValueImpl(StepsEditingMode.Step);
-        this.activeLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => []);
+        this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => []);
+        this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => []);
         this.userInputDigits = new Uint8Array(3);
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo);
         this.userInputDisplayProvider = new DisplayObservableValueProvider(this.displayInputNumber);
@@ -249,18 +252,15 @@ export class UIContext {
         return terminator;
     }
     playInstrument(keyIndex) {
-        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent || this.isShiftKeyPressed())
+        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent || this.isShiftKeyPressed)
             return;
         const instrument = Utils.keyIndexToPlayInstrument(keyIndex, this.getConcurrentMainKeys());
         const channelIndex = instrument.channelIndex;
         const step = instrument.step;
         this.machine.play(channelIndex, step);
     }
-    isShiftKeyPressed() {
-        return this.multiTapsEmulated.has(this.functionKeys.byIndex(FunctionKeyIndex.Shift));
-    }
     getConcurrentMainKeys() {
-        return new Set([...this.multiTapsEmulated.keys()].filter(key => key.isMainKey()).map(key => key.keyIndex));
+        return new Set();
     }
     startUserNumberInput() {
         if (!this.isUserInputting) {
@@ -292,98 +292,91 @@ export class UIContext {
         this.functionKeys.forEach((key, keyIndex) => {
             this.terminator.with(Events.bind(key.element, 'pointerdown', (event) => {
                 key.setPointerCapture(event.pointerId);
-                if (event.shiftKey && !this.multiTapsEmulated.has(key)) {
-                    const complete = keyIndex !== FunctionKeyIndex.Shift && this.onFunctionKeyPress(keyIndex);
-                    console.debug(`onFunctionKeyPress(${keyIndex} => complete: ${complete}) [emulated]`);
-                    if (!complete) {
-                        this.multiTapsEmulated.set(key, Options.valueOf(new Finger(this.parentNode).align(key)));
-                    }
-                }
-                else {
-                    const complete = this.onFunctionKeyPress(keyIndex);
-                    console.debug(`onFunctionKeyPress(${keyIndex} => complete: ${complete})`);
-                }
+                const complete = this.onFunctionKeyPress(keyIndex);
             }));
             this.terminator.with(Events.bind(key.element, 'pointerup', () => {
-                if (!this.multiTapsEmulated.has(key)) {
-                    this.onFunctionKeyRelease(keyIndex);
-                }
+                this.onFunctionKeyRelease(keyIndex);
             }));
         });
         this.mainKeys.forEach((key, keyIndex) => {
             this.terminator.with(Events.bind(key.element, 'pointerdown', (event) => {
                 key.setPointerCapture(event.pointerId);
-                key.setPressed(true);
-                if (this.isShiftKeyPressed() && !this.isPlaying()) {
-                    if (keyIndex <= MainKeyIndex.Step10) {
-                        this.startUserNumberInput();
-                        this.userInputDigits[0] = this.userInputDigits[1];
-                        this.userInputDigits[1] = this.userInputDigits[2];
-                        this.userInputDigits[2] = (keyIndex + 1) % 10;
-                        this.displayInputNumber.set(this.userInputDigits[0] * 100 +
-                            this.userInputDigits[1] * 10 +
-                            this.userInputDigits[2]);
-                    }
-                    else if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-                        const number = this.displayInputNumber.get();
-                        console.debug(`setMainKeyValue(${number})`);
-                        this.mode.setMainKeyValue(number);
-                        this.stopUserNumberInput();
-                    }
-                    else {
-                        this.mode.onMainKeyShiftPress(keyIndex);
-                    }
-                }
-                else {
-                    if (event.shiftKey && !this.multiTapsEmulated.has(key) && keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
-                        const consumed = this.mode.onMainKeyPress(keyIndex);
-                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed}) [emulated]`);
-                        if (!consumed) {
-                            this.multiTapsEmulated.set(key, Options.valueOf(new Finger(this.parentNode).align(key)));
-                        }
-                    }
-                    else {
-                        const consumed = this.mode.onMainKeyPress(keyIndex);
-                        console.debug(`onMainKeyPress(${keyIndex} => consumed: ${consumed})`);
-                    }
-                }
+                const complete = this.onMainKeyPress(keyIndex);
             }));
             this.terminator.with(Events.bind(key.element, 'pointerup', () => {
-                if (!this.multiTapsEmulated.has(key)) {
-                    key.setPressed(false);
-                }
+                key.setPressed(false);
             }));
         });
     }
     onFunctionKeyPress(keyIndex) {
+        const label = this.isShiftKeyPressed
+            ? FunctionKeyLabel.ShiftKeys[keyIndex]
+            : FunctionKeyLabel.NormalKeys[keyIndex];
         this.functionKeys.byIndex(keyIndex).setPressed(true);
-        if (this.isShiftKeyPressed()) {
-            this.activeLabels[keyIndex].push(FunctionKeyLabel.ShiftKeys[keyIndex]);
-            return elseIfUndefined(this.mode.onFunctionKeyPress(FunctionKeyLabel.ShiftKeys[keyIndex]), true);
+        this.activeFunctionLabels[keyIndex].push(label);
+        return this.processFunctionKeyPress(label);
+    }
+    processFunctionKeyPress(label) {
+        if (label === FunctionKeyLabel.Shift) {
+            this.isShiftKeyPressed = true;
+            return true;
+        }
+        else if (label === FunctionKeyLabel.Tempo) {
+            this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider);
+            return true;
         }
         else {
-            const label = FunctionKeyLabel.NormalKeys[keyIndex];
-            this.activeLabels[keyIndex].push(label);
-            if (label === FunctionKeyLabel.Tempo) {
-                this.tempoDisplaySubscription = this.display.pushProvider(this.tempoDisplayProvider);
-                return true;
-            }
-            return elseIfUndefined(this.mode.onFunctionKeyPress(label), true);
+            return this.mode.onFunctionKeyPress(label);
         }
     }
     onFunctionKeyRelease(keyIndex) {
-        console.debug(`onFunctionKeyRelease(${FunctionKeyIndex[keyIndex]})`);
         this.functionKeys.byIndex(keyIndex).setPressed(false);
-        const labels = this.activeLabels[keyIndex];
-        labels.splice(0, labels.length).forEach((label) => {
-            if (label === FunctionKeyLabel.Tempo) {
-                this.tempoDisplaySubscription.terminate();
-                this.tempoDisplaySubscription = TerminableVoid;
+        const labels = this.activeFunctionLabels[keyIndex];
+        labels.splice(0, labels.length)
+            .forEach((label) => this.processFunctionKeyRelease(label));
+    }
+    processFunctionKeyRelease(label) {
+        if (label === FunctionKeyLabel.Shift) {
+            this.isShiftKeyPressed = false;
+            this.stopUserNumberInput();
+        }
+        else if (label === FunctionKeyLabel.Tempo) {
+            this.tempoDisplaySubscription.terminate();
+            this.tempoDisplaySubscription = TerminableVoid;
+        }
+        else {
+            this.mode.onFunctionKeyRelease(label);
+        }
+    }
+    onMainKeyPress(keyIndex) {
+        const label = this.isShiftKeyPressed
+            ? MainKeyLabel.ShiftKeys[keyIndex]
+            : MainKeyLabel.NormalKeys[keyIndex];
+        this.mainKeys.byIndex(keyIndex).setPressed(true);
+        this.activeMainLabels[keyIndex].push(label);
+        return this.processMainKeyPress(label);
+    }
+    processMainKeyPress(label) {
+        if (!this.isPlaying()) {
+            if (label.isDigit()) {
+                this.startUserNumberInput();
+                this.userInputDigits[0] = this.userInputDigits[1];
+                this.userInputDigits[1] = this.userInputDigits[2];
+                this.userInputDigits[2] = label.toDigit();
+                this.displayInputNumber.set(this.userInputDigits[0] * 100 +
+                    this.userInputDigits[1] * 10 +
+                    this.userInputDigits[2]);
+                return true;
             }
-            else {
-                this.mode.onFunctionKeyRelease(label);
+            else if (label.isEnter()) {
+                const number = this.displayInputNumber.get();
+                console.debug(`setMainKeyValue(${number})`);
+                this.mode.setMainKeyValue(number);
+                this.stopUserNumberInput();
+                return true;
             }
-        });
+        }
+        return this.mode.onMainKeyPress(label.keyIndex);
     }
     installKeyboard() {
         this.terminator.with(Events.bind(window, 'keydown', (event) => {
@@ -399,22 +392,7 @@ export class UIContext {
             if (!(event instanceof KeyboardEvent)) {
                 return;
             }
-            if (!event.shiftKey && this.multiTapsEmulated.size > 0) {
-                this.stopUserNumberInput();
-                this.multiTapsEmulated.forEach((finger, key) => {
-                    finger.ifPresent(finger => finger.terminate());
-                    if (key.type === 'main') {
-                        this.mainKeys.byIndex(key.keyIndex).setPressed(false);
-                    }
-                    else if (key.type === 'function') {
-                        this.onFunctionKeyRelease(key.keyIndex);
-                    }
-                });
-                this.multiTapsEmulated.clear();
-            }
-            else {
-                ifDefined(FunctionKeyboardShortcuts.get(event.code), (keyIndex) => this.onFunctionKeyRelease(keyIndex));
-            }
+            ifDefined(FunctionKeyboardShortcuts.get(event.code), (keyIndex) => this.onFunctionKeyRelease(keyIndex));
         }));
     }
     installKnobs() {
@@ -495,8 +473,6 @@ export class UIContext {
             const flash = frame % 4 < 2;
             HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash));
             frame++;
-            this.multiTapsEmulated.forEach((finger, key) => finger
-                .ifPresent(finger => finger.align(key)));
             if (running) {
                 requestAnimationFrame(next);
             }

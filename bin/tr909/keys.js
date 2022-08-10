@@ -44,6 +44,7 @@ export var FunctionKeyIndex;
     FunctionKeyIndex[FunctionKeyIndex["Shift"] = 19] = "Shift";
 })(FunctionKeyIndex || (FunctionKeyIndex = {}));
 export const FunctionKeyboardShortcuts = new Map([
+    ['ShiftLeft', FunctionKeyIndex.Shift],
     ['Digit1', FunctionKeyIndex.Track1],
     ['Digit2', FunctionKeyIndex.Track2],
     ['Digit3', FunctionKeyIndex.Track3],
@@ -77,6 +78,84 @@ ZeroBasedIndices.StepKeys = [
     MainKeyIndex.Step5, MainKeyIndex.Step6, MainKeyIndex.Step7, MainKeyIndex.Step8,
     MainKeyIndex.Step9, MainKeyIndex.Step10, MainKeyIndex.Step11, MainKeyIndex.Step12,
     MainKeyIndex.Step13, MainKeyIndex.Step14, MainKeyIndex.Step15, MainKeyIndex.Step16
+];
+export class MainKeyLabel {
+    constructor(keyIndex, value, shift) {
+        this.keyIndex = keyIndex;
+        this.value = value;
+        this.shift = shift;
+    }
+    static create(keyIndex, value, shift) {
+        return new MainKeyLabel(keyIndex, value, shift);
+    }
+    isStepButton() {
+        return !this.shift && this.keyIndex <= MainKeyIndex.Step16;
+    }
+    toStepIndex() {
+        console.assert(this.isStepButton());
+        return this.keyIndex;
+    }
+    isTotalAccent() {
+        return !this.shift && this.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent;
+    }
+    isDigit() {
+        return this.shift && this.keyIndex <= MainKeyIndex.Step10;
+    }
+    toDigit() {
+        console.assert(this.isDigit());
+        return (this.keyIndex + 1) % 10;
+    }
+    isEnter() {
+        return this.shift && this.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent;
+    }
+}
+MainKeyLabel.Step1 = MainKeyLabel.create(MainKeyIndex.Step1, 0, false);
+MainKeyLabel.Step2 = MainKeyLabel.create(MainKeyIndex.Step2, 1, false);
+MainKeyLabel.Step3 = MainKeyLabel.create(MainKeyIndex.Step3, 2, false);
+MainKeyLabel.Step4 = MainKeyLabel.create(MainKeyIndex.Step4, 3, false);
+MainKeyLabel.Step5 = MainKeyLabel.create(MainKeyIndex.Step5, 4, false);
+MainKeyLabel.Step6 = MainKeyLabel.create(MainKeyIndex.Step6, 5, false);
+MainKeyLabel.Step7 = MainKeyLabel.create(MainKeyIndex.Step7, 6, false);
+MainKeyLabel.Step8 = MainKeyLabel.create(MainKeyIndex.Step8, 7, false);
+MainKeyLabel.Step9 = MainKeyLabel.create(MainKeyIndex.Step9, 8, false);
+MainKeyLabel.Step10 = MainKeyLabel.create(MainKeyIndex.Step10, 9, false);
+MainKeyLabel.Step11 = MainKeyLabel.create(MainKeyIndex.Step11, 10, false);
+MainKeyLabel.Step12 = MainKeyLabel.create(MainKeyIndex.Step12, 11, false);
+MainKeyLabel.Step13 = MainKeyLabel.create(MainKeyIndex.Step13, 12, false);
+MainKeyLabel.Step14 = MainKeyLabel.create(MainKeyIndex.Step14, 13, false);
+MainKeyLabel.Step15 = MainKeyLabel.create(MainKeyIndex.Step15, 14, false);
+MainKeyLabel.Step16 = MainKeyLabel.create(MainKeyIndex.Step16, 15, false);
+MainKeyLabel.TotalAccent = MainKeyLabel.create(MainKeyIndex.CartridgeEnterTotalAccent, 'total-accent', false);
+MainKeyLabel.Digit1 = MainKeyLabel.create(MainKeyIndex.Step1, 1, true);
+MainKeyLabel.Digit2 = MainKeyLabel.create(MainKeyIndex.Step2, 2, true);
+MainKeyLabel.Digit3 = MainKeyLabel.create(MainKeyIndex.Step3, 3, true);
+MainKeyLabel.Digit4 = MainKeyLabel.create(MainKeyIndex.Step4, 4, true);
+MainKeyLabel.Digit5 = MainKeyLabel.create(MainKeyIndex.Step5, 5, true);
+MainKeyLabel.Digit6 = MainKeyLabel.create(MainKeyIndex.Step6, 6, true);
+MainKeyLabel.Digit7 = MainKeyLabel.create(MainKeyIndex.Step7, 7, true);
+MainKeyLabel.Digit8 = MainKeyLabel.create(MainKeyIndex.Step8, 8, true);
+MainKeyLabel.Digit9 = MainKeyLabel.create(MainKeyIndex.Step9, 9, true);
+MainKeyLabel.Digit0 = MainKeyLabel.create(MainKeyIndex.Step10, 0, true);
+MainKeyLabel.Copy = MainKeyLabel.create(MainKeyIndex.Step11, 'copy', true);
+MainKeyLabel.Insert = MainKeyLabel.create(MainKeyIndex.Step12, 'insert', true);
+MainKeyLabel.Delete = MainKeyLabel.create(MainKeyIndex.Step13, 'delete', true);
+MainKeyLabel.Save = MainKeyLabel.create(MainKeyIndex.Step14, 'save', true);
+MainKeyLabel.Verify = MainKeyLabel.create(MainKeyIndex.Step15, 'verify', true);
+MainKeyLabel.Load = MainKeyLabel.create(MainKeyIndex.Step16, 'load', true);
+MainKeyLabel.Enter = MainKeyLabel.create(MainKeyIndex.CartridgeEnterTotalAccent, 'enter', true);
+MainKeyLabel.NormalKeys = [
+    MainKeyLabel.Step1, MainKeyLabel.Step2, MainKeyLabel.Step3, MainKeyLabel.Step4,
+    MainKeyLabel.Step5, MainKeyLabel.Step6, MainKeyLabel.Step7, MainKeyLabel.Step8,
+    MainKeyLabel.Step9, MainKeyLabel.Step10, MainKeyLabel.Step11, MainKeyLabel.Step12,
+    MainKeyLabel.Step13, MainKeyLabel.Step14, MainKeyLabel.Step15, MainKeyLabel.Step16,
+    MainKeyLabel.TotalAccent
+];
+MainKeyLabel.ShiftKeys = [
+    MainKeyLabel.Digit1, MainKeyLabel.Digit2, MainKeyLabel.Digit3, MainKeyLabel.Digit4,
+    MainKeyLabel.Digit5, MainKeyLabel.Digit6, MainKeyLabel.Digit7, MainKeyLabel.Digit8,
+    MainKeyLabel.Digit9, MainKeyLabel.Digit0, MainKeyLabel.Copy, MainKeyLabel.Insert,
+    MainKeyLabel.Delete, MainKeyLabel.Save, MainKeyLabel.Verify, MainKeyLabel.Load,
+    MainKeyLabel.Enter
 ];
 export class FunctionKeyLabel {
     constructor(keyIndex, value, multiTap) {

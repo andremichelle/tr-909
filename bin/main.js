@@ -40,6 +40,7 @@ const showProgress = (() => {
     const debugMode = HTML.query('[data-output=mode]');
     const debugTransporting = HTML.query('[data-output=transporting]');
     const debugInstrument = HTML.query('[data-output=instrument]');
+    const debugShiftMode = HTML.query('[data-output=is-shift-mode]');
     const debugNumberOfKeys = HTML.query('[data-output=number-of-keys]');
     document.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
     document.addEventListener('dblclick', (event) => event.preventDefault(), { passive: false });
@@ -82,7 +83,8 @@ const showProgress = (() => {
         debugMode.textContent = interfaceContext.modeName();
         debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused';
         debugInstrument.textContent = interfaceContext.instrumentMode.get().name;
-        debugNumberOfKeys.textContent = interfaceContext.multiTapsEmulated.size.toString();
+        debugShiftMode.textContent = `${interfaceContext.isShiftKeyPressed}`;
+        debugNumberOfKeys.textContent = `${NaN}`;
         requestAnimationFrame(run);
     };
     requestAnimationFrame(run);

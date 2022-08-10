@@ -13,7 +13,7 @@ export class CopyPatternMode extends Mode {
     }
 
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
-        console.log('release', label) // TODO does not work on SHIFT key
+        console.log('release', label) // TODO does not work for SHIFT key
 
         if (label === FunctionKeyLabel.Shift) {
             this.back()
