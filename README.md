@@ -4,7 +4,7 @@ A [Roland TR-909](https://en.wikipedia.org/wiki/Roland_TR-909) drum-machine with
 
 ### Development State
 
-About 90% of the 909 features are already implemented. The original is quite intricate to operate but I didn't want to break the retro feeling. Hence this version is even worse to operate since we only have one mouse cursor. To simultanously hit more than one key, hold the SHIFT key on your keyboard. It is a good idea to download the original manual until I will have added my own manual.
+About 90% of the 909 features are already implemented. The original is quite intricate to operate but I didn't want to break the retro feeling. Hence this version is even worse to operate since we only have one mouse cursor. It is a good idea to download the original manual until I will have added my own manual. Keyboard shortcut list is coming soon.
 
 *To preview the sounds, just click the main-keys in the bottom row. They all play their sounds as the original machine does.*
 
@@ -18,7 +18,7 @@ Logo SVGs (Roland, TR-909 & Rhythm Composer) by [Isaac Cotec](https://subaqueous
 ### Disclaimer
 _**The use of any trade name or trademark is for identification and educational purposes only and does not imply any association with the trademark holder of their product brand.**_
 
-[OPEN (CHROME only)](https://909.kitchen) | [Wiki](https://en.wikipedia.org/wiki/Roland_TR-909)
+[OPEN IN (CHROME | SAFARI)](https://909.kitchen) | [Wiki](https://en.wikipedia.org/wiki/Roland_TR-909)
 ![alt screenshot](screenshot.jpg)
 
 ### Build
