@@ -1,5 +1,5 @@
 import { UIContext } from '../../context.js'
-import { FunctionKeyLabel, MainKeyIndex } from '../../keys.js'
+import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from '../../keys.js'
 import { Mode } from "../../mode.js"
 import { InstrumentMode, Utils } from '../../utils.js'
 
@@ -14,9 +14,9 @@ export class ClearPatternMode extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): boolean {
-        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
-            this.context.memoryState().activePatternGroup().patterns[keyIndex].clear()
+    onMainKeyPress(label: MainKeyLabel<any>): boolean {
+        if (label.keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+            this.context.memoryState().activePatternGroup().patterns[label.keyIndex].clear()
         }
         return true
     }
@@ -71,7 +71,7 @@ export class ClearTapMode extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): boolean {
+    onMainKeyPress(label: MainKeyLabel<any>): boolean {
         return false
     }
 

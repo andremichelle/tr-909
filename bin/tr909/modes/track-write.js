@@ -74,13 +74,13 @@ export default class extends Mode {
             this.terminableAvailableMeasureDisplay.terminate();
         }
     }
-    onMainKeyPress(keyIndex) {
-        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label) {
+        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             this.context.activeTrack().writeLocation(this.context.memoryState().activePattern().location, this.writeIndex.get());
             this.writeIndex.set(this.writeIndex.get() + 1);
         }
         else {
-            this.context.memoryState().patternIndex.set(keyIndex);
+            this.context.memoryState().patternIndex.set(label.keyIndex);
         }
         return true;
     }

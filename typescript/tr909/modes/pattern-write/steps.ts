@@ -1,5 +1,5 @@
 import { UIContext } from "../../context.js"
-import { FunctionKeyLabel, MainKeyIndex } from "../../keys.js"
+import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from "../../keys.js"
 import { complete, Mode } from "../../mode.js"
 import { Utils } from "../../utils.js"
 
@@ -48,7 +48,8 @@ export class StepsMode extends Mode {
         return true
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): complete {
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
+        const keyIndex = label.keyIndex
         if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const pattern = this.context.memoryState().activePattern()
             const instrumentMode = this.context.instrumentMode.get()

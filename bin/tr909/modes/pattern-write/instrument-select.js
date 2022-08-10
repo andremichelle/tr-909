@@ -15,8 +15,8 @@ export class InstrumentSelectInput extends Mode {
             this.back();
         }
     }
-    onMainKeyPress(keyIndex) {
-        const mainKeyIndices = this.context.getConcurrentMainKeys().add(keyIndex);
+    onMainKeyPress(label) {
+        const mainKeyIndices = this.context.getConcurrentMainKeys().add(label.keyIndex);
         this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(mainKeyIndices));
         return mainKeyIndices.size > 1;
     }

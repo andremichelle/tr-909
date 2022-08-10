@@ -1,16 +1,16 @@
+import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from '../../keys.js'
+import { Mode } from "../../mode.js"
 import { UIContext } from './../../context'
-import { Mode } from "../../mode.js";
-import { FunctionKeyLabel, MainKeyIndex } from '../../keys.js';
 
 export class LastStepInput extends Mode {
     constructor(context: UIContext, private readonly back: () => void) {
         super(context)
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): boolean {
-        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label: MainKeyLabel<any>): boolean {
+        if (label.keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const pattern = this.context.memoryState().activePattern()
-            pattern.lastStep.set(keyIndex + 1)
+            pattern.lastStep.set(label.keyIndex + 1)
             return true
         }
         return false

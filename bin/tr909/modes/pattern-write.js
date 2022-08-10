@@ -84,11 +84,8 @@ export default class extends Mode {
     onFunctionKeyRelease(label) {
         this.inputMode.onFunctionKeyRelease(label);
     }
-    onMainKeyPress(keyIndex) {
-        return this.inputMode.onMainKeyPress(keyIndex);
-    }
-    onMainKeyShiftPress(keyIndex) {
-        this.inputMode.onMainKeyShiftPress(keyIndex);
+    onMainKeyPress(label) {
+        return this.inputMode.onMainKeyPress(label);
     }
     name() {
         return `Pattern Write (${this.inputMode.name()})`;

@@ -1,5 +1,5 @@
 import { UIContext } from "../context.js"
-import { FunctionKeyLabel, MainKeyIndex } from "../keys.js"
+import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from "../keys.js"
 import { complete, Mode, StepsEditingMode } from "../mode.js"
 import { ClearPatternMode, ClearStepMode, ClearTapMode } from './pattern-write/clear.js'
 import { CopyPatternMode } from "./pattern-write/copy.js"
@@ -101,12 +101,8 @@ export default class extends Mode implements PatternEditor, StepModeEditor, TapI
         this.inputMode.onFunctionKeyRelease(label)
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        return this.inputMode.onMainKeyPress(keyIndex)
-    }
-
-    onMainKeyShiftPress(keyIndex: MainKeyIndex): void {
-        this.inputMode.onMainKeyShiftPress(keyIndex)
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
+        return this.inputMode.onMainKeyPress(label)
     }
 
     name(): string {

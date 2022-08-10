@@ -33,8 +33,9 @@ export class ShuffleFlamInput extends Mode {
             this.back();
         }
     }
-    onMainKeyPress(keyIndex) {
+    onMainKeyPress(label) {
         const pattern = this.context.memoryState().activePattern();
+        const keyIndex = label.keyIndex;
         if (keyIndex <= MainKeyIndex.Step7) {
             pattern.shuffleIndex.set(keyIndex);
             return true;

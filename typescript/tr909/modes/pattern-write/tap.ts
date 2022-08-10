@@ -1,7 +1,7 @@
 import { Step } from "../../../audio/tr909/memory.js"
 import { ToWorkletMessage } from "../../../audio/tr909/messages.js"
 import { UIContext } from "../../context.js"
-import { FunctionKeyLabel, MainKeyIndex } from "../../keys.js"
+import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from "../../keys.js"
 import { complete, Mode } from "../../mode.js"
 import { Utils } from "../../utils.js"
 
@@ -37,10 +37,10 @@ export class TapInputMode extends Mode {
         return true
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
+        if (label.keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const machine = this.context.machine
-            const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.getConcurrentMainKeys())
+            const playInstrument = Utils.keyIndexToPlayInstrument(label.keyIndex, this.context.getConcurrentMainKeys())
             const channelIndex = playInstrument.channelIndex
             const step = playInstrument.step
             machine.play(channelIndex, step)

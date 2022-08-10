@@ -1,5 +1,5 @@
 import { DisplayObservableValueProvider } from "../display.js";
-import { FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices, } from "../keys.js";
+import { FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices } from "../keys.js";
 import { Mode } from "../mode.js";
 export default class extends Mode {
     constructor(context) {
@@ -40,12 +40,12 @@ export default class extends Mode {
         }
         return true;
     }
-    onMainKeyPress(keyIndex) {
-        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label) {
+        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             return true;
         }
         else {
-            this.context.playInstrument(keyIndex);
+            this.context.playInstrument(label.keyIndex);
             return true;
         }
     }

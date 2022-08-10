@@ -1,5 +1,5 @@
 import { UIContext } from "../../context.js"
-import { FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices } from "../../keys.js"
+import { FunctionKeyLabel, KeyState, MainKeyIndex, MainKeyLabel, ZeroBasedIndices } from "../../keys.js"
 import { complete, Mode } from "../../mode.js"
 
 export interface PatternEditor {
@@ -46,16 +46,16 @@ export class SelectPatternMode extends Mode {
         return true
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
+        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             return true
         }
-        this.context.memoryState().patternIndex.set(keyIndex as number)
+        this.context.memoryState().patternIndex.set(label.keyIndex as number)
         return true
     }
 
-    onMainKeyShiftPress(keyIndex: MainKeyIndex): void {
-        if (keyIndex === MainKeyIndex.Step11) {
+    onMainKeyShiftPress(label: MainKeyLabel<any>): void {
+        if (label.keyIndex === MainKeyIndex.Step11) {
             this.editor.copyPattern()
         }
     }

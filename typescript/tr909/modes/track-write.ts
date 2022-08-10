@@ -2,7 +2,7 @@ import { Memory, PatternIndex } from "../../audio/tr909/memory.js"
 import { ObservableValue, ObservableValueImpl, Observer, Terminable, TerminableVoid } from "../../lib/common.js"
 import { UIContext } from "../context.js"
 import { DisplayObservableValueProvider, DisplayValue, DisplayValueProvider } from "../display.js"
-import { FunctionKeyLabel, MainKeyIndex } from "../keys.js"
+import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from "../keys.js"
 import { complete, Mode } from "../mode.js"
 
 export default class extends Mode {
@@ -90,12 +90,12 @@ export default class extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
+        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             this.context.activeTrack().writeLocation(this.context.memoryState().activePattern().location, this.writeIndex.get())
             this.writeIndex.set(this.writeIndex.get() + 1)
         } else {
-            this.context.memoryState().patternIndex.set(keyIndex as number as PatternIndex)
+            this.context.memoryState().patternIndex.set(label.keyIndex as number as PatternIndex)
         }
         return true
     }

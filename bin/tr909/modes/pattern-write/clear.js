@@ -11,9 +11,9 @@ export class ClearPatternMode extends Mode {
             this.back();
         }
     }
-    onMainKeyPress(keyIndex) {
-        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
-            this.context.memoryState().activePatternGroup().patterns[keyIndex].clear();
+    onMainKeyPress(label) {
+        if (label.keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+            this.context.memoryState().activePatternGroup().patterns[label.keyIndex].clear();
         }
         return true;
     }
@@ -59,7 +59,7 @@ export class ClearTapMode extends Mode {
             this.back();
         }
     }
-    onMainKeyPress(keyIndex) {
+    onMainKeyPress(label) {
         return false;
     }
     name() {

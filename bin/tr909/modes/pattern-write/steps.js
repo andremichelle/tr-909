@@ -34,7 +34,8 @@ export class StepsMode extends Mode {
         }
         return true;
     }
-    onMainKeyPress(keyIndex) {
+    onMainKeyPress(label) {
+        const keyIndex = label.keyIndex;
         if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const pattern = this.context.memoryState().activePattern();
             const instrumentMode = this.context.instrumentMode.get();

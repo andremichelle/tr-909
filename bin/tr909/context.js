@@ -354,7 +354,7 @@ export class UIContext {
                 return true;
             }
         }
-        return this.mode.onMainKeyPress(label.keyIndex);
+        return this.mode.onMainKeyPress(label);
     }
     onMainKeyRelease(keyIndex) {
         if (this.activeMainLabels[keyIndex].isEmpty())

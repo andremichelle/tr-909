@@ -1,14 +1,14 @@
-import { Mode } from "../../mode.js";
 import { FunctionKeyLabel, MainKeyIndex } from '../../keys.js';
+import { Mode } from "../../mode.js";
 export class LastStepInput extends Mode {
     constructor(context, back) {
         super(context);
         this.back = back;
     }
-    onMainKeyPress(keyIndex) {
-        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label) {
+        if (label.keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const pattern = this.context.memoryState().activePattern();
-            pattern.lastStep.set(keyIndex + 1);
+            pattern.lastStep.set(label.keyIndex + 1);
             return true;
         }
         return false;

@@ -1,7 +1,7 @@
 import { FlamIndex, Pattern, ShuffleIndex } from "../../../audio/tr909/memory.js"
 import { Terminator } from "../../../lib/common.js"
 import { UIContext } from "../../context.js"
-import { FunctionKeyLabel, KeyState, MainKeyIndex } from "../../keys.js"
+import { FunctionKeyLabel, KeyState, MainKeyIndex, MainKeyLabel } from "../../keys.js"
 import { complete, Mode } from "../../mode.js"
 
 export class ShuffleFlamInput extends Mode {
@@ -39,8 +39,9 @@ export class ShuffleFlamInput extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): complete {
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
         const pattern = this.context.memoryState().activePattern()
+        const keyIndex = label.keyIndex
         if (keyIndex <= MainKeyIndex.Step7) {
             pattern.shuffleIndex.set(keyIndex as ShuffleIndex)
             return true

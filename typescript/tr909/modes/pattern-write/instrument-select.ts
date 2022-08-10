@@ -1,5 +1,5 @@
 import { UIContext } from "../../context.js"
-import { FunctionKeyLabel, Key, MainKeyIndex } from "../../keys.js"
+import { FunctionKeyLabel, Key, MainKeyIndex, MainKeyLabel } from "../../keys.js"
 import { complete, Mode } from "../../mode.js"
 import { InstrumentMode, Utils } from "../../utils.js"
 
@@ -19,8 +19,8 @@ export class InstrumentSelectInput extends Mode {
         }
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        const mainKeyIndices = this.context.getConcurrentMainKeys().add(keyIndex)
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
+        const mainKeyIndices = this.context.getConcurrentMainKeys().add(label.keyIndex)
         this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(mainKeyIndices))
         return mainKeyIndices.size > 1
     }

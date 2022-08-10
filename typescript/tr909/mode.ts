@@ -1,6 +1,6 @@
 import { Terminable, Terminator } from "../lib/common.js"
 import { UIContext } from "./context.js"
-import { FunctionKeyLabel, MainKeyIndex } from "./keys.js"
+import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from "./keys.js"
 
 export enum StepsEditingMode {
     Step, Tap
@@ -26,11 +26,11 @@ export abstract class Mode implements Terminable {
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): complete {
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
         return true
     }
 
-    onMainKeyShiftPress(keyIndex: MainKeyIndex): void { }
+    onMainKeyShiftPress(label: MainKeyLabel<any>): void { }
 
     setMainKeyValue(value: number): void {
     }

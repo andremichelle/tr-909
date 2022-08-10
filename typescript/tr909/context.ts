@@ -449,7 +449,7 @@ export class UIContext implements Terminable {
                 return true
             }
         }
-        return this.mode.onMainKeyPress(label.keyIndex)
+        return this.mode.onMainKeyPress(label)
     }
 
     private onMainKeyRelease(keyIndex: MainKeyIndex): void {

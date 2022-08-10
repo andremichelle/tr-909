@@ -1,5 +1,5 @@
 import { UIContext } from "../context.js"
-import { FunctionKeyLabel, MainKeyIndex } from "../keys.js"
+import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from "../keys.js"
 import { complete, Mode } from "../mode.js"
 
 export default class extends Mode {
@@ -26,21 +26,20 @@ export default class extends Mode {
         return true
     }
 
-    onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
+        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             return true
         }
         const state = this.context.memoryState()
         const concurrentMainKeys = this.context.getConcurrentMainKeys()
         const patternGroup = this.context.activePatternGroup()
-        if (concurrentMainKeys.size === 0) {
+        if (concurrentMainKeys.size === 1) {
             patternGroup.clearChains()
-            state.patternIndex.set(patternGroup.firstOfChained(keyIndex).location.patternIndex)
+            state.patternIndex.set(patternGroup.firstOfChained(label.keyIndex).location.patternIndex)
             return false
-        } else if (concurrentMainKeys.size === 1) {
+        } else if (concurrentMainKeys.size === 2) {
             patternGroup.clearChains()
-            const [concurrentMainKey] = concurrentMainKeys
-            const tuple: [MainKeyIndex, MainKeyIndex] = [concurrentMainKey, keyIndex]
+            const tuple: MainKeyIndex[] = [...concurrentMainKeys]
             const start: number = Math.min(tuple[0], tuple[1])
             const end: number = Math.max(tuple[0], tuple[1])
             const chained = patternGroup.getChained().slice()

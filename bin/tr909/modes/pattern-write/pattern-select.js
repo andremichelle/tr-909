@@ -36,15 +36,15 @@ export class SelectPatternMode extends Mode {
         }
         return true;
     }
-    onMainKeyPress(keyIndex) {
-        if (keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label) {
+        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
             return true;
         }
-        this.context.memoryState().patternIndex.set(keyIndex);
+        this.context.memoryState().patternIndex.set(label.keyIndex);
         return true;
     }
-    onMainKeyShiftPress(keyIndex) {
-        if (keyIndex === MainKeyIndex.Step11) {
+    onMainKeyShiftPress(label) {
+        if (label.keyIndex === MainKeyIndex.Step11) {
             this.editor.copyPattern();
         }
     }

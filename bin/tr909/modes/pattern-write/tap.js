@@ -28,10 +28,10 @@ export class TapInputMode extends Mode {
         }
         return true;
     }
-    onMainKeyPress(keyIndex) {
-        if (keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+    onMainKeyPress(label) {
+        if (label.keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
             const machine = this.context.machine;
-            const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.getConcurrentMainKeys());
+            const playInstrument = Utils.keyIndexToPlayInstrument(label.keyIndex, this.context.getConcurrentMainKeys());
             const channelIndex = playInstrument.channelIndex;
             const step = playInstrument.step;
             machine.play(channelIndex, step);

@@ -16,10 +16,10 @@ export class Mode {
     }
     onFunctionKeyRelease(label) {
     }
-    onMainKeyPress(keyIndex) {
+    onMainKeyPress(label) {
         return true;
     }
-    onMainKeyShiftPress(keyIndex) { }
+    onMainKeyShiftPress(label) { }
     setMainKeyValue(value) {
     }
 }
