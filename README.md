@@ -1,12 +1,10 @@
-### TR-909
-
 ### Disclaimer
 _**The use of any trade name or trademark is for identification and educational purposes only and does not imply any association with the trademark holder of their product brand.**_
 
+### TR-909
 A [Roland TR-909](https://en.wikipedia.org/wiki/Roland_TR-909) drum-machine with painfully hand-made generated html, svg & css and a proper web-audio-api sound engine. It emulates the exact same cumbersome user experience of the original machine.
 
 ### Development State
-
 About 90% of the 909 features are already implemented. The original is quite intricate to operate but I didn't want to break the retro feeling. Hence this version is even worse to operate since we only have one mouse cursor. It is a good idea to download the original manual until I will have added my own manual. Keyboard shortcut list is coming soon.
 
 *To preview the sounds, just click the main-keys in the bottom row. They all play their sounds as the original machine does.*
