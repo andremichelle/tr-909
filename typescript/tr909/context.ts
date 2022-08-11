@@ -480,6 +480,14 @@ export class UIContext implements Terminable {
             ifDefined(FunctionKeyShortcuts.get(event.code),
                 (keyIndex: FunctionKeyIndex) => this.onFunctionKeyRelease(keyIndex))
         }))
+        Array.from(MainKeyShortcuts.entries()).forEach(shortcut => {
+            const key = this.mainKeys.byIndex(shortcut[1])
+            key.element.setAttribute('data-tooltip', shortcut[0])
+        })
+        Array.from(FunctionKeyShortcuts.entries()).forEach(shortcut => {
+            const key = this.functionKeys.byIndex(shortcut[1])
+            key.element.setAttribute('data-tooltip', shortcut[0])
+        })
     }
 
     private installKnobs(): void {

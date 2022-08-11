@@ -998,7 +998,7 @@ main {
   width: 100vmax;
   height: 100vmin;
   display: grid;
-  grid-template: 8vmin 1fr 8vmin/1fr;
+  grid-template: 6vmin 1fr 8vmin/1fr;
   transform: rotate(0deg);
   position: relative;
 }
@@ -1020,15 +1020,18 @@ main > div.wrapper > div.tr-909 {
   transform: translate(0, -50%) scale(var(--scale));
   position: absolute;
 }
-main > canvas.meter {
+main > div.top {
+  position: relative;
+}
+main > div.top > canvas.meter {
   padding: 3px 0;
   border-radius: 3px;
   background-color: rgba(0, 0, 0, 0.06);
   box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.1) inset;
   position: absolute;
   left: 50%;
-  bottom: 3px;
-  transform: translate(-50%, 0);
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 div.components {

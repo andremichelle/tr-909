@@ -380,6 +380,14 @@ export class UIContext {
             ifDefined(MainKeyShortcuts.get(code), (keyIndex) => this.onMainKeyRelease(keyIndex));
             ifDefined(FunctionKeyShortcuts.get(event.code), (keyIndex) => this.onFunctionKeyRelease(keyIndex));
         }));
+        Array.from(MainKeyShortcuts.entries()).forEach(shortcut => {
+            const key = this.mainKeys.byIndex(shortcut[1]);
+            key.element.setAttribute('data-tooltip', shortcut[0]);
+        });
+        Array.from(FunctionKeyShortcuts.entries()).forEach(shortcut => {
+            const key = this.functionKeys.byIndex(shortcut[1]);
+            key.element.setAttribute('data-tooltip', shortcut[0]);
+        });
     }
     installKnobs() {
         const terminator = this.terminator;

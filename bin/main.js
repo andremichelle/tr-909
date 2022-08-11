@@ -41,7 +41,9 @@ const showProgress = (() => {
     document.addEventListener('contextmenu', event => event.preventDefault());
     const size = { width: 1226 + 64, height: 728 };
     const resize = () => {
-        document.body.style.height = `${window.innerHeight}px`;
+        const style = document.body.style;
+        style.height = `${window.innerHeight}px`;
+        style.width = `${window.innerWidth}px`;
         const scale = Math.min(wrapper.clientWidth / size.width, wrapper.clientHeight / size.height);
         parentNode.style.setProperty("--scale", `${scale}`);
     };
@@ -57,7 +59,7 @@ const showProgress = (() => {
     const meter = new StereoMeterWorklet(context);
     machine.master.connect(meter).connect(context.destination);
     meter.domElement.classList.add('meter');
-    main.appendChild(meter.domElement);
+    HTML.query('div.top', main).appendChild(meter.domElement);
     if (location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1')) {
         console.log("INSTALLED TEST DATA");
         const memory = machine.memory;
