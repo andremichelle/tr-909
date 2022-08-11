@@ -3,7 +3,7 @@
 import { ValueMapping } from "./mapping.js"
 import { Random } from "./math.js"
 
-export type NoArgType<T> = { new(): T }
+export type Class<T> = { new(...args: any[]): T }
 
 export const elseIfNull = <T>(value: T | null, fallback: T): T => value === null ? fallback : value
 export const elseIfUndefined = <T>(value: T | undefined, fallback: T): T => value === undefined ? fallback : value
@@ -449,9 +449,9 @@ export class Waiting {
         return Waiting.forEvents(element, "transitionstart", "transitionend")
     }
 
-    static forEvent(element: Element, type: string): Promise<void> {
+    static forEvent(target: EventTarget, type: string): Promise<void> {
         return new Promise<void>((resolve) =>
-            element.addEventListener(type, () => resolve(), { once: true }))
+            target.addEventListener(type, () => resolve(), { once: true }))
     }
 
     private static forEvents(element: Element, startType: string, endType: string): Promise<void> {

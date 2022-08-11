@@ -21,6 +21,8 @@ export class UIContext {
         this.isShiftKeyPressed = false;
         this.tempoProviderSubscription = TerminableVoid;
         this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode));
+        this.digitInput = this.terminator.with(new DigitInput(this.display));
+        this.startKey = HTML.query('button[data-control=transport-start]', this.parentNode);
         this.mainKeys = new KeyGroup([...Array.from(HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
             HTML.query('[data-control=main-key][data-parameter=total-accent]')]
             .map((element, index) => new Key(element, 'main', index)));
@@ -31,8 +33,7 @@ export class UIContext {
         this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => Options.None);
         this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None);
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo);
-        this.digitInput = this.terminator.with(new DigitInput(this.display));
-        this.mode = new TrackPlayMode(this);
+        this.mode = new ObservableValueImpl(new TrackPlayMode(this));
         this.installKeys();
         this.installKeyboard();
         this.installKnobs();
@@ -52,7 +53,7 @@ export class UIContext {
         console.debug(`mode: ${this.modeName()}`);
     }
     modeName() {
-        return this.mode.name();
+        return this.mode.get().name();
     }
     isPlaying() {
         return this.machine.transport.isPlaying();
@@ -108,50 +109,50 @@ export class UIContext {
     }
     switchToTrackPlayMode(trackIndex) {
         this.resetMainKeys();
-        this.mode.terminate();
+        this.mode.get().terminate();
         const state = this.machine.memory.state;
         state.changeNotification.mute();
         state.trackIndex.set(trackIndex);
         state.playMode.set(PlayMode.Track);
         state.changeNotification.unmute();
         state.changeNotification.notify();
-        this.mode = new TrackPlayMode(this);
+        this.mode.set(new TrackPlayMode(this));
         console.debug(`mode: ${this.modeName()}`);
     }
     switchToTrackWriteMode(trackIndex) {
         this.resetMainKeys();
-        this.mode.terminate();
+        this.mode.get().terminate();
         const state = this.machine.memory.state;
         state.changeNotification.mute();
         state.trackIndex.set(trackIndex);
         state.playMode.set(PlayMode.Pattern);
         state.changeNotification.unmute();
         state.changeNotification.notify();
-        this.mode = new TrackWriteMode(this);
+        this.mode.set(new TrackWriteMode(this));
         console.debug(`mode: ${this.modeName()}`);
     }
     switchToPatternPlayMode(patternGroupIndex) {
         this.resetMainKeys();
-        this.mode.terminate();
+        this.mode.get().terminate();
         const state = this.machine.memory.state;
         state.changeNotification.mute();
         state.patternGroupIndex.set(patternGroupIndex);
         state.playMode.set(PlayMode.Pattern);
         state.changeNotification.unmute();
         state.changeNotification.notify();
-        this.mode = new PatternPlayMode(this);
+        this.mode.set(new PatternPlayMode(this));
         console.debug(`mode: ${this.modeName()}`);
     }
     switchToPatternWriteMode(patternGroupIndex) {
         this.resetMainKeys();
-        this.mode.terminate();
+        this.mode.get().terminate();
         const state = this.machine.memory.state;
         state.changeNotification.mute();
         state.patternGroupIndex.set(patternGroupIndex);
         state.playMode.set(PlayMode.Pattern);
         state.changeNotification.unmute();
         state.changeNotification.notify();
-        this.mode = new PatternWriteMode(this);
+        this.mode.set(new PatternWriteMode(this));
         console.debug(`mode: ${this.modeName()}`);
     }
     resetMainKeys() {
@@ -304,7 +305,7 @@ export class UIContext {
             return true;
         }
         else {
-            return this.mode.onFunctionKeyPress(label);
+            return this.mode.get().onFunctionKeyPress(label);
         }
     }
     onFunctionKeyRelease(keyIndex) {
@@ -325,7 +326,7 @@ export class UIContext {
                 this.isShiftKeyPressed = false;
                 this.digitInput.stop();
             }
-            this.mode.onFunctionKeyRelease(label);
+            this.mode.get().onFunctionKeyRelease(label);
         }
     }
     onMainKeyPress(keyIndex) {
@@ -340,7 +341,7 @@ export class UIContext {
         return this.processMainKeyPress(label);
     }
     processMainKeyPress(label) {
-        if (!this.isPlaying() && this.mode.allowMainKeyValueInput()) {
+        if (!this.isPlaying() && this.mode.get().allowMainKeyValueInput()) {
             if (label.isDigit()) {
                 this.digitInput.start();
                 this.digitInput.push(label.toDigit());
@@ -349,12 +350,12 @@ export class UIContext {
             else if (label.isEnter()) {
                 const number = this.digitInput.getValue();
                 console.debug(`setMainKeyValue(${number})`);
-                this.mode.setMainKeyValue(number);
+                this.mode.get().setMainKeyValue(number);
                 this.digitInput.stop();
                 return true;
             }
         }
-        return this.mode.onMainKeyPress(label);
+        return this.mode.get().onMainKeyPress(label);
     }
     onMainKeyRelease(keyIndex) {
         if (this.activeMainLabels[keyIndex].isEmpty())
@@ -433,8 +434,7 @@ export class UIContext {
     }
     installTransport() {
         const transport = this.machine.transport;
-        HTML.query('button[data-control=transport-start]', this.parentNode)
-            .addEventListener('pointerdown', () => {
+        this.startKey.addEventListener('pointerdown', () => {
             if (!transport.isPlaying()) {
                 transport.moveTo(0.0);
                 transport.play();

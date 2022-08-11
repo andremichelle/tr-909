@@ -55,6 +55,10 @@ export class Memory {
         return Memory.MAX_MEASURES - this.banks.reduce((count: number, bank: MemoryBank) =>
             count + bank.tracks.reduce((count: number, track: Track) => count + track.size(), 0), 0)
     }
+
+    clear() {
+        this.banks.forEach(bank => bank.clear())
+    }
 }
 
 export class MemoryBank {
@@ -89,6 +93,11 @@ export class MemoryBank {
 
     patternByLocation(location: PatternLocation): Pattern {
         return this.patternByIndices(location.patternGroupIndex, location.patternIndex)
+    }
+
+    clear(): void {
+        this.tracks.forEach(track => track.clear())
+        this.patternGroups.forEach(group => group.clear())
     }
 }
 
@@ -166,6 +175,11 @@ export class PatternGroup implements Observable<void>, Serializer<PatternGroupFo
     addObserver(observer: Observer<void>, notify: boolean): Terminable {
         if (notify) observer()
         return this.observable.addObserver(observer)
+    }
+
+    clear(): void {
+        this.chained.fill(false)
+        this.patterns.forEach((pattern: Pattern) => pattern.clear())
     }
 
     terminate(): void {

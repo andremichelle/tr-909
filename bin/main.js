@@ -12,9 +12,10 @@ import { MeterWorklet, StereoMeterWorklet } from "./audio/meter/worklet.js";
 import { Machine } from "./audio/tr909/machine.js";
 import { loadResources } from "./audio/tr909/resources.js";
 import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js";
-import { Waiting } from "./lib/common.js";
+import { Events, Waiting } from "./lib/common.js";
 import { AnimationFrame, HTML } from "./lib/dom.js";
 import { UIContext } from "./tr909/context.js";
+import { startTutorial } from './tr909/tutorial.js';
 const showProgress = (() => {
     const progress = document.querySelector("svg.preloader");
     window.onunhandledrejection = window.onerror = (reason) => {
@@ -77,5 +78,13 @@ const showProgress = (() => {
         track.writeLocation({ patternGroupIndex: 0, patternIndex: 1 });
     }
     AnimationFrame.init();
+    const tutorialButton = HTML.query('a[target=tutorial]');
+    const subscription = Events.bind(tutorialButton, 'click', () => {
+        if (!confirm('This tutorial cannot be stopped. Continue?'))
+            return;
+        subscription.terminate();
+        tutorialButton.style.opacity = "0.3";
+        startTutorial(interfaceContext);
+    });
 }))();
 //# sourceMappingURL=main.js.map

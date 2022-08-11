@@ -47,23 +47,24 @@ export class UIContext implements Terminable {
 
     readonly display: Display
     readonly digitInput: DigitInput
+    readonly startKey: HTMLButtonElement
     readonly mainKeys: KeyGroup<MainKeyIndex>
     readonly functionKeys: KeyGroup<FunctionKeyIndex>
 
+    readonly mode: ObservableValue<Mode>
     readonly instrumentMode: ObservableValueImpl<InstrumentMode>
     readonly stepsEditMode: ObservableValueImpl<StepsEditingMode>
     readonly activeMainLabels: Option<MainKeyLabel<any>>[]
     readonly activeFunctionLabels: Option<FunctionKeyLabel<any>>[]
     readonly concurrentMainKeys = new Set<MainKeyIndex>()
 
-    mode: NonNullable<Mode>
-    isShiftKeyPressed: boolean = false
-
+    private isShiftKeyPressed: boolean = false
     private tempoProviderSubscription: Terminable = TerminableVoid
 
-    constructor(readonly machine: Machine,
-        readonly parentNode: HTMLElement) {
+    constructor(readonly machine: Machine, readonly parentNode: HTMLElement) {
         this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode))
+        this.digitInput = this.terminator.with(new DigitInput(this.display))
+        this.startKey = HTML.query('button[data-control=transport-start]', this.parentNode)
         this.mainKeys = new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
             HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
         HTML.query('[data-control=main-key][data-parameter=total-accent]')]
@@ -77,9 +78,8 @@ export class UIContext implements Terminable {
         this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None)
 
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo)
-        this.digitInput = this.terminator.with(new DigitInput(this.display))
 
-        this.mode = new TrackPlayMode(this)
+        this.mode = new ObservableValueImpl<Mode>(new TrackPlayMode(this))
 
         this.installKeys()
         this.installKeyboard()
@@ -108,7 +108,7 @@ export class UIContext implements Terminable {
     }
 
     modeName(): string {
-        return this.mode.name()
+        return this.mode.get().name()
     }
 
     isPlaying(): boolean {
@@ -183,53 +183,53 @@ export class UIContext implements Terminable {
 
     switchToTrackPlayMode(trackIndex: TrackIndex): void {
         this.resetMainKeys()
-        this.mode.terminate()
+        this.mode.get().terminate()
         const state = this.machine.memory.state
         state.changeNotification.mute()
         state.trackIndex.set(trackIndex)
         state.playMode.set(PlayMode.Track)
         state.changeNotification.unmute()
         state.changeNotification.notify()
-        this.mode = new TrackPlayMode(this)
+        this.mode.set(new TrackPlayMode(this))
         console.debug(`mode: ${this.modeName()}`)
     }
 
     switchToTrackWriteMode(trackIndex: TrackIndex) {
         this.resetMainKeys()
-        this.mode.terminate()
+        this.mode.get().terminate()
         const state = this.machine.memory.state
         state.changeNotification.mute()
         state.trackIndex.set(trackIndex)
         state.playMode.set(PlayMode.Pattern)
         state.changeNotification.unmute()
         state.changeNotification.notify()
-        this.mode = new TrackWriteMode(this)
+        this.mode.set(new TrackWriteMode(this))
         console.debug(`mode: ${this.modeName()}`)
     }
 
     switchToPatternPlayMode(patternGroupIndex: PatternGroupIndex): void {
         this.resetMainKeys()
-        this.mode.terminate()
+        this.mode.get().terminate()
         const state = this.machine.memory.state
         state.changeNotification.mute()
         state.patternGroupIndex.set(patternGroupIndex)
         state.playMode.set(PlayMode.Pattern)
         state.changeNotification.unmute()
         state.changeNotification.notify()
-        this.mode = new PatternPlayMode(this)
+        this.mode.set(new PatternPlayMode(this))
         console.debug(`mode: ${this.modeName()}`)
     }
 
     switchToPatternWriteMode(patternGroupIndex: PatternGroupIndex): void {
         this.resetMainKeys()
-        this.mode.terminate()
+        this.mode.get().terminate()
         const state = this.machine.memory.state
         state.changeNotification.mute()
         state.patternGroupIndex.set(patternGroupIndex)
         state.playMode.set(PlayMode.Pattern)
         state.changeNotification.unmute()
         state.changeNotification.notify()
-        this.mode = new PatternWriteMode(this)
+        this.mode.set(new PatternWriteMode(this))
         console.debug(`mode: ${this.modeName()}`)
     }
 
@@ -398,7 +398,7 @@ export class UIContext implements Terminable {
             this.tempoProviderSubscription = this.display.pushProvider(this.tempoDisplayProvider)
             return true
         } else {
-            return this.mode.onFunctionKeyPress(label)
+            return this.mode.get().onFunctionKeyPress(label)
         }
     }
 
@@ -419,7 +419,7 @@ export class UIContext implements Terminable {
                 this.isShiftKeyPressed = false
                 this.digitInput.stop()
             }
-            this.mode.onFunctionKeyRelease(label)
+            this.mode.get().onFunctionKeyRelease(label)
         }
     }
 
@@ -435,7 +435,7 @@ export class UIContext implements Terminable {
     }
 
     private processMainKeyPress(label: MainKeyLabel<any>): complete {
-        if (!this.isPlaying() && this.mode.allowMainKeyValueInput()) {
+        if (!this.isPlaying() && this.mode.get().allowMainKeyValueInput()) {
             if (label.isDigit()) {
                 this.digitInput.start()
                 this.digitInput.push(label.toDigit())
@@ -443,12 +443,12 @@ export class UIContext implements Terminable {
             } else if (label.isEnter()) {
                 const number = this.digitInput.getValue()
                 console.debug(`setMainKeyValue(${number})`)
-                this.mode.setMainKeyValue(number)
+                this.mode.get().setMainKeyValue(number)
                 this.digitInput.stop()
                 return true
             }
         }
-        return this.mode.onMainKeyPress(label)
+        return this.mode.get().onMainKeyPress(label)
     }
 
     private onMainKeyRelease(keyIndex: MainKeyIndex): void {
@@ -535,13 +535,12 @@ export class UIContext implements Terminable {
     private installTransport() {
         // Use Events and terminate
         const transport = this.machine.transport
-        HTML.query('button[data-control=transport-start]', this.parentNode)
-            .addEventListener('pointerdown', () => {
-                if (!transport.isPlaying()) {
-                    transport.moveTo(0.0)
-                    transport.play()
-                }
-            })
+        this.startKey.addEventListener('pointerdown', () => {
+            if (!transport.isPlaying()) {
+                transport.moveTo(0.0)
+                transport.play()
+            }
+        })
         HTML.query('button[data-control=transport-stop-continue]', this.parentNode)
             .addEventListener('pointerdown', () => transport.togglePlayback())
         window.addEventListener('keydown', (event: KeyboardEvent) => {

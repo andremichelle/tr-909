@@ -352,8 +352,8 @@ export class Waiting {
     static forTransitionComplete(element) {
         return Waiting.forEvents(element, "transitionstart", "transitionend");
     }
-    static forEvent(element, type) {
-        return new Promise((resolve) => element.addEventListener(type, () => resolve(), { once: true }));
+    static forEvent(target, type) {
+        return new Promise((resolve) => target.addEventListener(type, () => resolve(), { once: true }));
     }
     static forEvents(element, startType, endType) {
         let numProperties = 0;

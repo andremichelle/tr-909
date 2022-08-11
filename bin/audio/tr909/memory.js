@@ -67,6 +67,9 @@ export class Memory {
     availableMeasures() {
         return Memory.MAX_MEASURES - this.banks.reduce((count, bank) => count + bank.tracks.reduce((count, track) => count + track.size(), 0), 0);
     }
+    clear() {
+        this.banks.forEach(bank => bank.clear());
+    }
 }
 Memory.MAX_MEASURES = 896;
 export class MemoryBank {
@@ -88,6 +91,10 @@ export class MemoryBank {
     }
     patternByLocation(location) {
         return this.patternByIndices(location.patternGroupIndex, location.patternIndex);
+    }
+    clear() {
+        this.tracks.forEach(track => track.clear());
+        this.patternGroups.forEach(group => group.clear());
     }
 }
 MemoryBank.NUM_TRACKS = 4;
@@ -142,6 +149,10 @@ export class PatternGroup {
         if (notify)
             observer();
         return this.observable.addObserver(observer);
+    }
+    clear() {
+        this.chained.fill(false);
+        this.patterns.forEach((pattern) => pattern.clear());
     }
     terminate() {
         this.observable.terminate();

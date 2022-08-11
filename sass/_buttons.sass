@@ -26,6 +26,9 @@ button.switch, button.trigger
     box-shadow: 0 0 1px 2px rgba(black, 0.6) inset, 0 -1px 2px 0 rgba(white, 0.7), 0 2px 2px 0 rgba(black, 0.4)
     pointer-events: all
 
+  &.highlight
+    outline: 0.2vmin $COLOR_HIGHLIGHT solid
+
   &:active, &.active
     box-shadow: 0 0 3px 2px rgba(black, 0.8) inset, 0 -1px 2px 0 rgba(white, 0.7), 0 2px 2px 0 rgba(black, 0.4)
 
@@ -84,6 +87,9 @@ button.translucent-button
   box-shadow: 0 0 1px 1px rgba(black, 0.6) inset, 0 0.5px 2px 0 rgba(white, 0.8), 0 0 1px 1px rgba(white, 0.4) inset
   color: lighten(#ee3b2e, 10)
   pointer-events: all
+
+  &.highlight
+    outline: 0.2vmin $COLOR_HIGHLIGHT solid
 
   // workaround to prevent flickr when changing background-image
   &:after
