@@ -32,13 +32,16 @@ const waitForMode = (context, modeType) => __awaiter(void 0, void 0, void 0, fun
     });
 });
 const waitForValue = (value, expected) => __awaiter(void 0, void 0, void 0, function* () {
+    if (value.get() === expected) {
+        return Promise.resolve();
+    }
     return new Promise(resolve => {
         const subscription = value.addObserver((value) => {
             if (value === expected) {
                 subscription.terminate();
                 resolve();
             }
-        }, true);
+        }, false);
     });
 });
 const waitForTransportState = (transport, expected) => __awaiter(void 0, void 0, void 0, function* () {
@@ -76,7 +79,9 @@ export const startTutorial = (context) => __awaiter(void 0, void 0, void 0, func
     yield next();
     resetHighlights();
     yield talk('The 9o9 is currently in track-play mode.');
+    highlight(context.functionKeys.byIndex(FunctionKeyIndex.Track1).element);
     yield talk(`Now... Let's program a drum-pattern!`);
+    resetHighlights();
     yield talk(`Hold the shift-key and select the first pattern group`);
     highlight(context.functionKeys.byIndex(FunctionKeyIndex.Shift).element);
     highlight(context.functionKeys.byIndex(FunctionKeyIndex.PatternGroup1).element);
@@ -97,7 +102,7 @@ export const startTutorial = (context) => __awaiter(void 0, void 0, void 0, func
     yield talk(`Continue by pressing the right arrow key!`);
     yield next();
     resetHighlights();
-    yield talk(`Now some funky claps. Hold the select-instrument key or L on your keyboard and press the step 12 to select the hand-clap.`);
+    yield talk(`Now some funky claps. Hold the select-instrument key or 'I' on your keyboard and press the step 12 to select the hand-clap.`);
     yield waitForValue(context.instrumentMode, InstrumentMode.Clap);
     yield talk(`Now single-click step 5 and 13.`);
     highlight(context.mainKeys.byIndex(MainKeyIndex.Step5).element);

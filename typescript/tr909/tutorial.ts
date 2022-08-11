@@ -31,13 +31,16 @@ const waitForMode = async (context: UIContext, modeType: Class<Mode>): Promise<v
 }
 
 const waitForValue = async <T>(value: ObservableValue<T>, expected: T): Promise<void> => {
+    if (value.get() === expected) {
+        return Promise.resolve()
+    }
     return new Promise<void>(resolve => {
         const subscription = value.addObserver((value: T) => {
             if (value === expected) {
                 subscription.terminate()
                 resolve()
             }
-        }, true)
+        }, false)
     })
 }
 
@@ -78,7 +81,9 @@ export const startTutorial = async (context: UIContext) => {
     await next()
     resetHighlights()
     await talk('The 9o9 is currently in track-play mode.')
+    highlight(context.functionKeys.byIndex(FunctionKeyIndex.Track1).element)
     await talk(`Now... Let's program a drum-pattern!`)
+    resetHighlights()
     await talk(`Hold the shift-key and select the first pattern group`)
     highlight(context.functionKeys.byIndex(FunctionKeyIndex.Shift).element)
     highlight(context.functionKeys.byIndex(FunctionKeyIndex.PatternGroup1).element)
@@ -99,7 +104,7 @@ export const startTutorial = async (context: UIContext) => {
     await talk(`Continue by pressing the right arrow key!`)
     await next()
     resetHighlights()
-    await talk(`Now some funky claps. Hold the select-instrument key or L on your keyboard and press the step 12 to select the hand-clap.`)
+    await talk(`Now some funky claps. Hold the select-instrument key or 'I' on your keyboard and press the step 12 to select the hand-clap.`)
     await waitForValue(context.instrumentMode, InstrumentMode.Clap)
     await talk(`Now single-click step 5 and 13.`)
     highlight(context.mainKeys.byIndex(MainKeyIndex.Step5).element)
