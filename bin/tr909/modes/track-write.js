@@ -84,6 +84,9 @@ export default class extends Mode {
         }
         return true;
     }
+    allowMainKeyValueInput() {
+        return true;
+    }
     setMainKeyValue(value) {
         if (value === 0)
             return;

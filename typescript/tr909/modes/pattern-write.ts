@@ -1,5 +1,5 @@
 import { UIContext } from "../context.js"
-import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from "../keys.js"
+import { FunctionKeyLabel, MainKeyLabel } from "../keys.js"
 import { complete, Mode, StepsEditingMode } from "../mode.js"
 import { ClearPatternMode, ClearStepMode, ClearTapMode } from './pattern-write/clear.js'
 import { CopyPatternMode } from "./pattern-write/copy.js"
@@ -11,9 +11,18 @@ import { StepModeEditor, StepsMode } from "./pattern-write/steps.js"
 import { TapInputEditor, TapInputMode } from "./pattern-write/tap.js"
 
 export default class extends Mode implements PatternEditor, StepModeEditor, TapInputEditor {
-    private readonly backToSelectMode: () => void = () => this.inputMode = new SelectPatternMode(this.context, this)
-    private readonly backToStepMode: () => void = () => this.inputMode = new StepsMode(this.context, this)
-    private readonly backToTapMode: () => void = () => this.inputMode = new TapInputMode(this.context, this)
+    private readonly backToSelectMode: () => void = () => {
+        this.inputMode.terminate()
+        this.inputMode = new SelectPatternMode(this.context, this)
+    }
+    private readonly backToStepMode: () => void = () => {
+        this.inputMode.terminate()
+        this.inputMode = new StepsMode(this.context, this)
+    }
+    private readonly backToTapMode: () => void = () => {
+        this.inputMode.terminate()
+        this.inputMode = new TapInputMode(this.context, this)
+    }
 
     private inputMode: Mode
 

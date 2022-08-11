@@ -56,8 +56,6 @@ export class UIContext implements Terminable {
     readonly activeFunctionLabels: Option<FunctionKeyLabel<any>>[]
     readonly concurrentMainKeys = new Set<MainKeyIndex>()
 
-    // TODO readonly multiTapsEmulated: Map<Key, Option<Finger>> = new Map<Key, Option<Finger>>()
-
     mode: NonNullable<Mode>
     isShiftKeyPressed: boolean = false
 
@@ -239,9 +237,9 @@ export class UIContext implements Terminable {
         this.mainKeys.deactivate()
     }
 
-    updatePatternLocationKeys(location: PatternLocation): void {
+    updatePatternLocationKeys(location: PatternLocation, writeMode: boolean = false): void {
         console.debug(`updatePatternLocationKeys(location: [${location.patternGroupIndex}, ${location.patternIndex}])`)
-        this.updatePatternGroupKeys(location.patternGroupIndex, false)
+        this.updatePatternGroupKeys(location.patternGroupIndex, writeMode)
         this.mainKeys.deactivate()
         const patternIndex: number = this.activeBank()
             .patternGroups[location.patternGroupIndex]
@@ -351,7 +349,7 @@ export class UIContext implements Terminable {
         this.terminator.terminate()
     }
 
-    private static mayExecOnIndexedChoice<T>(label: FunctionKeyLabel<any>,
+    static mayExecOnIndexedChoice<T>(label: FunctionKeyLabel<any>,
         choices: ReadonlyArray<FunctionKeyLabel<T>>,
         exec: (value: T) => void): boolean {
         const index = choices.indexOf(label)
@@ -413,13 +411,14 @@ export class UIContext implements Terminable {
     }
 
     private processFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
-        if (label === FunctionKeyLabel.Shift) {
-            this.isShiftKeyPressed = false
-            this.digitInput.stop()
-        } else if (label === FunctionKeyLabel.Tempo) {
+        if (label === FunctionKeyLabel.Tempo) {
             this.tempoProviderSubscription.terminate()
             this.tempoProviderSubscription = TerminableVoid
         } else {
+            if (label === FunctionKeyLabel.Shift) {
+                this.isShiftKeyPressed = false
+                this.digitInput.stop()
+            }
             this.mode.onFunctionKeyRelease(label)
         }
     }
@@ -436,7 +435,7 @@ export class UIContext implements Terminable {
     }
 
     private processMainKeyPress(label: MainKeyLabel<any>): complete {
-        if (!this.isPlaying()) {
+        if (!this.isPlaying() && this.mode.allowMainKeyValueInput()) {
             if (label.isDigit()) {
                 this.digitInput.start()
                 this.digitInput.push(label.toDigit())

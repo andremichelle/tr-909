@@ -157,9 +157,9 @@ export class UIContext {
     resetMainKeys() {
         this.mainKeys.deactivate();
     }
-    updatePatternLocationKeys(location) {
+    updatePatternLocationKeys(location, writeMode = false) {
         console.debug(`updatePatternLocationKeys(location: [${location.patternGroupIndex}, ${location.patternIndex}])`);
-        this.updatePatternGroupKeys(location.patternGroupIndex, false);
+        this.updatePatternGroupKeys(location.patternGroupIndex, writeMode);
         this.mainKeys.deactivate();
         const patternIndex = this.activeBank()
             .patternGroups[location.patternGroupIndex]
@@ -316,15 +316,15 @@ export class UIContext {
         this.activeFunctionLabels[keyIndex] = Options.None;
     }
     processFunctionKeyRelease(label) {
-        if (label === FunctionKeyLabel.Shift) {
-            this.isShiftKeyPressed = false;
-            this.digitInput.stop();
-        }
-        else if (label === FunctionKeyLabel.Tempo) {
+        if (label === FunctionKeyLabel.Tempo) {
             this.tempoProviderSubscription.terminate();
             this.tempoProviderSubscription = TerminableVoid;
         }
         else {
+            if (label === FunctionKeyLabel.Shift) {
+                this.isShiftKeyPressed = false;
+                this.digitInput.stop();
+            }
             this.mode.onFunctionKeyRelease(label);
         }
     }
@@ -340,7 +340,7 @@ export class UIContext {
         return this.processMainKeyPress(label);
     }
     processMainKeyPress(label) {
-        if (!this.isPlaying()) {
+        if (!this.isPlaying() && this.mode.allowMainKeyValueInput()) {
             if (label.isDigit()) {
                 this.digitInput.start();
                 this.digitInput.push(label.toDigit());

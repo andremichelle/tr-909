@@ -10,9 +10,18 @@ import { TapInputMode } from "./pattern-write/tap.js";
 export default class extends Mode {
     constructor(context) {
         super(context);
-        this.backToSelectMode = () => this.inputMode = new SelectPatternMode(this.context, this);
-        this.backToStepMode = () => this.inputMode = new StepsMode(this.context, this);
-        this.backToTapMode = () => this.inputMode = new TapInputMode(this.context, this);
+        this.backToSelectMode = () => {
+            this.inputMode.terminate();
+            this.inputMode = new SelectPatternMode(this.context, this);
+        };
+        this.backToStepMode = () => {
+            this.inputMode.terminate();
+            this.inputMode = new StepsMode(this.context, this);
+        };
+        this.backToTapMode = () => {
+            this.inputMode.terminate();
+            this.inputMode = new TapInputMode(this.context, this);
+        };
         this.context.updatePatternGroupKeys(this.context.memoryState().patternGroupIndex.get(), true);
         this.inputMode = new SelectPatternMode(context, this);
         const switchInputMode = () => {

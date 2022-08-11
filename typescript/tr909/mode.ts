@@ -30,7 +30,9 @@ export abstract class Mode implements Terminable {
         return true
     }
 
-    onMainKeyShiftPress(label: MainKeyLabel<any>): void { }
+    allowMainKeyValueInput(): boolean {
+        return false
+    }
 
     setMainKeyValue(value: number): void {
     }

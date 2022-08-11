@@ -100,6 +100,10 @@ export default class extends Mode {
         return true
     }
 
+    allowMainKeyValueInput(): boolean {
+        return true
+    }
+
     setMainKeyValue(value: number) {
         if (value === 0) return
         this.writeIndex.set(Math.min(value - 1, this.context.activeTrack().size() - 1))

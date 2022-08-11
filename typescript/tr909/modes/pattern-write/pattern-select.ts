@@ -47,17 +47,15 @@ export class SelectPatternMode extends Mode {
     }
 
     onMainKeyPress(label: MainKeyLabel<any>): complete {
-        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+        if (label.isStepButton()) {
+            this.context.memoryState().patternIndex.set(label.toStepIndex())
             return true
         }
-        this.context.memoryState().patternIndex.set(label.keyIndex as number)
-        return true
-    }
-
-    onMainKeyShiftPress(label: MainKeyLabel<any>): void {
-        if (label.keyIndex === MainKeyIndex.Step11) {
+        if (label === MainKeyLabel.Copy) {
             this.editor.copyPattern()
+            return true
         }
+        return true
     }
 
     name(): string {

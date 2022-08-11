@@ -1,4 +1,4 @@
-import { FunctionKeyLabel, KeyState, MainKeyIndex, ZeroBasedIndices } from "../../keys.js";
+import { FunctionKeyLabel, KeyState, MainKeyLabel, ZeroBasedIndices } from "../../keys.js";
 import { Mode } from "../../mode.js";
 export class SelectPatternMode extends Mode {
     constructor(context, editor) {
@@ -37,16 +37,15 @@ export class SelectPatternMode extends Mode {
         return true;
     }
     onMainKeyPress(label) {
-        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+        if (label.isStepButton()) {
+            this.context.memoryState().patternIndex.set(label.toStepIndex());
             return true;
         }
-        this.context.memoryState().patternIndex.set(label.keyIndex);
-        return true;
-    }
-    onMainKeyShiftPress(label) {
-        if (label.keyIndex === MainKeyIndex.Step11) {
+        if (label === MainKeyLabel.Copy) {
             this.editor.copyPattern();
+            return true;
         }
+        return true;
     }
     name() {
         return 'Select';

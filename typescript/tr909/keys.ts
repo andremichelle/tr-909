@@ -130,6 +130,10 @@ export class MainKeyLabel<T> {
     private constructor(readonly keyIndex: MainKeyIndex, readonly value: T, readonly shift: boolean) {
     }
 
+    toNormal(): MainKeyLabel<any> {
+        return this.shift ? MainKeyLabel.NormalKeys[this.keyIndex] : this
+    }
+
     isStepButton(): boolean {
         return !this.shift && this.keyIndex <= MainKeyIndex.Step16
     }

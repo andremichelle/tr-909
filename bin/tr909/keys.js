@@ -101,6 +101,9 @@ export class MainKeyLabel {
     static create(keyIndex, value, shift) {
         return new MainKeyLabel(keyIndex, value, shift);
     }
+    toNormal() {
+        return this.shift ? MainKeyLabel.NormalKeys[this.keyIndex] : this;
+    }
     isStepButton() {
         return !this.shift && this.keyIndex <= MainKeyIndex.Step16;
     }

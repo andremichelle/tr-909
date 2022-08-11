@@ -19,7 +19,9 @@ export class Mode {
     onMainKeyPress(label) {
         return true;
     }
-    onMainKeyShiftPress(label) { }
+    allowMainKeyValueInput() {
+        return false;
+    }
     setMainKeyValue(value) {
     }
 }

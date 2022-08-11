@@ -49,6 +49,9 @@ export default class extends Mode {
             return true;
         }
     }
+    allowMainKeyValueInput() {
+        return true;
+    }
     setMainKeyValue(value) {
         if (value > 0) {
             this.context.machine.processorTrackMeasure.set(Math.min(value - 1, this.context.memoryState().activeTrack().size() - 1));
