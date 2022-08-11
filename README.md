@@ -20,10 +20,10 @@ Logo SVGs (Roland, TR-909 & Rhythm Composer) by [Isaac Cotec](https://subaqueous
 ![alt screenshot](screenshot.jpg)
 
 ### Build
-Make sure to have sass installed and run in the console:
+Make sure to have sass installed and run
 
     sass sass/main.sass:bin/main.css --watch
 
-Make sure to have typescript installed and run in the console:
+Make sure to have typescript installed and run
 
     tsc -p ./typescript/tsconfig.json --watch
