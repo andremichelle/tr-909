@@ -17,8 +17,10 @@ import { AnimationFrame, HTML } from "./lib/dom.js";
 import { UIContext } from "./tr909/context.js";
 const showProgress = (() => {
     const progress = document.querySelector("svg.preloader");
-    window.onerror = () => progress.classList.add("error");
-    window.onunhandledrejection = () => progress.classList.add("error");
+    window.onunhandledrejection = window.onerror = (reason) => {
+        alert(`An error occurred during booting. Please try Chrome or Safari. [${reason.toString()}]`);
+        progress.classList.add("error");
+    };
     return (percentage) => progress.style.setProperty("--percentage", percentage.toFixed(2));
 })();
 (() => __awaiter(void 0, void 0, void 0, function* () {
