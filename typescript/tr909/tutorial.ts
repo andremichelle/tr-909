@@ -70,6 +70,7 @@ const highlight = (element: HTMLElement): void => element.classList.add('highlig
 const resetHighlights = (): void => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'))
 
 export const startTutorial = async (context: UIContext) => {
+    context.machine.transport.stop()
     context.machine.memory.clear()
     ifDefined(speech.getVoices().find(voice => voice.voiceURI === 'Google UK English Female'), found => voice = found)
     await talk('Welcome to the 9o9 tutorial!')

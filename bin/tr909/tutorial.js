@@ -67,6 +67,7 @@ const next = () => __awaiter(void 0, void 0, void 0, function* () {
 const highlight = (element) => element.classList.add('highlight');
 const resetHighlights = () => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'));
 export const startTutorial = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    context.machine.transport.stop();
     context.machine.memory.clear();
     ifDefined(speech.getVoices().find(voice => voice.voiceURI === 'Google UK English Female'), found => voice = found);
     yield talk('Welcome to the 9o9 tutorial!');
