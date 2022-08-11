@@ -1,3 +1,4 @@
+![alt screenshot](screenshot.jpg)
 ### Disclaimer
 _**The use of any trade name or trademark is for identification and educational purposes only and does not imply any association with the trademark holder of their product brand.**_
 
@@ -16,8 +17,8 @@ Thanks to [Sascha Kaltenschnee](https://soundcloud.com/cyberpvnk) for lending me
 
 Logo SVGs (Roland, TR-909 & Rhythm Composer) by [Isaac Cotec](https://subaqueous.gumroad.com/l/hmOwu?recommended_by=search&_ga=2.213635036.938996232.1655202059-1482949479.1654938206&_gl=1*yr8fvz*_ga*MTQ4Mjk0OTQ3OS4xNjU0OTM4MjA2*_ga_6LJN6D94N6*MTY1NTIwMjA3My4zLjEuMTY1NTIwMjA3OC4w)
 
-[OPEN IN (CHROME | SAFARI)](https://909.kitchen) _does not work in [Firefox](https://github.com/andremichelle/tr-909/issues/4)_
-![alt screenshot](screenshot.jpg)
+### Open 
+[909.kitchen (CHROME | SAFARI)](https://909.kitchen) _does not work in [Firefox](https://github.com/andremichelle/tr-909/issues/4)_
 
 ### Build
 Make sure to have sass installed and run
