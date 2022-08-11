@@ -1,6 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
 import { ArrayUtils } from "../../lib/common.js"
+import { AnimationFrame } from "../../lib/dom.js"
 import { dbToGain, gainToDb } from "../common.js"
 import { UpdateMeterMessage } from "./message.js"
 
@@ -72,7 +73,6 @@ export class StereoMeterWorklet extends MeterWorklet {
     private readonly canvas: HTMLCanvasElement
     private readonly graphics: CanvasRenderingContext2D
     private readonly gradient: CanvasGradient
-    private readonly updater: () => void
 
     private scale: number = NaN
 
@@ -95,8 +95,7 @@ export class StereoMeterWorklet extends MeterWorklet {
         this.gradient.addColorStop(this.dbToNorm(0.0), clipGain)
         this.gradient.addColorStop(1.0, clipGain)
 
-        this.updater = () => this.update()
-        this.update()
+        AnimationFrame.add(() => this.update())
     }
 
     get domElement(): HTMLElement {
@@ -144,7 +143,6 @@ export class StereoMeterWorklet extends MeterWorklet {
             }
         }
         graphics.restore()
-        window.requestAnimationFrame(this.updater)
     }
 
     renderScale() {

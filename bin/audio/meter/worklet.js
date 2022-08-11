@@ -1,4 +1,5 @@
 import { ArrayUtils } from "../../lib/common.js";
+import { AnimationFrame } from "../../lib/dom.js";
 import { dbToGain, gainToDb } from "../common.js";
 export class MeterWorklet extends AudioWorkletNode {
     constructor(context, numLines, channelCount) {
@@ -70,8 +71,7 @@ export class StereoMeterWorklet extends MeterWorklet {
         this.gradient.addColorStop(this.dbToNorm(0.0), highGain);
         this.gradient.addColorStop(this.dbToNorm(0.0), clipGain);
         this.gradient.addColorStop(1.0, clipGain);
-        this.updater = () => this.update();
-        this.update();
+        AnimationFrame.add(() => this.update());
     }
     get domElement() {
         return this.canvas;
@@ -118,7 +118,6 @@ export class StereoMeterWorklet extends MeterWorklet {
             }
         }
         graphics.restore();
-        window.requestAnimationFrame(this.updater);
     }
     renderScale() {
         const graphics = this.graphics;

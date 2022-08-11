@@ -1,7 +1,7 @@
 import { secondsToBars } from "../audio/common.js";
 import { PlayMode } from "../audio/tr909/state.js";
 import { ArrayUtils, Events, ifDefined, ObservableValueImpl, TerminableVoid, Terminator } from "../lib/common.js";
-import { HTML, SVG } from "../lib/dom.js";
+import { AnimationFrame, HTML, SVG } from "../lib/dom.js";
 import { Options } from './../lib/common.js';
 import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js";
 import { FunctionKeyIndex, FunctionKeyLabel, FunctionKeyShortcuts, Key, KeyGroup, KeyState, MainKeyIndex, MainKeyLabel, MainKeyShortcuts, ZeroBasedIndices } from "./keys.js";
@@ -449,12 +449,11 @@ export class UIContext {
         });
     }
     installAnimationFrame() {
-        let running = true;
         let blink = true;
         let frame = 0 | 0;
         let position = 0.0;
         let lastTime = Date.now();
-        const next = () => {
+        this.terminator.with(AnimationFrame.add(() => {
             const now = Date.now();
             const elapsedTime = (now - lastTime) / 1000.0;
             position += secondsToBars(elapsedTime, this.machine.preset.tempo.get()) * 8.0;
@@ -467,12 +466,7 @@ export class UIContext {
             const flash = frame % 4 < 2;
             HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash));
             frame++;
-            if (running) {
-                requestAnimationFrame(next);
-            }
-        };
-        requestAnimationFrame(next);
-        this.terminator.with({ terminate: () => running = false });
+        }));
     }
 }
 class Finger {

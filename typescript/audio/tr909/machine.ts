@@ -154,7 +154,7 @@ export class Machine implements Terminable {
                 } as ToWorkletMessage)
             }
             if (this.running) {
-                requestAnimationFrame(schedule)
+                setTimeout(schedule, 20)
             }
         }
         schedule()

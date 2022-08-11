@@ -127,7 +127,7 @@ export class Machine {
                 });
             }
             if (this.running) {
-                requestAnimationFrame(schedule);
+                setTimeout(schedule, 20);
             }
         };
         schedule();

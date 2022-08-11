@@ -4,7 +4,7 @@ import { Machine } from "./audio/tr909/machine.js"
 import { loadResources } from "./audio/tr909/resources.js"
 import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js"
 import { Events, ifDefined, Waiting } from "./lib/common.js"
-import { HTML } from "./lib/dom.js"
+import { AnimationFrame, HTML } from "./lib/dom.js"
 import { UIContext } from "./tr909/context.js"
 
 const showProgress = (() => {
@@ -87,4 +87,5 @@ const showProgress = (() => {
         track.writeLocation({ patternGroupIndex: 0, patternIndex: 0 })
         track.writeLocation({ patternGroupIndex: 0, patternIndex: 1 })
     }
+    AnimationFrame.init()
 })()

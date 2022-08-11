@@ -41,6 +41,50 @@ export class HTML {
         return Array.from(parent.querySelectorAll(selectors));
     }
 }
+export class AnimationFrame {
+    static add(exec) {
+        if (AnimationFrame.list.length === 0) {
+            AnimationFrame.start();
+        }
+        AnimationFrame.list.push(exec);
+        return {
+            terminate: () => {
+                const index = AnimationFrame.list.indexOf(exec);
+                console.assert(-1 < index);
+                AnimationFrame.list.splice(index, 1);
+            }
+        };
+    }
+    static init() {
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.debug('AnimationFrame stop (will hide)', Date.now());
+            }
+            else {
+                AnimationFrame.start();
+            }
+        });
+    }
+    static start() {
+        const exe = () => {
+            if (AnimationFrame.list.length > 0) {
+                AnimationFrame.list.forEach(e => e());
+                if (document.hidden) {
+                    console.debug('AnimationFrame stop (hidden)');
+                }
+                else {
+                    window.requestAnimationFrame(exe);
+                }
+            }
+            else {
+                console.debug('AnimationFrame stop (no callbacks)');
+            }
+        };
+        console.debug('AnimationFrame start', Date.now());
+        window.requestAnimationFrame(exe);
+    }
+}
+AnimationFrame.list = [];
 export class SVG {
     static create(tagName, attributes) {
         const element = document.createElementNS("http://www.w3.org/2000/svg", tagName);

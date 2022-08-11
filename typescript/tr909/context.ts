@@ -21,7 +21,7 @@ import {
     TerminableVoid,
     Terminator
 } from "../lib/common.js"
-import { HTML, SVG } from "../lib/dom.js"
+import { AnimationFrame, HTML, SVG } from "../lib/dom.js"
 import { Option, Options } from './../lib/common.js'
 import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js"
 import {
@@ -552,12 +552,11 @@ export class UIContext implements Terminable {
     }
 
     private installAnimationFrame(): void {
-        let running = true
         let blink = true
         let frame: number = 0 | 0
         let position: number = 0.0
         let lastTime: number = Date.now()
-        const next = () => {
+        this.terminator.with(AnimationFrame.add(() => {
             const now = Date.now()
             const elapsedTime = (now - lastTime) / 1000.0
             position += secondsToBars(elapsedTime, this.machine.preset.tempo.get()) * 8.0
@@ -570,12 +569,7 @@ export class UIContext implements Terminable {
             const flash: boolean = frame % 4 < 2
             HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash))
             frame++
-            if (running) {
-                requestAnimationFrame(next)
-            }
-        }
-        requestAnimationFrame(next)
-        this.terminator.with({ terminate: () => running = false })
+        }))
     }
 }
 
