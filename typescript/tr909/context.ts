@@ -475,10 +475,12 @@ export class UIContext implements Terminable {
                 this.save().then(() => console.log('saved.'))
                 return true
             } else if (label === MainKeyLabel.Load) {
-                const binId = prompt('Enter a bin-id', '62f69116a1610e6386fad903')
-                if (binId !== null) {
-                    this.load(binId).then(() => console.debug('loaded.'))
-                }
+                setTimeout(() => { // we need to delay this or the key gets no 'pointerup' event
+                    const binId = prompt('Enter a bin-id', '62f69116a1610e6386fad903')
+                    if (binId !== null) {
+                        this.load(binId).then(() => console.debug('loaded.'))
+                    }
+                }, 100)
                 return true
             } else if (this.mode.get().allowMainKeyValueInput()) {
                 if (label.isDigit()) {
