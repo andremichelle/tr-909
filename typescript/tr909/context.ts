@@ -22,7 +22,10 @@ import {
     Terminator
 } from "../lib/common.js"
 import { AnimationFrame, HTML, SVG } from "../lib/dom.js"
+import { JsonBinResponse } from '../lib/jsonbin.js'
+import { MemoryFormat } from './../audio/tr909/memory'
 import { Option, Options } from './../lib/common.js'
+import { JsonBin } from './../lib/jsonbin'
 import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js"
 import {
     FunctionKeyIndex,
@@ -61,7 +64,7 @@ export class UIContext implements Terminable {
     private isShiftKeyPressed: boolean = false
     private tempoProviderSubscription: Terminable = TerminableVoid
 
-    constructor(readonly machine: Machine, readonly parentNode: HTMLElement) {
+    constructor(readonly machine: Machine, readonly parentNode: HTMLElement, readonly jsonBin: JsonBin) {
         this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode))
         this.digitInput = this.terminator.with(new DigitInput(this.display))
         this.startKey = HTML.query('button[data-control=transport-start]', this.parentNode)
@@ -105,6 +108,37 @@ export class UIContext implements Terminable {
         activePatternObserver(this.machine.memory.state.activePattern())
 
         console.debug(`mode: ${this.modeName()}`)
+    }
+
+    async save(): Promise<void> {
+        console.debug(`save()`)
+        const response: JsonBinResponse<MemoryFormat> = await this.jsonBin.saveBin(JSON.stringify(this.memory().serialize()))
+        if ('message' in response) {
+            console.debug(response.message)
+            return
+        }
+        console.log(`date: ${new Date(response.metadata.createdAt)}`)
+        console.log(`id: ${response.metadata.id}`)
+        history.pushState(null, '', `#${response.metadata.id}`)
+    }
+
+    async load(binId: string): Promise<void> {
+        console.debug(`loadBin(binId: ${binId})`)
+        const response = await this.jsonBin.loadBin<MemoryFormat>(binId)
+        if ('message' in response) {
+            console.debug(response.message)
+            return
+        }
+        this.deserialize(response.record)
+    }
+
+    deserialize(format: MemoryFormat): void {
+        try {
+            this.memory().deserialize(format)
+            console.debug(`loaded.`)
+        } catch (reason) {
+            console.warn(`Could not deserialize. (${reason})`)
+        }
     }
 
     modeName(): string {
@@ -245,6 +279,7 @@ export class UIContext implements Terminable {
             .patternGroups[location.patternGroupIndex]
             .firstOfChained(location.patternIndex).location.patternIndex
         const chained = this.memoryState().activeBank().patternGroups[location.patternGroupIndex].getChained()
+
         let index: MainKeyIndex = patternIndex
         do {
             this.mainKeys.byIndex(index).setState(KeyState.On)
@@ -435,17 +470,28 @@ export class UIContext implements Terminable {
     }
 
     private processMainKeyPress(label: MainKeyLabel<any>): complete {
-        if (!this.isPlaying() && this.mode.get().allowMainKeyValueInput()) {
-            if (label.isDigit()) {
-                this.digitInput.start()
-                this.digitInput.push(label.toDigit())
+        if (!this.isPlaying()) {
+            if (label === MainKeyLabel.Save) {
+                this.save().then(() => console.log('saved.'))
                 return true
-            } else if (label.isEnter()) {
-                const number = this.digitInput.getValue()
-                console.debug(`setMainKeyValue(${number})`)
-                this.mode.get().setMainKeyValue(number)
-                this.digitInput.stop()
+            } else if (label === MainKeyLabel.Load) {
+                const binId = prompt('Enter a bin-id', '62f69116a1610e6386fad903')
+                if (binId !== null) {
+                    this.load(binId).then(() => console.debug('loaded.'))
+                }
                 return true
+            } else if (this.mode.get().allowMainKeyValueInput()) {
+                if (label.isDigit()) {
+                    this.digitInput.start()
+                    this.digitInput.push(label.toDigit())
+                    return true
+                } else if (label.isEnter()) {
+                    const number = this.digitInput.getValue()
+                    console.debug(`setMainKeyValue(${number})`)
+                    this.mode.get().setMainKeyValue(number)
+                    this.digitInput.stop()
+                    return true
+                }
             }
         }
         return this.mode.get().onMainKeyPress(label)

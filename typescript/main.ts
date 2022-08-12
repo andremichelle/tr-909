@@ -1,10 +1,12 @@
 import { LimiterWorklet } from "./audio/limiter/worklet.js"
-import { MeterWorklet, StereoMeterWorklet } from "./audio/meter/worklet.js"
+import { MeterWorklet } from "./audio/meter/worklet.js"
 import { Machine } from "./audio/tr909/machine.js"
+import { MemoryFormat } from './audio/tr909/memory.js'
 import { loadResources } from "./audio/tr909/resources.js"
 import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js"
 import { Events, Waiting } from "./lib/common.js"
 import { AnimationFrame, HTML } from "./lib/dom.js"
+import { JsonBin } from "./lib/jsonbin.js"
 import { UIContext } from "./tr909/context.js"
 import { startTutorial } from './tr909/tutorial.js'
 
@@ -29,6 +31,7 @@ const showProgress = (() => {
     boot.registerProcess(LimiterWorklet.loadModule(context))
     boot.registerProcess(MeterWorklet.loadModule(context))
     boot.registerProcess(Machine.loadModule(context))
+    const jsonBin = boot.registerProcess(JsonBin.load())
     const getResources = loadResources(boot)
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
@@ -36,6 +39,16 @@ const showProgress = (() => {
     const main: HTMLElement = HTML.query('main')
     const parentNode: HTMLElement = HTML.query('div.tr-909')
     const wrapper: HTMLElement = HTML.query('div.wrapper')
+
+    let format: MemoryFormat | null = null
+    if (location.hash !== "") {
+        const response = await jsonBin.get().loadBin<MemoryFormat>(location.hash.substring(1))
+        if ('message' in response) {
+            console.debug(`Could not load bin(${response.message})`)
+        } else {
+            format = response.record
+        }
+    }
 
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), { passive: false })
@@ -58,12 +71,16 @@ const showProgress = (() => {
     console.debug("boot complete.")
 
     const machine = new Machine(context, getResources())
-    const interfaceContext: UIContext = new UIContext(machine, parentNode)
-
+    const ui: UIContext = new UIContext(machine, parentNode, jsonBin.get())
     machine.master.connect(context.destination)
+
+    if (format !== null) {
+        ui.deserialize(format)
+    }
 
     // TODO > Test Data < REMOVE WHEN DONE TESTING
     if (location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1')) {
+        if (true) return
         console.log("INSTALLED TEST DATA")
         const memory = machine.memory
         const memoryBank = memory.banks[0]
@@ -93,6 +110,6 @@ const showProgress = (() => {
         if (!confirm('This tutorial cannot be stopped. Continue?')) return
         subscription.terminate()
         tutorialButton.style.opacity = "0.3"
-        startTutorial(interfaceContext)
+        startTutorial(ui)
     })
 })()

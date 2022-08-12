@@ -8,7 +8,7 @@ import {
     Terminable,
     Terminator
 } from "../../lib/common.js"
-import { State } from "./state.js"
+import { State, StateFormat } from "./state.js"
 import { Track } from "./track.js"
 
 export enum BankIndex { I, II }
@@ -45,7 +45,12 @@ export enum ChannelIndex {
     End
 }
 
-export class Memory {
+export interface MemoryFormat {
+    state: StateFormat
+    patterns: PatternGroupFormat[][]
+}
+
+export class Memory implements Serializer<MemoryFormat> {
     private static readonly MAX_MEASURES = 896
 
     readonly banks: [MemoryBank, MemoryBank] = [new MemoryBank(), new MemoryBank()]
@@ -58,6 +63,21 @@ export class Memory {
 
     clear() {
         this.banks.forEach(bank => bank.clear())
+    }
+
+    serialize(): MemoryFormat {
+        return {
+            state: this.state.serialize(),
+            patterns: this.banks.map(bank => bank.patternGroups.map(group => group.serialize()))
+        }
+    }
+    deserialize(format: MemoryFormat): this {
+        this.state.deserialize(format.state)
+        this.banks
+            .forEach((bank: MemoryBank, bankIndex: BankIndex) => bank.patternGroups
+                .forEach((group: PatternGroup, groupIndex: PatternGroupIndex) => group
+                    .deserialize(format.patterns[bankIndex][groupIndex])))
+        return this
     }
 }
 

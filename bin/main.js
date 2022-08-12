@@ -14,6 +14,7 @@ import { loadResources } from "./audio/tr909/resources.js";
 import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js";
 import { Events, Waiting } from "./lib/common.js";
 import { AnimationFrame, HTML } from "./lib/dom.js";
+import { JsonBin } from "./lib/jsonbin.js";
 import { UIContext } from "./tr909/context.js";
 import { startTutorial } from './tr909/tutorial.js';
 const showProgress = (() => {
@@ -34,11 +35,22 @@ const showProgress = (() => {
     boot.registerProcess(LimiterWorklet.loadModule(context));
     boot.registerProcess(MeterWorklet.loadModule(context));
     boot.registerProcess(Machine.loadModule(context));
+    const jsonBin = boot.registerProcess(JsonBin.load());
     const getResources = loadResources(boot);
     yield boot.waitForCompletion();
     const main = HTML.query('main');
     const parentNode = HTML.query('div.tr-909');
     const wrapper = HTML.query('div.wrapper');
+    let format = null;
+    if (location.hash !== "") {
+        const response = yield jsonBin.get().loadBin(location.hash.substring(1));
+        if ('message' in response) {
+            console.debug(`Could not load bin(${response.message})`);
+        }
+        else {
+            format = response.record;
+        }
+    }
     document.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
     document.addEventListener('dblclick', (event) => event.preventDefault(), { passive: false });
     document.addEventListener('contextmenu', event => event.preventDefault());
@@ -58,9 +70,14 @@ const showProgress = (() => {
     HTML.queryAll("main", body).forEach(element => element.classList.remove("invisible"));
     console.debug("boot complete.");
     const machine = new Machine(context, getResources());
-    const interfaceContext = new UIContext(machine, parentNode);
+    const ui = new UIContext(machine, parentNode, jsonBin.get());
     machine.master.connect(context.destination);
+    if (format !== null) {
+        ui.deserialize(format);
+    }
     if (location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1')) {
+        if (true)
+            return;
         console.log("INSTALLED TEST DATA");
         const memory = machine.memory;
         const memoryBank = memory.banks[0];
@@ -81,7 +98,7 @@ const showProgress = (() => {
             return;
         subscription.terminate();
         tutorialButton.style.opacity = "0.3";
-        startTutorial(interfaceContext);
+        startTutorial(ui);
     });
 }))();
 //# sourceMappingURL=main.js.map

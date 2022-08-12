@@ -70,6 +70,20 @@ export class Memory {
     clear() {
         this.banks.forEach(bank => bank.clear());
     }
+    serialize() {
+        return {
+            state: this.state.serialize(),
+            patterns: this.banks.map(bank => bank.patternGroups.map(group => group.serialize()))
+        };
+    }
+    deserialize(format) {
+        this.state.deserialize(format.state);
+        this.banks
+            .forEach((bank, bankIndex) => bank.patternGroups
+            .forEach((group, groupIndex) => group
+            .deserialize(format.patterns[bankIndex][groupIndex])));
+        return this;
+    }
 }
 Memory.MAX_MEASURES = 896;
 export class MemoryBank {

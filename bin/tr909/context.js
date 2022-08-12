@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { secondsToBars } from "../audio/common.js";
 import { PlayMode } from "../audio/tr909/state.js";
 import { ArrayUtils, Events, ifDefined, ObservableValueImpl, TerminableVoid, Terminator } from "../lib/common.js";
@@ -13,9 +22,10 @@ import TrackPlayMode from "./modes/track-play.js";
 import TrackWriteMode from "./modes/track-write.js";
 import { InstrumentMode, Utils } from "./utils.js";
 export class UIContext {
-    constructor(machine, parentNode) {
+    constructor(machine, parentNode, jsonBin) {
         this.machine = machine;
         this.parentNode = parentNode;
+        this.jsonBin = jsonBin;
         this.terminator = new Terminator();
         this.concurrentMainKeys = new Set();
         this.isShiftKeyPressed = false;
@@ -51,6 +61,39 @@ export class UIContext {
         this.terminator.with(this.machine.memory.state.patternIndicesChangeNotification.addObserver(activePatternObserver));
         activePatternObserver(this.machine.memory.state.activePattern());
         console.debug(`mode: ${this.modeName()}`);
+    }
+    save() {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.debug(`save()`);
+            const response = yield this.jsonBin.saveBin(JSON.stringify(this.memory().serialize()));
+            if ('message' in response) {
+                console.debug(response.message);
+                return;
+            }
+            console.log(`date: ${new Date(response.metadata.createdAt)}`);
+            console.log(`id: ${response.metadata.id}`);
+            history.pushState(null, '', `#${response.metadata.id}`);
+        });
+    }
+    load(binId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.debug(`loadBin(binId: ${binId})`);
+            const response = yield this.jsonBin.loadBin(binId);
+            if ('message' in response) {
+                console.debug(response.message);
+                return;
+            }
+            this.deserialize(response.record);
+        });
+    }
+    deserialize(format) {
+        try {
+            this.memory().deserialize(format);
+            console.debug(`loaded.`);
+        }
+        catch (reason) {
+            console.warn(`Could not deserialize. (${reason})`);
+        }
     }
     modeName() {
         return this.mode.get().name();
@@ -341,18 +384,31 @@ export class UIContext {
         return this.processMainKeyPress(label);
     }
     processMainKeyPress(label) {
-        if (!this.isPlaying() && this.mode.get().allowMainKeyValueInput()) {
-            if (label.isDigit()) {
-                this.digitInput.start();
-                this.digitInput.push(label.toDigit());
+        if (!this.isPlaying()) {
+            if (label === MainKeyLabel.Save) {
+                this.save().then(() => console.log('saved.'));
                 return true;
             }
-            else if (label.isEnter()) {
-                const number = this.digitInput.getValue();
-                console.debug(`setMainKeyValue(${number})`);
-                this.mode.get().setMainKeyValue(number);
-                this.digitInput.stop();
+            else if (label === MainKeyLabel.Load) {
+                const binId = prompt('Enter a bin-id', '62f69116a1610e6386fad903');
+                if (binId !== null) {
+                    this.load(binId).then(() => console.debug('loaded.'));
+                }
                 return true;
+            }
+            else if (this.mode.get().allowMainKeyValueInput()) {
+                if (label.isDigit()) {
+                    this.digitInput.start();
+                    this.digitInput.push(label.toDigit());
+                    return true;
+                }
+                else if (label.isEnter()) {
+                    const number = this.digitInput.getValue();
+                    console.debug(`setMainKeyValue(${number})`);
+                    this.mode.get().setMainKeyValue(number);
+                    this.digitInput.stop();
+                    return true;
+                }
             }
         }
         return this.mode.get().onMainKeyPress(label);
