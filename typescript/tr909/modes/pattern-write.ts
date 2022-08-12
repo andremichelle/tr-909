@@ -31,7 +31,10 @@ export default class extends Mode implements PatternEditor, StepModeEditor, TapI
 
         this.context.updatePatternGroupKeys(this.context.memoryState().patternGroupIndex.get(), true)
 
-        this.inputMode = new SelectPatternMode(context, this)
+        this.inputMode = new class extends Mode {
+            constructor(context: UIContext) { super(context) }
+            name(): string { throw new Error("Method not implemented.") }
+        }(context)
 
         const switchInputMode = () => {
             this.inputMode.terminate()
@@ -58,6 +61,7 @@ export default class extends Mode implements PatternEditor, StepModeEditor, TapI
                 this.context.clearPatternEditKeys()
             }
         })
+        switchInputMode()
     }
 
     editLastStep(): void {
