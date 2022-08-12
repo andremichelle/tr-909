@@ -5,8 +5,8 @@ export type JsonBinResponse<T> = {
 
 export class JsonBin {
     static async load(): Promise<JsonBin> {
-        const f = fetch('credentials.json')
-        return new JsonBin(await f.then(x => x.json()).catch(e => { }))
+        return Promise.resolve(new JsonBin({}))
+        // return new JsonBin(await fetch('credentials.json').then(x => x.json()).catch(e => { }))
     }
 
     constructor(private readonly headers: {}) {

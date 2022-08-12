@@ -13,8 +13,7 @@ export class JsonBin {
     }
     static load() {
         return __awaiter(this, void 0, void 0, function* () {
-            const f = fetch('credentials.json');
-            return new JsonBin(yield f.then(x => x.json()).catch(e => { }));
+            return Promise.resolve(new JsonBin({}));
         });
     }
     saveBin(body) {
