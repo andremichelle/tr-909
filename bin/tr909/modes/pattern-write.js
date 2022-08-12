@@ -23,7 +23,10 @@ export default class extends Mode {
             this.inputMode = new TapInputMode(this.context, this);
         };
         this.context.updatePatternGroupKeys(this.context.memoryState().patternGroupIndex.get(), true);
-        this.inputMode = new SelectPatternMode(context, this);
+        this.inputMode = new class extends Mode {
+            constructor(context) { super(context); }
+            name() { throw new Error("Method not implemented."); }
+        }(context);
         const switchInputMode = () => {
             this.inputMode.terminate();
             if (this.context.isPlaying()) {
@@ -51,6 +54,7 @@ export default class extends Mode {
                 this.context.clearPatternEditKeys();
             }
         });
+        switchInputMode();
     }
     editLastStep() {
         console.assert(this.context.isPlaying());
