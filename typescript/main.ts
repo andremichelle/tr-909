@@ -41,7 +41,7 @@ const showProgress = (() => {
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), { passive: false })
     document.addEventListener('dblclick', (event: Event) => event.preventDefault(), { passive: false })
     document.addEventListener('contextmenu', event => event.preventDefault())
-    const size = { width: 1226 + 64, height: 728 }
+    const size = { width: 1226 + 64 /* Padding */, height: 728 }
     const resize = () => {
         const style = document.body.style
         style.height = `${window.innerHeight}px`
@@ -60,11 +60,7 @@ const showProgress = (() => {
     const machine = new Machine(context, getResources())
     const interfaceContext: UIContext = new UIContext(machine, parentNode)
 
-    const meter = new StereoMeterWorklet(context)
-    machine.master.connect(meter).connect(context.destination)
-
-    meter.domElement.classList.add('meter')
-    HTML.query('div.top', main).appendChild(meter.domElement)
+    machine.master.connect(context.destination)
 
     // TODO > Test Data < REMOVE WHEN DONE TESTING
     if (location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1')) {

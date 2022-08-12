@@ -3,26 +3,19 @@
 @import ribbon
 
 main
-  width: 100vmax
-  height: 100vmin
+  flex: 1
   display: grid
-  grid-template: 6vmin 1fr 8vmin / 1fr
-  transform: rotate(0deg)
+  grid-template: 4vmin 1fr 10vmin / 1fr
   position: relative
 
-  @media (orientation: portrait)
-    transform: rotate(90deg)
-
   > div.wrapper
-    position: relative
     display: flex
-    align-items: center
-    justify-content: center
+    position: relative
 
     > div.tr-909
       top: 50%
-      bottom: 50%
-      transform: translate(0, -50%) scale(var(--scale))
+      left: 50%
+      transform: translate(-50%, -50%) scale(var(--scale))
       position: absolute
 
   > div.top

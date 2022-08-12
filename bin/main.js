@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { LimiterWorklet } from "./audio/limiter/worklet.js";
-import { MeterWorklet, StereoMeterWorklet } from "./audio/meter/worklet.js";
+import { MeterWorklet } from "./audio/meter/worklet.js";
 import { Machine } from "./audio/tr909/machine.js";
 import { loadResources } from "./audio/tr909/resources.js";
 import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js";
@@ -59,10 +59,7 @@ const showProgress = (() => {
     console.debug("boot complete.");
     const machine = new Machine(context, getResources());
     const interfaceContext = new UIContext(machine, parentNode);
-    const meter = new StereoMeterWorklet(context);
-    machine.master.connect(meter).connect(context.destination);
-    meter.domElement.classList.add('meter');
-    HTML.query('div.top', main).appendChild(meter.domElement);
+    machine.master.connect(context.destination);
     if (location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1')) {
         console.log("INSTALLED TEST DATA");
         const memory = machine.memory;
