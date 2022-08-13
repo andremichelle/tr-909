@@ -1,13 +1,12 @@
 import { LimiterWorklet } from "./audio/limiter/worklet.js"
 import { MeterWorklet } from "./audio/meter/worklet.js"
 import { Machine } from "./audio/tr909/machine.js"
-import { MemoryFormat } from './audio/tr909/memory.js'
 import { loadResources } from "./audio/tr909/resources.js"
 import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js"
 import { Events, Waiting } from "./lib/common.js"
 import { AnimationFrame, HTML } from "./lib/dom.js"
 import { JsonBin } from "./lib/jsonbin.js"
-import { UIContext } from "./tr909/context.js"
+import { Format, UIContext } from "./tr909/context.js"
 import { startTutorial } from './tr909/tutorial.js'
 
 const showProgress = (() => {
@@ -31,7 +30,6 @@ const showProgress = (() => {
     boot.registerProcess(LimiterWorklet.loadModule(context))
     boot.registerProcess(MeterWorklet.loadModule(context))
     boot.registerProcess(Machine.loadModule(context))
-    const jsonBin = boot.registerProcess(JsonBin.load())
     const getResources = loadResources(boot)
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
@@ -40,13 +38,12 @@ const showProgress = (() => {
     const parentNode: HTMLElement = HTML.query('div.tr-909')
     const wrapper: HTMLElement = HTML.query('div.wrapper')
 
-    let format: MemoryFormat | null = null
+    let format: Format | null = null
     if (location.hash !== "") {
-        const response = await jsonBin.get().loadBin<MemoryFormat>(location.hash.substring(1))
-        if ('message' in response) {
-            console.debug(`Could not load bin(${response.message})`)
-        } else {
-            format = response.record
+        try {
+            format = (await JsonBin.load<Format>(location.hash.substring(1))).record
+        } catch (reason) {
+            console.warn(reason)
         }
     }
 
@@ -71,7 +68,7 @@ const showProgress = (() => {
     console.debug("boot complete.")
 
     const machine = new Machine(context, getResources())
-    const ui: UIContext = new UIContext(machine, parentNode, jsonBin.get())
+    const ui: UIContext = new UIContext(machine, parentNode)
     machine.master.connect(context.destination)
 
     if (format !== null) {

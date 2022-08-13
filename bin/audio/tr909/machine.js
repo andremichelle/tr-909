@@ -95,6 +95,17 @@ export class Machine {
     static loadModule(context) {
         return context.audioWorklet.addModule("bin/audio/tr909/dsp/processor.js");
     }
+    serialize() {
+        return {
+            preset: this.preset.serialize(),
+            memory: this.memory.serialize()
+        };
+    }
+    deserialize(format) {
+        this.preset.deserialize(format.preset);
+        this.memory.deserialize(format.memory);
+        return this;
+    }
     stepAbsoluteDuration() {
         return barsToSeconds(this.memory.state.activePattern().scaleRatio(), this.preset.tempo.get());
     }

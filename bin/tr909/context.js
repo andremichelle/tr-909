@@ -11,6 +11,7 @@ import { secondsToBars } from "../audio/common.js";
 import { PlayMode } from "../audio/tr909/state.js";
 import { ArrayUtils, Events, ifDefined, ObservableValueImpl, TerminableVoid, Terminator } from "../lib/common.js";
 import { AnimationFrame, HTML, SVG } from "../lib/dom.js";
+import { JsonBin } from '../lib/jsonbin.js';
 import { Options } from './../lib/common.js';
 import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js";
 import { FunctionKeyIndex, FunctionKeyLabel, FunctionKeyShortcuts, Key, KeyGroup, KeyState, MainKeyIndex, MainKeyLabel, MainKeyShortcuts, ZeroBasedIndices } from "./keys.js";
@@ -22,10 +23,9 @@ import TrackPlayMode from "./modes/track-play.js";
 import TrackWriteMode from "./modes/track-write.js";
 import { InstrumentMode, Utils } from "./utils.js";
 export class UIContext {
-    constructor(machine, parentNode, jsonBin) {
+    constructor(machine, parentNode) {
         this.machine = machine;
         this.parentNode = parentNode;
-        this.jsonBin = jsonBin;
         this.terminator = new Terminator();
         this.concurrentMainKeys = new Set();
         this.isShiftKeyPressed = false;
@@ -65,30 +65,39 @@ export class UIContext {
     save() {
         return __awaiter(this, void 0, void 0, function* () {
             console.debug(`save()`);
-            const response = yield this.jsonBin.saveBin(JSON.stringify(this.memory().serialize()));
-            if ('message' in response) {
-                console.debug(response.message);
-                return;
+            try {
+                const response = yield JsonBin.save({
+                    version: 0.1,
+                    machine: this.machine.serialize()
+                });
+                console.log(`date: ${new Date(response.metadata.createdAt)}`);
+                console.log(`id: ${response.metadata.id}`);
+                history.pushState(null, '', `#${response.metadata.id}`);
             }
-            console.log(`date: ${new Date(response.metadata.createdAt)}`);
-            console.log(`id: ${response.metadata.id}`);
-            history.pushState(null, '', `#${response.metadata.id}`);
+            catch (reason) {
+                console.warn(reason);
+            }
         });
     }
     load(binId) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.debug(`loadBin(binId: ${binId})`);
-            const response = yield this.jsonBin.loadBin(binId);
-            if ('message' in response) {
-                console.debug(response.message);
-                return;
+            try {
+                console.debug(`loadBin(binId: ${binId})`);
+                const response = yield JsonBin.load(binId);
+                this.deserialize(response.record);
             }
-            this.deserialize(response.record);
+            catch (reason) {
+                console.warn(reason);
+            }
         });
     }
     deserialize(format) {
+        if (format.version !== 0.1) {
+            console.warn(`Unexpected version (${format.version})`);
+            return;
+        }
         try {
-            this.memory().deserialize(format);
+            this.machine.deserialize(format.machine);
             console.debug(`loaded.`);
         }
         catch (reason) {
@@ -384,21 +393,21 @@ export class UIContext {
         return this.processMainKeyPress(label);
     }
     processMainKeyPress(label) {
+        if (label === MainKeyLabel.Save) {
+            this.save().then(() => console.log('saved.'));
+            return true;
+        }
+        else if (label === MainKeyLabel.Load) {
+            setTimeout(() => {
+                const binId = prompt('Enter a bin-id', '62f75f6ea1610e6386fbc5a5');
+                if (binId !== null) {
+                    this.load(binId).then(() => console.debug('loaded.'));
+                }
+            }, 100);
+            return true;
+        }
         if (!this.isPlaying()) {
-            if (label === MainKeyLabel.Save) {
-                this.save().then(() => console.log('saved.'));
-                return true;
-            }
-            else if (label === MainKeyLabel.Load) {
-                setTimeout(() => {
-                    const binId = prompt('Enter a bin-id', '62f69116a1610e6386fad903');
-                    if (binId !== null) {
-                        this.load(binId).then(() => console.debug('loaded.'));
-                    }
-                }, 100);
-                return true;
-            }
-            else if (this.mode.get().allowMainKeyValueInput()) {
+            if (this.mode.get().allowMainKeyValueInput()) {
                 if (label.isDigit()) {
                     this.digitInput.start();
                     this.digitInput.push(label.toDigit());

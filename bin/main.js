@@ -35,7 +35,6 @@ const showProgress = (() => {
     boot.registerProcess(LimiterWorklet.loadModule(context));
     boot.registerProcess(MeterWorklet.loadModule(context));
     boot.registerProcess(Machine.loadModule(context));
-    const jsonBin = boot.registerProcess(JsonBin.load());
     const getResources = loadResources(boot);
     yield boot.waitForCompletion();
     const main = HTML.query('main');
@@ -43,12 +42,11 @@ const showProgress = (() => {
     const wrapper = HTML.query('div.wrapper');
     let format = null;
     if (location.hash !== "") {
-        const response = yield jsonBin.get().loadBin(location.hash.substring(1));
-        if ('message' in response) {
-            console.debug(`Could not load bin(${response.message})`);
+        try {
+            format = (yield JsonBin.load(location.hash.substring(1))).record;
         }
-        else {
-            format = response.record;
+        catch (reason) {
+            console.warn(reason);
         }
     }
     document.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
@@ -70,7 +68,7 @@ const showProgress = (() => {
     HTML.queryAll("main", body).forEach(element => element.classList.remove("invisible"));
     console.debug("boot complete.");
     const machine = new Machine(context, getResources());
-    const ui = new UIContext(machine, parentNode, jsonBin.get());
+    const ui = new UIContext(machine, parentNode);
     machine.master.connect(context.destination);
     if (format !== null) {
         ui.deserialize(format);

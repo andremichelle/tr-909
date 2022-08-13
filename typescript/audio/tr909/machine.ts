@@ -1,23 +1,27 @@
 import { ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator } from "../../lib/common.js"
 import { barsToSeconds, dbToGain, Transport } from "../common.js"
 import { MeterWorklet } from "../meter/worklet.js"
+import { Serializer } from './../../lib/common'
 import {
     BankIndex,
     ChannelIndex,
-    Memory,
-    MemoryBank,
-    Pattern,
+    Memory, MemoryBank, MemoryFormat, Pattern,
     PatternGroup,
     PatternGroupIndex,
     PatternLocation,
     Step
 } from "./memory.js"
 import { ProcessorOptions, ToMainMessage, ToWorkletMessage } from "./messages.js"
-import { Preset } from "./preset.js"
+import { Preset, PresetFormat } from "./preset.js"
 import { Resources } from "./resources.js"
 import { Track } from "./track.js"
 
-export class Machine implements Terminable {
+export interface MachineFormat {
+    preset: PresetFormat
+    memory: MemoryFormat
+}
+
+export class Machine implements Serializer<MachineFormat>, Terminable {
     static loadModule(context: AudioContext): Promise<void> {
         return context.audioWorklet.addModule("bin/audio/tr909/dsp/processor.js")
     }
@@ -116,6 +120,19 @@ export class Machine implements Terminable {
             }
         }
         this.startScheduler()
+    }
+
+    serialize(): MachineFormat {
+        return {
+            preset: this.preset.serialize(),
+            memory: this.memory.serialize()
+        }
+    }
+
+    deserialize(format: MachineFormat): this {
+        this.preset.deserialize(format.preset)
+        this.memory.deserialize(format.memory)
+        return this
     }
 
     stepAbsoluteDuration(): number {

@@ -1,3 +1,4 @@
+import { MachineFormat } from './../audio/tr909/machine'
 import { secondsToBars } from "../audio/common.js"
 import { Machine } from "../audio/tr909/machine.js"
 import {
@@ -22,10 +23,9 @@ import {
     Terminator
 } from "../lib/common.js"
 import { AnimationFrame, HTML, SVG } from "../lib/dom.js"
-import { JsonBinResponse } from '../lib/jsonbin.js'
+import { JsonBin, JsonBinResponse } from '../lib/jsonbin.js'
 import { MemoryFormat } from './../audio/tr909/memory'
 import { Option, Options } from './../lib/common.js'
-import { JsonBin } from './../lib/jsonbin'
 import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js"
 import {
     FunctionKeyIndex,
@@ -42,6 +42,11 @@ import PatternWriteMode from "./modes/pattern-write.js"
 import TrackPlayMode from "./modes/track-play.js"
 import TrackWriteMode from "./modes/track-write.js"
 import { InstrumentMode, Utils } from "./utils.js"
+
+export interface Format {
+    version: number
+    machine: MachineFormat
+}
 
 export class UIContext implements Terminable {
     private readonly terminator = new Terminator()
@@ -64,7 +69,7 @@ export class UIContext implements Terminable {
     private isShiftKeyPressed: boolean = false
     private tempoProviderSubscription: Terminable = TerminableVoid
 
-    constructor(readonly machine: Machine, readonly parentNode: HTMLElement, readonly jsonBin: JsonBin) {
+    constructor(readonly machine: Machine, readonly parentNode: HTMLElement) {
         this.display = new Display(HTML.query('svg[data-display=led-display]', parentNode))
         this.digitInput = this.terminator.with(new DigitInput(this.display))
         this.startKey = HTML.query('button[data-control=transport-start]', this.parentNode)
@@ -112,29 +117,36 @@ export class UIContext implements Terminable {
 
     async save(): Promise<void> {
         console.debug(`save()`)
-        const response: JsonBinResponse<MemoryFormat> = await this.jsonBin.saveBin(JSON.stringify(this.memory().serialize()))
-        if ('message' in response) {
-            console.debug(response.message)
-            return
+        try {
+            const response: JsonBinResponse<Format> = await JsonBin.save({
+                version: 0.1,
+                machine: this.machine.serialize()
+            })
+            console.log(`date: ${new Date(response.metadata.createdAt)}`)
+            console.log(`id: ${response.metadata.id}`)
+            history.pushState(null, '', `#${response.metadata.id}`)
+        } catch (reason) {
+            console.warn(reason)
         }
-        console.log(`date: ${new Date(response.metadata.createdAt)}`)
-        console.log(`id: ${response.metadata.id}`)
-        history.pushState(null, '', `#${response.metadata.id}`)
     }
 
     async load(binId: string): Promise<void> {
-        console.debug(`loadBin(binId: ${binId})`)
-        const response = await this.jsonBin.loadBin<MemoryFormat>(binId)
-        if ('message' in response) {
-            console.debug(response.message)
-            return
+        try {
+            console.debug(`loadBin(binId: ${binId})`)
+            const response = await JsonBin.load<Format>(binId)
+            this.deserialize(response.record)
+        } catch (reason) {
+            console.warn(reason)
         }
-        this.deserialize(response.record)
     }
 
-    deserialize(format: MemoryFormat): void {
+    deserialize(format: Format): void {
+        if (format.version !== 0.1) {
+            console.warn(`Unexpected version (${format.version})`)
+            return
+        }
         try {
-            this.memory().deserialize(format)
+            this.machine.deserialize(format.machine)
             console.debug(`loaded.`)
         } catch (reason) {
             console.warn(`Could not deserialize. (${reason})`)
@@ -470,19 +482,20 @@ export class UIContext implements Terminable {
     }
 
     private processMainKeyPress(label: MainKeyLabel<any>): complete {
+        if (label === MainKeyLabel.Save) {
+            this.save().then(() => console.log('saved.'))
+            return true
+        } else if (label === MainKeyLabel.Load) {
+            setTimeout(() => { // we need to delawy this or the key gets no 'pointerup' event
+                const binId = prompt('Enter a bin-id', '62f75f6ea1610e6386fbc5a5')
+                if (binId !== null) {
+                    this.load(binId).then(() => console.debug('loaded.'))
+                }
+            }, 100)
+            return true
+        }
         if (!this.isPlaying()) {
-            if (label === MainKeyLabel.Save) {
-                this.save().then(() => console.log('saved.'))
-                return true
-            } else if (label === MainKeyLabel.Load) {
-                setTimeout(() => { // we need to delay this or the key gets no 'pointerup' event
-                    const binId = prompt('Enter a bin-id', '62f69116a1610e6386fad903')
-                    if (binId !== null) {
-                        this.load(binId).then(() => console.debug('loaded.'))
-                    }
-                }, 100)
-                return true
-            } else if (this.mode.get().allowMainKeyValueInput()) {
+            if (this.mode.get().allowMainKeyValueInput()) {
                 if (label.isDigit()) {
                     this.digitInput.start()
                     this.digitInput.push(label.toDigit())

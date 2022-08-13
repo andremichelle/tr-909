@@ -66,6 +66,79 @@ export class Preset {
         Object.defineProperty(this.closedHihat, 'level', { enumerable: false });
         Object.defineProperty(this.openedHihat, 'level', { enumerable: false });
     }
+    serialize() {
+        return {
+            tempo: this.tempo.get(),
+            volume: this.volume.get(),
+            accent: this.accent.get(),
+            bassdrum: {
+                tune: this.bassdrum.tune.get(),
+                level: this.bassdrum.level.get(),
+                attack: this.bassdrum.attack.get(),
+                decay: this.bassdrum.decay.get()
+            },
+            snaredrum: {
+                tune: this.snaredrum.tune.get(),
+                level: this.snaredrum.level.get(),
+                tone: this.snaredrum.tone.get(),
+                snappy: this.snaredrum.snappy.get()
+            },
+            tomLow: {
+                tune: this.tomLow.tune.get(),
+                level: this.tomLow.level.get(),
+                decay: this.tomLow.decay.get()
+            },
+            tomMid: {
+                tune: this.tomMid.tune.get(),
+                level: this.tomMid.level.get(),
+                decay: this.tomMid.decay.get()
+            },
+            tomHi: {
+                tune: this.tomHi.tune.get(),
+                level: this.tomHi.level.get(),
+                decay: this.tomHi.decay.get()
+            },
+            rim: { level: this.rim.level.get() },
+            clap: { level: this.clap.level.get() },
+            hihatLevel: this.hihatLevel.get(),
+            closedHihat: { decay: this.closedHihat.decay.get() },
+            openedHihat: { decay: this.openedHihat.decay.get() },
+            crash: { level: this.crash.level.get(), tune: this.crash.tune.get() },
+            ride: { level: this.ride.level.get(), tune: this.ride.tune.get() }
+        };
+    }
+    deserialize(format) {
+        this.tempo.set(format.tempo);
+        this.volume.set(format.volume);
+        this.accent.set(format.accent);
+        this.bassdrum.tune.set(format.bassdrum.tune);
+        this.bassdrum.level.set(format.bassdrum.level);
+        this.bassdrum.attack.set(format.bassdrum.attack);
+        this.bassdrum.decay.set(format.bassdrum.decay);
+        this.snaredrum.tune.set(format.snaredrum.tune);
+        this.snaredrum.level.set(format.snaredrum.level);
+        this.snaredrum.tone.set(format.snaredrum.tone);
+        this.snaredrum.snappy.set(format.snaredrum.snappy);
+        this.tomLow.tune.set(format.tomLow.tune);
+        this.tomLow.level.set(format.tomLow.level);
+        this.tomLow.decay.set(format.tomLow.decay);
+        this.tomMid.tune.set(format.tomMid.tune);
+        this.tomMid.level.set(format.tomMid.level);
+        this.tomMid.decay.set(format.tomMid.decay);
+        this.tomHi.tune.set(format.tomHi.tune);
+        this.tomHi.level.set(format.tomHi.level);
+        this.tomHi.decay.set(format.tomHi.decay);
+        this.rim.level.set(format.rim.level);
+        this.clap.level.set(format.clap.level);
+        this.hihatLevel.set(format.hihatLevel);
+        this.closedHihat.decay.set(format.closedHihat.decay);
+        this.openedHihat.decay.set(format.openedHihat.decay);
+        this.crash.level.set(format.crash.level);
+        this.crash.tune.set(format.crash.tune);
+        this.ride.level.set(format.ride.level);
+        this.ride.tune.set(format.ride.tune);
+        return this;
+    }
     observeAll(callback) {
         const terminator = new Terminator();
         const search = (object, path) => {
