@@ -127,7 +127,7 @@ export const startTutorial = (context, nextButton) => {
         .appendSentence(new Sentence()
         .appendWords(`Now some funky claps! Hold the`)
         .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.InstrumentSelect).element))
-        .appendWords(`select-instrument key or 'I' on your computer keyboard and press the step`)
+        .appendWords(`select-instrument key or... 'I' on your computer keyboard and press the step`)
         .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step12).element))
         .appendWords(`12 to select the hand-clap.`))
         .awaitInteraction(waitForValue(context.instrumentMode, InstrumentMode.Clap))
