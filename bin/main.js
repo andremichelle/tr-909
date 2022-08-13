@@ -12,11 +12,11 @@ import { MeterWorklet } from "./audio/meter/worklet.js";
 import { Machine } from "./audio/tr909/machine.js";
 import { loadResources } from "./audio/tr909/resources.js";
 import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js";
-import { Events, Waiting } from "./lib/common.js";
+import { Events, Options, Waiting } from "./lib/common.js";
 import { AnimationFrame, HTML } from "./lib/dom.js";
 import { JsonBin } from "./lib/jsonbin.js";
 import { UIContext } from "./tr909/context.js";
-import { startTutorial } from './tr909/tutorial.js';
+import { startTutorial as createLecture } from './tr909/tutorial.js';
 const showProgress = (() => {
     const progress = document.querySelector("svg.preloader");
     window.onunhandledrejection = window.onerror = (reason) => {
@@ -90,14 +90,23 @@ const showProgress = (() => {
         }
     }
     AnimationFrame.init();
+    let lecturing = Options.None;
     const tutorialButton = HTML.query('a[target=tutorial]');
     const subscription = Events.bind(tutorialButton, 'click', (event) => {
         event.preventDefault();
-        if (!confirm('This tutorial cannot be stopped. Continue?'))
-            return;
-        subscription.terminate();
-        tutorialButton.style.opacity = "0.3";
-        startTutorial(ui);
+        if (lecturing.isEmpty()) {
+            const lecture = createLecture(ui);
+            lecturing = Options.valueOf(lecture);
+            tutorialButton.style.opacity = "0.3";
+            lecture.start().catch(() => null).then(() => {
+                tutorialButton.style.opacity = "1.0";
+                lecturing = Options.None;
+            });
+        }
+        else {
+            lecturing.get().cancel();
+            lecturing = Options.None;
+        }
     });
 }))();
 //# sourceMappingURL=main.js.map

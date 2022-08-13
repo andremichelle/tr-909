@@ -1,115 +1,151 @@
+import { TrackIndex } from '../audio/tr909/memory.js'
 import { HTML } from '../lib/dom.js'
+import { Lecture, Sentence } from '../lib/speech.js'
 import { Transport } from './../audio/common.js'
-import { Class, Events, ifDefined, ObservableValue, Waiting } from './../lib/common.js'
+import { Class, Events, ObservableValue, Terminable, TerminableVoid } from './../lib/common.js'
+import { Interaction } from './../lib/speech'
 import { UIContext } from './context.js'
 import { FunctionKeyIndex, MainKeyIndex } from './keys.js'
 import { Mode } from './mode.js'
 import PatternWrite from './modes/pattern-write.js'
 import { InstrumentMode } from './utils.js'
 
-const speech = window.speechSynthesis
-speech.getVoices().filter(voice => voice.name)
-
-let voice: SpeechSynthesisVoice | null = null
-
-const talk = async (text: string): Promise<void> => {
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.voice = voice
-    speech.speak(utterance)
-    return Waiting.forEvent(utterance, 'end')
-}
-
-const waitForMode = async (context: UIContext, modeType: Class<Mode>): Promise<void> => {
-    return new Promise<void>(resolve => {
-        const subscription = context.mode.addObserver((mode: Mode) => {
-            if (mode instanceof modeType) {
-                subscription.terminate()
-                resolve()
-            }
-        }, false)
-    })
-}
-
-const waitForValue = async <T>(value: ObservableValue<T>, expected: T): Promise<void> => {
-    if (value.get() === expected) {
-        return Promise.resolve()
-    }
-    return new Promise<void>(resolve => {
-        const subscription = value.addObserver((value: T) => {
-            if (value === expected) {
-                subscription.terminate()
-                resolve()
-            }
-        }, false)
-    })
-}
-
-const waitForTransportState = async (transport: Transport, expected: boolean): Promise<void> => {
-    return new Promise<void>(resolve => {
-        const subscription = transport.addObserver(() => {
-            if (transport.isPlaying() === expected) {
-                subscription.terminate()
-                resolve()
-            }
-        }, true)
-    })
-}
-
-const next = async (): Promise<void> => {
-    return new Promise<void>((resolve) => {
+const highlight = (element: HTMLElement): void => element.classList.add('highlight')
+const resetHighlights = (): void => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'))
+const waitForInteraction = (): Interaction => ({
+    start: (complete: CallableFunction): Terminable => {
         const subscription = Events.bind(window, 'keydown', (event: KeyboardEvent) => {
             if (event.code === 'ArrowRight') {
                 subscription.terminate()
-                resolve()
+                complete()
             }
         })
-    })
-}
+        return subscription
 
-const highlight = (element: HTMLElement): void => element.classList.add('highlight')
-const resetHighlights = (): void => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'))
+    }, name: () => 'Press the right arrow key',
+})
 
-export const startTutorial = async (context: UIContext) => {
-    context.machine.transport.stop()
+const waitForMode = (context: UIContext, modeType: Class<Mode>): Interaction => ({
+    start: (complete: CallableFunction): Terminable => {
+        const subscription = context.mode.addObserver((mode: Mode) => {
+            if (mode instanceof modeType) {
+                subscription.terminate()
+                complete()
+            }
+        }, false)
+        return subscription
+
+    }, name: () => 'Press the right arrow key',
+})
+const waitForTransportState = (transport: Transport, expected: boolean): Interaction => ({
+    start: (complete: CallableFunction): Terminable => {
+        if (transport.isPlaying() === expected) {
+            complete()
+            return TerminableVoid
+        }
+        const subscription = transport.addObserver(() => {
+            if (transport.isPlaying() === expected) {
+                subscription.terminate()
+                complete()
+            }
+        }, true)
+        return subscription
+
+    }, name: () => 'Press the right arrow key',
+})
+const waitForValue = <T>(value: ObservableValue<T>, expected: T): Interaction => ({
+    start: (complete: CallableFunction): Terminable => {
+        if (value.get() === expected) {
+            complete()
+            return TerminableVoid
+        }
+        const subscription = value.addObserver((value: T) => {
+            if (value === expected) {
+                subscription.terminate()
+                complete()
+            }
+        }, true)
+        return subscription
+
+    }, name: () => 'Waiting for you...',
+})
+
+export const startTutorial = (context: UIContext): Lecture => {
     context.machine.memory.clear()
-    ifDefined(speech.getVoices().find(voice => voice.voiceURI === 'Google UK English Female'), found => voice = found)
-    await talk('Welcome to the 9o9 tutorial!')
-    await talk('You can already play the iconic sounds of the 9o9 by pressing the highlighted keys.')
-    context.mainKeys.forEach(key => {
-        if (key.keyIndex < 16) highlight(key.element)
-    })
-    await talk(`Continue by pressing the right arrow key!`)
-    await next()
-    resetHighlights()
-    await talk('The 9o9 is currently in track-play mode.')
-    highlight(context.functionKeys.byIndex(FunctionKeyIndex.Track1).element)
-    await talk(`Now... Let's program a drum-pattern!`)
-    resetHighlights()
-    await talk(`Hold the shift-key and select the first pattern group`)
-    highlight(context.functionKeys.byIndex(FunctionKeyIndex.Shift).element)
-    highlight(context.functionKeys.byIndex(FunctionKeyIndex.PatternGroup1).element)
-    await waitForMode(context, PatternWrite)
-    resetHighlights()
-    await talk('Well done! The blinking pattern key tells you, the 9o9 is in pattern-writing mode.')
-    await talk('To program the pattern, the 9o9 needs to play. Now press Start.')
-    highlight(context.startKey)
-    await waitForTransportState(context.machine.transport, true)
-    resetHighlights()
-    await talk(`Great! You see now which step is currently at playback time.`)
-    await talk(`Let's enter some steps. The selected instrument is currently the bassdrum...`)
-    highlight(context.mainKeys.byIndex(MainKeyIndex.Step1).element)
-    highlight(context.mainKeys.byIndex(MainKeyIndex.Step5).element)
-    highlight(context.mainKeys.byIndex(MainKeyIndex.Step9).element)
-    highlight(context.mainKeys.byIndex(MainKeyIndex.Step13).element)
-    await talk(`Now double-click step 1, 5, 9, 13 for a simple four-to-the-floor beat.`)
-    await talk(`Continue by pressing the right arrow key!`)
-    await next()
-    resetHighlights()
-    await talk(`Now some funky claps. Hold the select-instrument key or 'I' on your keyboard and press the step 12 to select the hand-clap.`)
-    await waitForValue(context.instrumentMode, InstrumentMode.Clap)
-    await talk(`Now single-click step 5 and 13.`)
-    highlight(context.mainKeys.byIndex(MainKeyIndex.Step5).element)
-    highlight(context.mainKeys.byIndex(MainKeyIndex.Step13).element)
-    await next()
-    await talk(`Sounds about right, doesn't it? I now leave you to it. Check the manual for more 9o9 funkyness!`)
+    context.machine.transport.stop()
+    context.switchToTrackPlayMode(TrackIndex.I)
+    return new Lecture()
+        .appendWords(`Welcome to the 9o9 tutorial!`)
+        .appendSentence(new Sentence()
+            .appendWords('You can already play the iconic sounds of the 9o9 by pressing the')
+            .appendEvent(() => {
+                context.mainKeys.forEach(key => {
+                    if (key.keyIndex < 16) highlight(key.element)
+                })
+            })
+            .appendWords(`highlighted keys.`))
+        .awaitInteraction(waitForInteraction())
+        .appendEvent(resetHighlights)
+        .appendSentence(new Sentence()
+            .appendWords(`The 9o9 is currently in`)
+            .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.Track1).element))
+            .appendWords(`track-play mode.`))
+        .appendPause(3)
+        .appendEvent(resetHighlights)
+        .appendWords(`Now... Let's program a drum-pattern!`)
+        .appendSentence(new Sentence()
+            .appendWords(`Hold the`)
+            .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.Shift).element))
+            .appendWords(`shift-key and select the first`)
+            .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.PatternGroup1).element))
+            .appendWords(`pattern group key`)
+        )
+        .awaitInteraction(waitForMode(context, PatternWrite))
+        .appendEvent(resetHighlights)
+        .appendSentence(new Sentence()
+            .appendWords(`Well done! The`)
+            .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.PatternGroup1).element))
+            .appendWords(`blinking pattern key tells you, the 9o9 is in pattern-writing mode.`)
+            .appendEvent(resetHighlights)
+            .appendWords(`To program the pattern, the 9o9 needs to play. Now press`)
+            .appendEvent(() => highlight(context.startKey))
+            .appendWords(`Start.`)
+        )
+        .awaitInteraction(waitForTransportState(context.machine.transport, true))
+        .appendEvent(resetHighlights)
+        .appendWords(`Great! You see now which step is currently at playback time.`)
+        .appendPause(2)
+        .appendWords(`Let's enter some steps. The selected instrument is currently the basedrum...`) // base sounds cooler
+        .appendPause(1)
+        .appendSentence(new Sentence()
+            .appendWords(`Now double-click step`)
+            .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step1).element))
+            .appendWords(`1,`)
+            .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step5).element))
+            .appendWords(`5,`)
+            .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step9).element))
+            .appendWords(`9,`)
+            .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step13).element))
+            .appendWords(` 13 for a simple four-to-the-floor beat.`))
+        .awaitInteraction(waitForInteraction())
+        .appendEvent(resetHighlights)
+        .appendSentence(new Sentence()
+            .appendWords(`Now some funky claps! Hold the`)
+            .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.InstrumentSelect).element))
+            .appendWords(`select-instrument key or 'I' on your computer keyboard and press the step`)
+            .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step12).element))
+            .appendWords(`12 to select the hand-clap.`)
+        )
+        .awaitInteraction(waitForValue(context.instrumentMode, InstrumentMode.Clap))
+        .appendEvent(resetHighlights)
+        .appendSentence(new Sentence()
+            .appendWords(`Now single-click step`)
+            .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step5).element))
+            .appendWords(`5 and`)
+            .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step13).element))
+            .appendWords(`13!`)
+        )
+        .awaitInteraction(waitForInteraction())
+        .appendWords(`Sounds about right, doesn't it? I now leave you to it. Check the manual for more 9o9 funkyness!`)
+        .appendEvent(resetHighlights)
 }
