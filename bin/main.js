@@ -94,8 +94,11 @@ const showProgress = (() => {
     const tutorialButton = HTML.query('a[target=tutorial]');
     const subscription = Events.bind(tutorialButton, 'click', (event) => {
         event.preventDefault();
+        if (!confirm(`This will reset the machine.`)) {
+            return;
+        }
         if (lecturing.isEmpty()) {
-            const lecture = createLecture(ui);
+            const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'));
             lecturing = Options.valueOf(lecture);
             tutorialButton.style.opacity = "0.3";
             lecture.start().catch(() => null).then(() => {

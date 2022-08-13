@@ -99,9 +99,9 @@ export class Lecture implements Observable<LectureEvent> {
             start: (complete: CallableFunction): Terminable => {
                 const callback = () => complete()
                 const utterance = sentence.createUtterance()
-                const voices = speechSynthesis.getVoices()
-                const voice = voices.find(voice => voice.lang === "en-US")
-                utterance.voice = voice === undefined ? null : voice
+                // const voices = speechSynthesis.getVoices()
+                // const voice = voices.find(voice => voice.lang === "en-US")
+                // utterance.voice = voice === undefined ? null : voice
                 utterance.addEventListener('end', callback)
                 utterance.addEventListener('boundary', (event: SpeechSynthesisEvent) => this.observable.notify({
                     type: 'sentence',

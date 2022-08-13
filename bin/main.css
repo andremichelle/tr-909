@@ -517,7 +517,7 @@ button.switch, button.trigger {
   pointer-events: all;
 }
 button.switch.highlight, button.trigger.highlight {
-  outline: 0.2vmin #d97e41 solid;
+  outline: 0.4vmin #7d41d9 solid;
 }
 button.switch:active, button.switch.active, button.trigger:active, button.trigger.active {
   box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.8) inset, 0 -1px 2px 0 rgba(255, 255, 255, 0.7), 0 2px 2px 0 rgba(0, 0, 0, 0.4);
@@ -581,7 +581,7 @@ button.translucent-button {
   pointer-events: all;
 }
 button.translucent-button.highlight {
-  outline: 0.2vmin #d97e41 solid;
+  outline: 0.4vmin #7d41d9 solid;
 }
 button.translucent-button:after {
   content: "";
@@ -603,6 +603,23 @@ button.translucent-button.enabled:after {
   visibility: visible;
 }
 
+@-webkit-keyframes fading {
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fading {
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 div.tr-909 {
   width: 1226px;
   height: 728px;
@@ -633,6 +650,29 @@ div.tr-909:before, div.tr-909:after {
   position: absolute;
   border-right: 1px #646462 solid;
   box-shadow: 0 1px 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+div.tr-909 > div.tutorial-advance-button {
+  top: 32px;
+  right: 48px;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  color: #7d41d9;
+  -webkit-animation: fading 250ms ease-in infinite alternate;
+          animation: fading 250ms ease-in infinite alternate;
+}
+div.tr-909 > div.tutorial-advance-button > svg {
+  fill: #7d41d9;
+  width: 32px;
+  height: 32px;
+  pointer-events: fill;
+  cursor: pointer;
+}
+div.tr-909 > div.tutorial-advance-button > p {
+  margin: 8px 0 0 0;
+  padding: 0;
+  font-size: 12px;
 }
 div.tr-909 > div.roland-logo {
   top: 36px;

@@ -5,6 +5,12 @@
 @import buttons
 @import vars
 
+@keyframes fading
+  0%
+    opacity: 0.7
+  100%
+    opacity: 1.0
+
 div.tr-909
   width: 1226px
   height: 728px
@@ -33,6 +39,28 @@ div.tr-909
     position: absolute
     border-right: 1px #646462 solid
     box-shadow: 0 1px 1px 0 rgba(white, 0.6) inset
+
+  > div.tutorial-advance-button
+    top: 32px
+    right: 48px
+    position: absolute
+    display: flex
+    align-items: center
+    flex-direction: column
+    color: $COLOR_HIGHLIGHT
+    animation: fading 250ms ease-in infinite alternate
+
+    > svg
+      fill: $COLOR_HIGHLIGHT
+      width: 32px
+      height: 32px
+      pointer-events: fill
+      cursor: pointer
+
+    > p
+      margin: 8px 0 0 0
+      padding: 0
+      font-size: 12px
 
   > div.roland-logo
     top: 36px

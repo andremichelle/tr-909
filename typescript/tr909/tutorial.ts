@@ -2,7 +2,7 @@ import { TrackIndex } from '../audio/tr909/memory.js'
 import { HTML } from '../lib/dom.js'
 import { Lecture, Sentence } from '../lib/speech.js'
 import { Transport } from './../audio/common.js'
-import { Class, Events, ObservableValue, Terminable, TerminableVoid } from './../lib/common.js'
+import { Class, Events, ObservableValue, Terminable, TerminableVoid, Terminator } from './../lib/common.js'
 import { Interaction } from './../lib/speech'
 import { UIContext } from './context.js'
 import { FunctionKeyIndex, MainKeyIndex } from './keys.js'
@@ -12,18 +12,6 @@ import { InstrumentMode } from './utils.js'
 
 const highlight = (element: HTMLElement): void => element.classList.add('highlight')
 const resetHighlights = (): void => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'))
-const waitForInteraction = (): Interaction => ({
-    start: (complete: CallableFunction): Terminable => {
-        const subscription = Events.bind(window, 'keydown', (event: KeyboardEvent) => {
-            if (event.code === 'ArrowRight') {
-                subscription.terminate()
-                complete()
-            }
-        })
-        return subscription
-
-    }, name: () => 'Press the right arrow key',
-})
 
 const waitForMode = (context: UIContext, modeType: Class<Mode>): Interaction => ({
     start: (complete: CallableFunction): Terminable => {
@@ -70,10 +58,29 @@ const waitForValue = <T>(value: ObservableValue<T>, expected: T): Interaction =>
     }, name: () => 'Waiting for you...',
 })
 
-export const startTutorial = (context: UIContext): Lecture => {
+export const startTutorial = (context: UIContext, nextButton: HTMLButtonElement): Lecture => {
     context.machine.memory.clear()
     context.machine.transport.stop()
     context.switchToTrackPlayMode(TrackIndex.I)
+    const waitForInteraction = (): Interaction => ({
+        start: (complete: CallableFunction): Terminable => {
+            const terminator: Terminator = new Terminator()
+            terminator.with(Events.bind(window, 'keydown', (event: KeyboardEvent) => {
+                if (event.code === 'ArrowRight') {
+                    terminator.terminate()
+                    complete()
+                }
+            }))
+            terminator.with(Events.bind(nextButton, 'pointerdown', (event: PointerEvent) => {
+                terminator.terminate()
+                complete()
+            }))
+            nextButton.classList.remove('hidden')
+            terminator.with({ terminate: () => nextButton.classList.add('hidden') })
+            return terminator
+
+        }, name: () => 'Press the right arrow key',
+    })
     return new Lecture()
         .appendWords(`Welcome to the 9o9 tutorial!`)
         .appendSentence(new Sentence()
@@ -90,7 +97,7 @@ export const startTutorial = (context: UIContext): Lecture => {
             .appendWords(`The 9o9 is currently in`)
             .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.Track1).element))
             .appendWords(`track-play mode.`))
-        .appendPause(3)
+        .appendPause(2)
         .appendEvent(resetHighlights)
         .appendWords(`Now... Let's program a drum-pattern!`)
         .appendSentence(new Sentence()

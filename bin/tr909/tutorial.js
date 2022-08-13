@@ -1,23 +1,12 @@
 import { TrackIndex } from '../audio/tr909/memory.js';
 import { HTML } from '../lib/dom.js';
 import { Lecture, Sentence } from '../lib/speech.js';
-import { Events, TerminableVoid } from './../lib/common.js';
+import { Events, TerminableVoid, Terminator } from './../lib/common.js';
 import { FunctionKeyIndex, MainKeyIndex } from './keys.js';
 import PatternWrite from './modes/pattern-write.js';
 import { InstrumentMode } from './utils.js';
 const highlight = (element) => element.classList.add('highlight');
 const resetHighlights = () => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'));
-const waitForInteraction = () => ({
-    start: (complete) => {
-        const subscription = Events.bind(window, 'keydown', (event) => {
-            if (event.code === 'ArrowRight') {
-                subscription.terminate();
-                complete();
-            }
-        });
-        return subscription;
-    }, name: () => 'Press the right arrow key',
-});
 const waitForMode = (context, modeType) => ({
     start: (complete) => {
         const subscription = context.mode.addObserver((mode) => {
@@ -59,10 +48,28 @@ const waitForValue = (value, expected) => ({
         return subscription;
     }, name: () => 'Waiting for you...',
 });
-export const startTutorial = (context) => {
+export const startTutorial = (context, nextButton) => {
     context.machine.memory.clear();
     context.machine.transport.stop();
     context.switchToTrackPlayMode(TrackIndex.I);
+    const waitForInteraction = () => ({
+        start: (complete) => {
+            const terminator = new Terminator();
+            terminator.with(Events.bind(window, 'keydown', (event) => {
+                if (event.code === 'ArrowRight') {
+                    terminator.terminate();
+                    complete();
+                }
+            }));
+            terminator.with(Events.bind(nextButton, 'pointerdown', (event) => {
+                terminator.terminate();
+                complete();
+            }));
+            nextButton.classList.remove('hidden');
+            terminator.with({ terminate: () => nextButton.classList.add('hidden') });
+            return terminator;
+        }, name: () => 'Press the right arrow key',
+    });
     return new Lecture()
         .appendWords(`Welcome to the 9o9 tutorial!`)
         .appendSentence(new Sentence()
@@ -80,7 +87,7 @@ export const startTutorial = (context) => {
         .appendWords(`The 9o9 is currently in`)
         .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.Track1).element))
         .appendWords(`track-play mode.`))
-        .appendPause(3)
+        .appendPause(2)
         .appendEvent(resetHighlights)
         .appendWords(`Now... Let's program a drum-pattern!`)
         .appendSentence(new Sentence()
