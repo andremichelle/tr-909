@@ -77,33 +77,35 @@ const showProgress = (() => {
 
     // TODO > Test Data < REMOVE WHEN DONE TESTING
     if (location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1')) {
-        if (true) return
-        console.log("INSTALLED TEST DATA")
-        const memory = machine.memory
-        const memoryBank = memory.banks[0]
-        memoryBank.patternByIndices(0, 0).testA()
-        memoryBank.patternByIndices(0, 1).testB()
-        memoryBank.patternByIndices(0, 2).testC()
-        memoryBank.patternByIndices(0, 3).testD()
-        /*const chained = new Array(15).fill(false)
-        chained[0] = true
-        chained[1] = true
-        chained[2] = true
- 
-        chained[4] = true
-        chained[5] = true
-        chained[6] = true
-        memoryBank.patternGroups[0].writeChain(chained)*/
-        const track = memoryBank.tracks[1]
-        track.writeLocation({ patternGroupIndex: 0, patternIndex: 0 })
-        track.writeLocation({ patternGroupIndex: 0, patternIndex: 1 })
-        track.writeLocation({ patternGroupIndex: 0, patternIndex: 0 })
-        track.writeLocation({ patternGroupIndex: 0, patternIndex: 1 })
+        if (false) {
+            console.log("INSTALLED TEST DATA")
+            const memory = machine.memory
+            const memoryBank = memory.banks[0]
+            memoryBank.patternByIndices(0, 0).testA()
+            memoryBank.patternByIndices(0, 1).testB()
+            memoryBank.patternByIndices(0, 2).testC()
+            memoryBank.patternByIndices(0, 3).testD()
+            /*const chained = new Array(15).fill(false)
+            chained[0] = true
+            chained[1] = true
+            chained[2] = true
+     
+            chained[4] = true
+            chained[5] = true
+            chained[6] = true
+            memoryBank.patternGroups[0].writeChain(chained)*/
+            const track = memoryBank.tracks[1]
+            track.writeLocation({ patternGroupIndex: 0, patternIndex: 0 })
+            track.writeLocation({ patternGroupIndex: 0, patternIndex: 1 })
+            track.writeLocation({ patternGroupIndex: 0, patternIndex: 0 })
+            track.writeLocation({ patternGroupIndex: 0, patternIndex: 1 })
+        }
     }
     AnimationFrame.init()
 
     const tutorialButton = HTML.query('a[target=tutorial]') as HTMLElement
-    const subscription = Events.bind(tutorialButton, 'click', () => {
+    const subscription = Events.bind(tutorialButton, 'click', (event: Event) => {
+        event.preventDefault()
         if (!confirm('This tutorial cannot be stopped. Continue?')) return
         subscription.terminate()
         tutorialButton.style.opacity = "0.3"
