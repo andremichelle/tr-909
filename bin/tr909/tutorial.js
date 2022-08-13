@@ -127,7 +127,7 @@ export const startTutorial = (context, nextButton) => {
         .appendSentence(new Sentence()
         .appendWords(`Now some funky claps! Hold the`)
         .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.InstrumentSelect).element))
-        .appendWords(`select-instrument key or... 'I' on your computer keyboard and press the step`)
+        .appendWords(`select-instrument key or the I-Key on your computer keyboard and press the step`)
         .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step12).element))
         .appendWords(`12 to select the hand-clap.`))
         .awaitInteraction(waitForValue(context.instrumentMode, InstrumentMode.Clap))
@@ -140,6 +140,7 @@ export const startTutorial = (context, nextButton) => {
         .appendWords(`13!`))
         .awaitInteraction(waitForInteraction())
         .appendWords(`Sounds about right, doesn't it? I now leave you to it. Check the manual for more 9o9 funkyness!`)
-        .appendEvent(resetHighlights);
+        .appendEvent(resetHighlights)
+        .appendWords(`Bye bye...`);
 };
 //# sourceMappingURL=tutorial.js.map
