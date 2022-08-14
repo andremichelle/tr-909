@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { ObservableImpl, Options, TerminableVoid } from "./common.js";
-export class Sentence {
+export class Paragraph {
     constructor() {
         this.events = [];
         this.text = '';
@@ -61,13 +61,13 @@ export class Lecture {
         return this.observable.addObserver(observer);
     }
     appendWords(words) {
-        return this.appendSentence(new Sentence().appendWords(words));
+        return this.appendParagraph(new Paragraph().appendWords(words));
     }
-    appendSentence(sentence) {
+    appendParagraph(paragraph) {
         return this.appendProcess({
             start: (complete) => {
                 const callback = () => complete();
-                const utterance = sentence.createUtterance();
+                const utterance = paragraph.createUtterance();
                 utterance.addEventListener('end', callback);
                 utterance.addEventListener('boundary', (event) => this.observable.notify({
                     type: 'sentence',
@@ -94,15 +94,6 @@ export class Lecture {
             }
         });
     }
-    appendPause(seconds) {
-        return this.awaitInteraction({
-            start: (complete) => {
-                const id = setTimeout(complete, seconds * 1000);
-                return { terminate: () => clearTimeout(id) };
-            },
-            name: () => 'paused',
-        });
-    }
     awaitInteraction(interaction) {
         return this.appendProcess({
             start: (complete) => {
@@ -112,6 +103,14 @@ export class Lecture {
                 });
                 return interaction.start(complete);
             },
+        });
+    }
+    appendPause(seconds) {
+        return this.appendProcess({
+            start: (complete) => {
+                const id = setTimeout(complete, seconds * 1000);
+                return { terminate: () => clearTimeout(id) };
+            }
         });
     }
     appendProcess(process) {

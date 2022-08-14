@@ -17,7 +17,7 @@ import { Observable, ObservableImpl, Observer, Option, Options, Terminable, Term
  *  .appendProcess(process: Process): this
  */
 
-export class Sentence {
+export class Paragraph {
     private readonly events: { charIndex: number, callback: CallableFunction }[] = []
 
     private text: string = ''
@@ -91,17 +91,14 @@ export class Lecture implements Observable<LectureEvent> {
     }
 
     appendWords(words: string): this {
-        return this.appendSentence(new Sentence().appendWords(words))
+        return this.appendParagraph(new Paragraph().appendWords(words))
     }
 
-    appendSentence(sentence: Sentence): this {
+    appendParagraph(paragraph: Paragraph): this {
         return this.appendProcess({
             start: (complete: CallableFunction): Terminable => {
                 const callback = () => complete()
-                const utterance = sentence.createUtterance()
-                // const voices = speechSynthesis.getVoices()
-                // const voice = voices.find(voice => voice.lang === "en-US")
-                // utterance.voice = voice === undefined ? null : voice
+                const utterance = paragraph.createUtterance()
                 utterance.addEventListener('end', callback)
                 utterance.addEventListener('boundary', (event: SpeechSynthesisEvent) => this.observable.notify({
                     type: 'sentence',
@@ -130,16 +127,6 @@ export class Lecture implements Observable<LectureEvent> {
         })
     }
 
-    appendPause(seconds: number): this {
-        return this.awaitInteraction({
-            start: (complete: CallableFunction): Terminable => {
-                const id = setTimeout(complete, seconds * 1000)
-                return { terminate: () => clearTimeout(id) }
-            },
-            name: () => 'paused',
-        })
-    }
-
     awaitInteraction(interaction: Interaction): this {
         return this.appendProcess({
             start: (complete: CallableFunction): Terminable => {
@@ -149,6 +136,15 @@ export class Lecture implements Observable<LectureEvent> {
                 })
                 return interaction.start(complete)
             },
+        })
+    }
+
+    appendPause(seconds: number): this {
+        return this.appendProcess({
+            start: (complete: CallableFunction): Terminable => {
+                const id = setTimeout(complete, seconds * 1000)
+                return { terminate: () => clearTimeout(id) }
+            }
         })
     }
 

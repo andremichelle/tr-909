@@ -1,6 +1,6 @@
 import { TrackIndex } from '../audio/tr909/memory.js';
 import { HTML } from '../lib/dom.js';
-import { Lecture, Sentence } from '../lib/speech.js';
+import { Lecture, Paragraph } from '../lib/speech.js';
 import { Events, TerminableVoid, Terminator } from './../lib/common.js';
 import { FunctionKeyIndex, MainKeyIndex } from './keys.js';
 import PatternWrite from './modes/pattern-write.js';
@@ -61,7 +61,7 @@ export const startTutorial = (context, nextButton) => {
                     complete();
                 }
             }));
-            terminator.with(Events.bind(nextButton, 'pointerdown', (event) => {
+            terminator.with(Events.bind(nextButton, 'pointerdown', () => {
                 terminator.terminate();
                 complete();
             }));
@@ -72,7 +72,7 @@ export const startTutorial = (context, nextButton) => {
     });
     return new Lecture()
         .appendWords(`Welcome to the 9o9 tutorial!`)
-        .appendSentence(new Sentence()
+        .appendParagraph(new Paragraph()
         .appendWords('You can already play the iconic sounds of the 9o9 by pressing the')
         .appendEvent(() => {
         context.mainKeys.forEach(key => {
@@ -83,14 +83,14 @@ export const startTutorial = (context, nextButton) => {
         .appendWords(`highlighted keys.`))
         .awaitInteraction(waitForInteraction())
         .appendEvent(resetHighlights)
-        .appendSentence(new Sentence()
+        .appendParagraph(new Paragraph()
         .appendWords(`The 9o9 is currently in`)
         .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.Track1).element))
         .appendWords(`track-play mode.`))
         .appendPause(2)
         .appendEvent(resetHighlights)
         .appendWords(`Now... Let's program a drum-pattern!`)
-        .appendSentence(new Sentence()
+        .appendParagraph(new Paragraph()
         .appendWords(`Hold the`)
         .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.Shift).element))
         .appendWords(`shift-key on your computer and select the first`)
@@ -98,7 +98,7 @@ export const startTutorial = (context, nextButton) => {
         .appendWords(`pattern group key`))
         .awaitInteraction(waitForMode(context, PatternWrite))
         .appendEvent(resetHighlights)
-        .appendSentence(new Sentence()
+        .appendParagraph(new Paragraph()
         .appendWords(`Very good! The`)
         .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.PatternGroup1).element))
         .appendWords(`blinking pattern key tells you, the 9o9 is in pattern-writing mode.`)
@@ -112,7 +112,7 @@ export const startTutorial = (context, nextButton) => {
         .appendPause(2)
         .appendWords(`Let's enter some steps. The selected instrument is currently the bass-drum...`)
         .appendPause(1)
-        .appendSentence(new Sentence()
+        .appendParagraph(new Paragraph()
         .appendWords(`Now double-click step`)
         .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step1).element))
         .appendWords(`1,`)
@@ -124,7 +124,7 @@ export const startTutorial = (context, nextButton) => {
         .appendWords(` 13 for a simple four-to-the-floor beat.`))
         .awaitInteraction(waitForInteraction())
         .appendEvent(resetHighlights)
-        .appendSentence(new Sentence()
+        .appendParagraph(new Paragraph()
         .appendWords(`Now some funky claps! Hold the`)
         .appendEvent(() => highlight(context.functionKeys.byIndex(FunctionKeyIndex.InstrumentSelect).element))
         .appendWords(`select-instrument key or the I-Key on your computer keyboard and press the step`)
@@ -132,7 +132,7 @@ export const startTutorial = (context, nextButton) => {
         .appendWords(`12 to select the hand-clap.`))
         .awaitInteraction(waitForValue(context.instrumentMode, InstrumentMode.Clap))
         .appendEvent(resetHighlights)
-        .appendSentence(new Sentence()
+        .appendParagraph(new Paragraph()
         .appendWords(`Now single-click step`)
         .appendEvent(() => highlight(context.mainKeys.byIndex(MainKeyIndex.Step5).element))
         .appendWords(`5 and`)
