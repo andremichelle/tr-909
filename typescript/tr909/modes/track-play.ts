@@ -7,6 +7,11 @@ import { complete, Mode } from "../mode.js"
 import { MemoryBank } from './../../audio/tr909/memory.js'
 import { TerminableVoid, Terminator } from './../../lib/common.js'
 
+// TODO
+// You can select any track from anywhere with already pressed tempo-key.
+// We need to embed the following class into the mode to make this all work.
+// Also deleting the track's tempo memory is not implemented yet.
+
 class TempoMemoryMode extends Mode {
     private readonly subscriptions: Terminator = this.with(new Terminator())
 

@@ -12,12 +12,13 @@ import {
     Track,
     TrackIndex
 } from "../audio/tr909/memory.js"
+import { TempoMapping } from "../audio/tr909/preset.js"
 import { PlayMode, State } from "../audio/tr909/state.js"
 import {
     ArrayUtils, Events,
     ifDefined,
     ObservableValue,
-    ObservableValueImpl, Terminable,
+    ObservableValueImpl, Parameter, PrintMapping, Terminable,
     TerminableVoid,
     Terminator
 } from "../lib/common.js"
@@ -57,12 +58,13 @@ export class UIContext implements Terminable {
     readonly startKey: HTMLButtonElement
     readonly mainKeys: KeyGroup<MainKeyIndex>
     readonly functionKeys: KeyGroup<FunctionKeyIndex>
+    readonly tempo = new Parameter<number>(TempoMapping, PrintMapping.FLOAT_ONE, 120.0) // will be needed for track's tempo memory
 
     readonly mode: ObservableValue<Mode>
     readonly instrumentMode: ObservableValueImpl<InstrumentMode>
     readonly stepsEditMode: ObservableValueImpl<StepsEditingMode>
-    readonly activeMainLabels: Option<MainKeyLabel<any>>[]
-    readonly activeFunctionLabels: Option<FunctionKeyLabel<any>>[]
+    readonly activeMainLabel: Option<MainKeyLabel<any>>[]
+    readonly activeFunctionLabel: Option<FunctionKeyLabel<any>>[]
     readonly concurrentMainKeys = new Set<MainKeyIndex>()
 
     private isShiftKeyPressed: boolean = false
@@ -81,8 +83,8 @@ export class UIContext implements Terminable {
 
         this.instrumentMode = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
         this.stepsEditMode = new ObservableValueImpl<StepsEditingMode>(StepsEditingMode.Step)
-        this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => Options.None)
-        this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None)
+        this.activeMainLabel = ArrayUtils.fill(this.mainKeys.keys.length, () => Options.None)
+        this.activeFunctionLabel = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None)
 
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo)
 
@@ -427,12 +429,12 @@ export class UIContext implements Terminable {
     }
 
     private onFunctionKeyPress(keyIndex: FunctionKeyIndex): complete {
-        if (this.activeFunctionLabels[keyIndex].nonEmpty()) return true
+        if (this.activeFunctionLabel[keyIndex].nonEmpty()) return true
         const label = this.isShiftKeyPressed
             ? FunctionKeyLabel.ShiftKeys[keyIndex]
             : FunctionKeyLabel.NormalKeys[keyIndex]
         this.functionKeys.byIndex(keyIndex).setPressed(true)
-        this.activeFunctionLabels[keyIndex] = Options.valueOf(label)
+        this.activeFunctionLabel[keyIndex] = Options.valueOf(label)
         return this.processFunctionKeyPress(label)
     }
 
@@ -446,11 +448,11 @@ export class UIContext implements Terminable {
     }
 
     private onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
-        const label = this.activeFunctionLabels[keyIndex]
+        const label = this.activeFunctionLabel[keyIndex]
         if (label.isEmpty()) return
         this.functionKeys.byIndex(keyIndex).setPressed(false)
-        this.processFunctionKeyRelease(this.activeFunctionLabels[keyIndex].get())
-        this.activeFunctionLabels[keyIndex] = Options.None
+        this.processFunctionKeyRelease(this.activeFunctionLabel[keyIndex].get())
+        this.activeFunctionLabel[keyIndex] = Options.None
     }
 
     private processFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
@@ -465,12 +467,12 @@ export class UIContext implements Terminable {
     }
 
     private onMainKeyPress(keyIndex: MainKeyIndex): complete {
-        if (this.activeMainLabels[keyIndex].nonEmpty()) return true
+        if (this.activeMainLabel[keyIndex].nonEmpty()) return true
         const label = this.isShiftKeyPressed
             ? MainKeyLabel.ShiftKeys[keyIndex]
             : MainKeyLabel.NormalKeys[keyIndex]
         this.mainKeys.byIndex(keyIndex).setPressed(true)
-        this.activeMainLabels[keyIndex] = Options.valueOf(label)
+        this.activeMainLabel[keyIndex] = Options.valueOf(label)
         this.concurrentMainKeys.add(label.keyIndex)
         return this.processMainKeyPress(label)
     }
@@ -507,9 +509,9 @@ export class UIContext implements Terminable {
     }
 
     private onMainKeyRelease(keyIndex: MainKeyIndex): void {
-        if (this.activeMainLabels[keyIndex].isEmpty()) return
+        if (this.activeMainLabel[keyIndex].isEmpty()) return
         this.mainKeys.byIndex(keyIndex).setPressed(false)
-        this.activeMainLabels[keyIndex] = Options.None
+        this.activeMainLabel[keyIndex] = Options.None
         this.concurrentMainKeys.delete(keyIndex)
     }
 

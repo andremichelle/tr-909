@@ -8,8 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { secondsToBars } from "../audio/common.js";
+import { TempoMapping } from "../audio/tr909/preset.js";
 import { PlayMode } from "../audio/tr909/state.js";
-import { ArrayUtils, Events, ifDefined, ObservableValueImpl, TerminableVoid, Terminator } from "../lib/common.js";
+import { ArrayUtils, Events, ifDefined, ObservableValueImpl, Parameter, PrintMapping, TerminableVoid, Terminator } from "../lib/common.js";
 import { AnimationFrame, HTML, SVG } from "../lib/dom.js";
 import { JsonBin } from '../lib/jsonbin.js';
 import { Options } from './../lib/common.js';
@@ -27,6 +28,7 @@ export class UIContext {
         this.machine = machine;
         this.parentNode = parentNode;
         this.terminator = new Terminator();
+        this.tempo = new Parameter(TempoMapping, PrintMapping.FLOAT_ONE, 120.0);
         this.concurrentMainKeys = new Set();
         this.isShiftKeyPressed = false;
         this.tempoProviderSubscription = TerminableVoid;
@@ -40,8 +42,8 @@ export class UIContext {
             .map((element, keyIndex) => new Key(element, 'function', keyIndex)));
         this.instrumentMode = new ObservableValueImpl(InstrumentMode.Bassdrum);
         this.stepsEditMode = new ObservableValueImpl(StepsEditingMode.Step);
-        this.activeMainLabels = ArrayUtils.fill(this.mainKeys.keys.length, () => Options.None);
-        this.activeFunctionLabels = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None);
+        this.activeMainLabel = ArrayUtils.fill(this.mainKeys.keys.length, () => Options.None);
+        this.activeFunctionLabel = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None);
         this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo);
         this.mode = new ObservableValueImpl(new TrackPlayMode(this));
         this.installKeys();
@@ -338,13 +340,13 @@ export class UIContext {
         });
     }
     onFunctionKeyPress(keyIndex) {
-        if (this.activeFunctionLabels[keyIndex].nonEmpty())
+        if (this.activeFunctionLabel[keyIndex].nonEmpty())
             return true;
         const label = this.isShiftKeyPressed
             ? FunctionKeyLabel.ShiftKeys[keyIndex]
             : FunctionKeyLabel.NormalKeys[keyIndex];
         this.functionKeys.byIndex(keyIndex).setPressed(true);
-        this.activeFunctionLabels[keyIndex] = Options.valueOf(label);
+        this.activeFunctionLabel[keyIndex] = Options.valueOf(label);
         return this.processFunctionKeyPress(label);
     }
     processFunctionKeyPress(label) {
@@ -357,12 +359,12 @@ export class UIContext {
         return this.mode.get().onFunctionKeyPress(label);
     }
     onFunctionKeyRelease(keyIndex) {
-        const label = this.activeFunctionLabels[keyIndex];
+        const label = this.activeFunctionLabel[keyIndex];
         if (label.isEmpty())
             return;
         this.functionKeys.byIndex(keyIndex).setPressed(false);
-        this.processFunctionKeyRelease(this.activeFunctionLabels[keyIndex].get());
-        this.activeFunctionLabels[keyIndex] = Options.None;
+        this.processFunctionKeyRelease(this.activeFunctionLabel[keyIndex].get());
+        this.activeFunctionLabel[keyIndex] = Options.None;
     }
     processFunctionKeyRelease(label) {
         if (label === FunctionKeyLabel.Shift) {
@@ -376,13 +378,13 @@ export class UIContext {
         this.mode.get().onFunctionKeyRelease(label);
     }
     onMainKeyPress(keyIndex) {
-        if (this.activeMainLabels[keyIndex].nonEmpty())
+        if (this.activeMainLabel[keyIndex].nonEmpty())
             return true;
         const label = this.isShiftKeyPressed
             ? MainKeyLabel.ShiftKeys[keyIndex]
             : MainKeyLabel.NormalKeys[keyIndex];
         this.mainKeys.byIndex(keyIndex).setPressed(true);
-        this.activeMainLabels[keyIndex] = Options.valueOf(label);
+        this.activeMainLabel[keyIndex] = Options.valueOf(label);
         this.concurrentMainKeys.add(label.keyIndex);
         return this.processMainKeyPress(label);
     }
@@ -419,10 +421,10 @@ export class UIContext {
         return this.mode.get().onMainKeyPress(label);
     }
     onMainKeyRelease(keyIndex) {
-        if (this.activeMainLabels[keyIndex].isEmpty())
+        if (this.activeMainLabel[keyIndex].isEmpty())
             return;
         this.mainKeys.byIndex(keyIndex).setPressed(false);
-        this.activeMainLabels[keyIndex] = Options.None;
+        this.activeMainLabel[keyIndex] = Options.None;
         this.concurrentMainKeys.delete(keyIndex);
     }
     installKeyboard() {

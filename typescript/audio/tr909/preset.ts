@@ -36,7 +36,8 @@ export type CrashOrRidePreset = {
     tune: Parameter<number>
 }
 
-const TempoMapping = new RoundMapping(Pow.byCenter(120, 37, 290))
+export const TempoMapping = new RoundMapping(Pow.byCenter(120, 37, 290))
+
 const BassdrumTuneMapping = new Exp(0.007, 0.0294)
 const BassdrumDecayMapping = new Exp(0.012, 0.100)
 const TomDecayMapping = new Exp(0.04, 0.15)
