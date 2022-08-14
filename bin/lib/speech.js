@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { elseIfUndefined, ObservableImpl, Options } from "./common.js";
+import { ObservableImpl, Options } from "./common.js";
 class Paragraph {
     constructor() {
         this.events = [];
@@ -115,17 +115,15 @@ export class Lecture {
                 const utterance = new SpeechSynthesisUtterance(paragraph.text);
                 utterance.voice = this.voice;
                 utterance.addEventListener('boundary', (event) => {
-                    this.observable.notify({
-                        type: 'sentence',
-                        sentence: utterance.text,
-                        charStart: event.charIndex,
-                        charEnd: event.charIndex + event.charLength,
-                    });
                     while (events.length > 0 && event.charIndex >= events[0].charIndex) {
                         events.shift().callback();
                     }
                 });
                 utterance.addEventListener('end', callback);
+                this.observable.notify({
+                    type: 'sentence',
+                    sentence: utterance.text
+                });
                 speechSynthesis.speak(utterance);
                 return {
                     terminate: () => {
@@ -140,8 +138,7 @@ export class Lecture {
         this.processes.push(process);
         return this;
     }
-    start() {
-        var _a;
+    start(lang = 'en-GB') {
         return __awaiter(this, void 0, void 0, function* () {
             const now = Date.now();
             while (speechSynthesis.getVoices().length === 0) {
@@ -150,8 +147,8 @@ export class Lecture {
                 }
                 yield new Promise(resolve => setTimeout(resolve, 20));
             }
-            this.voice = elseIfUndefined(speechSynthesis.getVoices().find(voice => voice.default), null);
-            console.debug(`using voice '${(_a = this.voice) === null || _a === void 0 ? void 0 : _a.name}'`);
+            this.voice = speechSynthesis.getVoices().find(voice => voice.lang === lang) || speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') || null;
+            console.debug(`using voice '${this.voice}'`);
             this.optCloseParagraph();
             this.running.ifPresent(() => this.cancel());
             window.onunload = () => speechSynthesis.cancel();
