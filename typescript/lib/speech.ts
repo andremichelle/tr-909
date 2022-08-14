@@ -1,4 +1,4 @@
-import { elseIfUndefined, Observable, ObservableImpl, Observer, Option, Options, Terminable, TerminableVoid } from "./common.js"
+import { elseIfUndefined, Observable, ObservableImpl, Observer, Option, Options, Terminable } from "./common.js"
 
 /**
  * Since the web-speech-api does not really understand SSML (which would support breaks and markers), 
@@ -6,7 +6,6 @@ import { elseIfUndefined, Observable, ObservableImpl, Observer, Option, Options,
  * The boundary event is a great help, but if you pause the speech, it glitches and sounds broken. 
  * Hence we use speaking only between user-interactions (processes).
  */
-
 class Paragraph {
     readonly events: { charIndex: number, callback: CallableFunction }[] = []
 
@@ -65,12 +64,16 @@ export class Lecture implements Observable<LectureEvent> {
 
     appendWords(words: string): this {
         console.debug(`appendWords(${words})`)
-
         if (this.paragraph.isEmpty()) {
             this.paragraph = Options.valueOf(new Paragraph().appendWords(words))
         } else {
             this.paragraph.get().appendWords(words)
         }
+        return this
+    }
+
+    appendBreak(): this {
+        this.optCloseParagraph()
         return this
     }
 

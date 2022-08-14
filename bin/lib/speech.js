@@ -53,6 +53,10 @@ export class Lecture {
         }
         return this;
     }
+    appendBreak() {
+        this.optCloseParagraph();
+        return this;
+    }
     appendEvent(callback) {
         console.debug(`appendEvent()`);
         if (this.paragraph.isEmpty()) {

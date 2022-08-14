@@ -1,6 +1,6 @@
 import { TrackIndex } from '../audio/tr909/memory.js'
 import { HTML } from '../lib/dom.js'
-import { Lecture, Paragraph } from '../lib/speech.js'
+import { Lecture } from '../lib/speech.js'
 import { Transport } from './../audio/common.js'
 import { Class, Events, ObservableValue, Terminable, TerminableVoid, Terminator } from './../lib/common.js'
 import { Interaction } from './../lib/speech'
