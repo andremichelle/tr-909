@@ -59,6 +59,22 @@ export class Exp {
         return Math.min(this.max, Math.max(this.min, y));
     }
 }
+export class Round {
+    constructor(mapping) {
+        this.mapping = mapping;
+        this.min = mapping.min;
+        this.max = mapping.max;
+    }
+    y(x) {
+        return Math.round(this.mapping.y(x));
+    }
+    x(y) {
+        return this.mapping.x(y);
+    }
+    clamp(y) {
+        return Math.round(this.mapping.clamp(y));
+    }
+}
 export class Pow {
     constructor(min, max, exp) {
         this.min = min;

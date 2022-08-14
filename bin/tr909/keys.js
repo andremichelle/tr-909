@@ -141,7 +141,7 @@ MainKeyLabel.Step13 = MainKeyLabel.create(MainKeyIndex.Step13, 12, false);
 MainKeyLabel.Step14 = MainKeyLabel.create(MainKeyIndex.Step14, 13, false);
 MainKeyLabel.Step15 = MainKeyLabel.create(MainKeyIndex.Step15, 14, false);
 MainKeyLabel.Step16 = MainKeyLabel.create(MainKeyIndex.Step16, 15, false);
-MainKeyLabel.TotalAccent = MainKeyLabel.create(MainKeyIndex.CartridgeEnterTotalAccent, 'total-accent', false);
+MainKeyLabel.EnterTotalAccent = MainKeyLabel.create(MainKeyIndex.CartridgeEnterTotalAccent, 'total-accent', false);
 MainKeyLabel.Digit1 = MainKeyLabel.create(MainKeyIndex.Step1, 1, true);
 MainKeyLabel.Digit2 = MainKeyLabel.create(MainKeyIndex.Step2, 2, true);
 MainKeyLabel.Digit3 = MainKeyLabel.create(MainKeyIndex.Step3, 3, true);
@@ -164,7 +164,7 @@ MainKeyLabel.NormalKeys = [
     MainKeyLabel.Step5, MainKeyLabel.Step6, MainKeyLabel.Step7, MainKeyLabel.Step8,
     MainKeyLabel.Step9, MainKeyLabel.Step10, MainKeyLabel.Step11, MainKeyLabel.Step12,
     MainKeyLabel.Step13, MainKeyLabel.Step14, MainKeyLabel.Step15, MainKeyLabel.Step16,
-    MainKeyLabel.TotalAccent
+    MainKeyLabel.EnterTotalAccent
 ];
 MainKeyLabel.ShiftKeys = [
     MainKeyLabel.Digit1, MainKeyLabel.Digit2, MainKeyLabel.Digit3, MainKeyLabel.Digit4,

@@ -1,4 +1,3 @@
-import { MachineFormat } from './../audio/tr909/machine'
 import { secondsToBars } from "../audio/common.js"
 import { Machine } from "../audio/tr909/machine.js"
 import {
@@ -10,10 +9,10 @@ import {
     PatternGroupIndex,
     PatternLocation,
     ScaleIndex,
+    Track,
     TrackIndex
 } from "../audio/tr909/memory.js"
 import { PlayMode, State } from "../audio/tr909/state.js"
-import { Track } from "../audio/tr909/track.js"
 import {
     ArrayUtils, Events,
     ifDefined,
@@ -24,7 +23,7 @@ import {
 } from "../lib/common.js"
 import { AnimationFrame, HTML, SVG } from "../lib/dom.js"
 import { JsonBin, JsonBinResponse } from '../lib/jsonbin.js'
-import { MemoryFormat } from './../audio/tr909/memory'
+import { MachineFormat } from './../audio/tr909/machine'
 import { Option, Options } from './../lib/common.js'
 import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js"
 import {
@@ -440,13 +439,10 @@ export class UIContext implements Terminable {
     private processFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
         if (label === FunctionKeyLabel.Shift) {
             this.isShiftKeyPressed = true
-            return true
         } else if (label === FunctionKeyLabel.Tempo) {
             this.tempoProviderSubscription = this.display.pushProvider(this.tempoDisplayProvider)
-            return true
-        } else {
-            return this.mode.get().onFunctionKeyPress(label)
         }
+        return this.mode.get().onFunctionKeyPress(label)
     }
 
     private onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
@@ -458,16 +454,14 @@ export class UIContext implements Terminable {
     }
 
     private processFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
-        if (label === FunctionKeyLabel.Tempo) {
+        if (label === FunctionKeyLabel.Shift) {
+            this.isShiftKeyPressed = false
+            this.digitInput.stop()
+        } else if (label === FunctionKeyLabel.Tempo) {
             this.tempoProviderSubscription.terminate()
             this.tempoProviderSubscription = TerminableVoid
-        } else {
-            if (label === FunctionKeyLabel.Shift) {
-                this.isShiftKeyPressed = false
-                this.digitInput.stop()
-            }
-            this.mode.get().onFunctionKeyRelease(label)
         }
+        this.mode.get().onFunctionKeyRelease(label)
     }
 
     private onMainKeyPress(keyIndex: MainKeyIndex): complete {

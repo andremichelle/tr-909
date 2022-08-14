@@ -4,12 +4,13 @@ import {
     ObservableImpl,
     ObservableValueImpl,
     Observer,
+    Options,
     Serializer,
     Terminable,
     Terminator
 } from "../../lib/common.js"
+import { Option } from './../../../bin/lib/common.d'
 import { State, StateFormat } from "./state.js"
-import { Track } from "./track.js"
 
 export enum BankIndex { I, II }
 
@@ -18,7 +19,6 @@ export enum TrackIndex { I, II, III, IV } // times 2 for each bank
 export enum PatternGroupIndex { I, II, III } // times 2 for each bank
 
 export enum PatternIndex {
-    // noinspection JSUnusedGlobalSymbols
     Pattern1, Pattern2, Pattern3, Pattern4,
     Pattern5, Pattern6, Pattern7, Pattern8,
     Pattern9, Pattern10, Pattern11, Pattern12,
@@ -471,5 +471,77 @@ class Shuffle implements Terminable {
         const normalized = (position - start) / duration
         const transformed = Math.pow(normalized, exponent)
         return start + transformed * duration
+    }
+}
+
+export interface TrackFormat {
+    sequence: PatternLocation[]
+}
+
+export class Track implements Serializer<TrackFormat>, Observable<void> {
+    private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
+    private readonly sequence: PatternLocation[] = []
+
+    private tempoMemory: Option<number> = Options.None
+
+    memorizeTempo(value: number): void {
+        console.debug(`memorizeTempo(${value})`)
+        this.tempoMemory = Options.valueOf(value)
+    }
+
+    recallTempo(): Option<number> {
+        this.tempoMemory.ifPresent(tempo => console.debug(`recallTempo(${tempo})`))
+        return this.tempoMemory
+    }
+
+    addObserver(observer: Observer<void>, notify: boolean): Terminable {
+        if (notify) observer()
+        return this.observable.addObserver(observer)
+    }
+
+    deserialize(format: TrackFormat): Serializer<TrackFormat> {
+        this.sequence.splice(0, this.sequence.length, ...format.sequence)
+        return this
+    }
+
+    serialize(): TrackFormat {
+        return { sequence: this.sequence }
+    }
+
+    writeLocation(location: PatternLocation, index: number = Number.MAX_SAFE_INTEGER): void {
+        if (index >= this.sequence.length) {
+            this.sequence.push(location)
+        } else {
+            this.sequence[index] = location
+        }
+        this.observable.notify()
+    }
+
+    get(index: number): PatternLocation {
+        console.assert(index >= 0 && index < this.sequence.length)
+        return this.sequence[index]
+    }
+
+    isEmpty(): boolean {
+        return this.sequence.length === 0
+    }
+
+    nonEmpty(): boolean {
+        return this.sequence.length > 0
+    }
+
+    clear(): void {
+        if (this.nonEmpty()) {
+            this.sequence.splice(0, this.size())
+            this.observable.notify()
+        }
+    }
+
+    size(): number {
+        return this.sequence.length
+    }
+
+    terminate(): void {
+        this.observable.terminate()
     }
 }

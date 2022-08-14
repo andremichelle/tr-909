@@ -1,10 +1,59 @@
 import { BankIndex, TrackIndex } from "../../audio/tr909/memory.js"
+import { Observer, Option, Options, Terminable } from "../../lib/common.js"
 import { UIContext } from "../context.js"
-import { DisplayObservableValueProvider } from "../display.js"
+import { DisplayObservableValueProvider, DisplayValue, DisplayValueProvider } from "../display.js"
 import { FunctionKeyLabel, KeyState, MainKeyIndex, MainKeyLabel, ZeroBasedIndices } from "../keys.js"
 import { complete, Mode } from "../mode.js"
+import { MemoryBank } from './../../audio/tr909/memory.js'
+import { TerminableVoid, Terminator } from './../../lib/common.js'
+
+
+class TempoMemoryMode extends Mode {
+    private readonly subscriptions: Terminator = new Terminator()
+
+    constructor(context: UIContext) {
+        super(context)
+    }
+
+    onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
+        for (let trackIndex = 0; trackIndex < MemoryBank.NUM_TRACKS; trackIndex++) {
+            if (label === FunctionKeyLabel.TrackPlay[trackIndex]) {
+                const track = this.context.activeBank().tracks[trackIndex]
+                track.recallTempo().ifPresent(tempo => this.context.machine.preset.tempo.set(tempo))
+                this.subscriptions.with(this.context.display.pushProvider(new class implements DisplayValueProvider {
+                    constructor(private readonly measure: number) { }
+                    addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable {
+                        if (notify) observer(this.displayValue())
+                        return TerminableVoid
+                    }
+                    displayValue(): DisplayValue { return this.measure }
+                    terminate(): void { }
+                }(track.isEmpty() ? 0 : 1)))
+                return true
+            }
+        }
+        return true
+    }
+
+    onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
+        this.subscriptions.terminate()
+    }
+
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
+        if (label === MainKeyLabel.EnterTotalAccent) {
+            this.context.activeTrack().memorizeTempo(this.context.machine.preset.tempo.get())
+        }
+        return true
+    }
+
+    name(): string {
+        return 'Tempo Memory'
+    }
+}
 
 export default class extends Mode {
+    private tempoMemoryMode: Option<TempoMemoryMode> = Options.None
+
     constructor(context: UIContext) {
         super(context)
 
@@ -21,6 +70,9 @@ export default class extends Mode {
     }
 
     onFunctionKeyPress(label: FunctionKeyLabel<any>): complete {
+        if (this.tempoMemoryMode.nonEmpty()) {
+            return this.tempoMemoryMode.get().onFunctionKeyPress(label)
+        }
         if (this.context.maySwitchBankGroupIndex(label)) {
             return true
         }
@@ -44,16 +96,29 @@ export default class extends Mode {
             this.context.digitInput.setValue(this.context.memoryState().activeTrack().size())
             return true
         }
+        if (label === FunctionKeyLabel.Tempo) {
+            this.tempoMemoryMode = Options.valueOf(new TempoMemoryMode(this.context))
+            return false
+        }
         return true
     }
 
-    onMainKeyPress(label: MainKeyLabel<any>): complete {
-        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
-            return true
-        } else {
-            this.context.playInstrument(label.keyIndex)
-            return true
+    onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {
+        if (label === FunctionKeyLabel.Tempo) {
+            this.tempoMemoryMode.ifPresent(mode => mode.terminate())
+            this.tempoMemoryMode = Options.None
+        } else if (this.tempoMemoryMode.nonEmpty()) {
+            this.tempoMemoryMode.get().onFunctionKeyRelease(label)
         }
+    }
+
+    onMainKeyPress(label: MainKeyLabel<any>): complete {
+        if (this.tempoMemoryMode.nonEmpty()) {
+            return this.tempoMemoryMode.get().onMainKeyPress(label)
+        } else if (label.keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent) {
+            this.context.playInstrument(label.keyIndex)
+        }
+        return true
     }
 
     allowMainKeyValueInput(): boolean {

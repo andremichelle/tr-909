@@ -100,7 +100,6 @@ export class Display implements Terminable {
                 console.assert(index !== -1)
                 const remove: [DisplayValueProvider, Terminator] = this.providerStack.splice(index, 1)[0]
                 remove[1].terminate()
-
                 if (this.providerStack.length === 0) {
                     this.show('none')
                 } else {

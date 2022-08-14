@@ -5,16 +5,14 @@ import { Serializer } from './../../lib/common'
 import {
     BankIndex,
     ChannelIndex,
-    Memory, MemoryBank, MemoryFormat, Pattern,
-    PatternGroup,
+    Memory, MemoryBank, MemoryFormat, Pattern, PatternGroup,
     PatternGroupIndex,
     PatternLocation,
-    Step
+    Step, Track
 } from "./memory.js"
 import { ProcessorOptions, ToMainMessage, ToWorkletMessage } from "./messages.js"
 import { Preset, PresetFormat } from "./preset.js"
 import { Resources } from "./resources.js"
-import { Track } from "./track.js"
 
 export interface MachineFormat {
     preset: PresetFormat

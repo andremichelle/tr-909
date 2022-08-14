@@ -350,15 +350,11 @@ export class UIContext {
     processFunctionKeyPress(label) {
         if (label === FunctionKeyLabel.Shift) {
             this.isShiftKeyPressed = true;
-            return true;
         }
         else if (label === FunctionKeyLabel.Tempo) {
             this.tempoProviderSubscription = this.display.pushProvider(this.tempoDisplayProvider);
-            return true;
         }
-        else {
-            return this.mode.get().onFunctionKeyPress(label);
-        }
+        return this.mode.get().onFunctionKeyPress(label);
     }
     onFunctionKeyRelease(keyIndex) {
         const label = this.activeFunctionLabels[keyIndex];
@@ -369,17 +365,15 @@ export class UIContext {
         this.activeFunctionLabels[keyIndex] = Options.None;
     }
     processFunctionKeyRelease(label) {
-        if (label === FunctionKeyLabel.Tempo) {
+        if (label === FunctionKeyLabel.Shift) {
+            this.isShiftKeyPressed = false;
+            this.digitInput.stop();
+        }
+        else if (label === FunctionKeyLabel.Tempo) {
             this.tempoProviderSubscription.terminate();
             this.tempoProviderSubscription = TerminableVoid;
         }
-        else {
-            if (label === FunctionKeyLabel.Shift) {
-                this.isShiftKeyPressed = false;
-                this.digitInput.stop();
-            }
-            this.mode.get().onFunctionKeyRelease(label);
-        }
+        this.mode.get().onFunctionKeyRelease(label);
     }
     onMainKeyPress(keyIndex) {
         if (this.activeMainLabels[keyIndex].nonEmpty())

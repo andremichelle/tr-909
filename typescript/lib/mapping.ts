@@ -95,12 +95,35 @@ export class Exp implements ValueMapping<number>, Range {
     }
 }
 
+export class Round implements ValueMapping<number>, Range {
+    readonly min: number
+    readonly max: number
+
+    constructor(private readonly mapping: ValueMapping<number> & Range) {
+        this.min = mapping.min
+        this.max = mapping.max
+    }
+
+    y(x: number): number {
+        return Math.round(this.mapping.y(x))
+    }
+
+    x(y: number): number {
+        return this.mapping.x(y)
+    }
+
+    clamp(y: number): number {
+        return Math.round(this.mapping.clamp(y))
+    }
+}
+
 export class Pow implements ValueMapping<number>, Range {
     static byCenter(center: number, min: number, max: number): Pow {
         return new Pow(min, max, Math.log((max - min) / (center - min)) / Math.log(2.0))
     }
 
-    private constructor(readonly min: number,
+    private constructor(
+        readonly min: number,
         readonly max: number,
         readonly exp: number) {
     }

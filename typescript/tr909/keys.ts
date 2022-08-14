@@ -87,7 +87,7 @@ export class MainKeyLabel<T> {
     static readonly Step14 = MainKeyLabel.create(MainKeyIndex.Step14, 13, false)
     static readonly Step15 = MainKeyLabel.create(MainKeyIndex.Step15, 14, false)
     static readonly Step16 = MainKeyLabel.create(MainKeyIndex.Step16, 15, false)
-    static readonly TotalAccent = MainKeyLabel.create(MainKeyIndex.CartridgeEnterTotalAccent, 'total-accent', false)
+    static readonly EnterTotalAccent = MainKeyLabel.create(MainKeyIndex.CartridgeEnterTotalAccent, 'total-accent', false)
 
     static readonly Digit1 = MainKeyLabel.create(MainKeyIndex.Step1, 1, true)
     static readonly Digit2 = MainKeyLabel.create(MainKeyIndex.Step2, 2, true)
@@ -112,7 +112,7 @@ export class MainKeyLabel<T> {
         MainKeyLabel.Step5, MainKeyLabel.Step6, MainKeyLabel.Step7, MainKeyLabel.Step8,
         MainKeyLabel.Step9, MainKeyLabel.Step10, MainKeyLabel.Step11, MainKeyLabel.Step12,
         MainKeyLabel.Step13, MainKeyLabel.Step14, MainKeyLabel.Step15, MainKeyLabel.Step16,
-        MainKeyLabel.TotalAccent
+        MainKeyLabel.EnterTotalAccent
     ]
 
     static readonly ShiftKeys: ReadonlyArray<MainKeyLabel<any>> = [

@@ -13,10 +13,8 @@ import {
     Pattern,
     PatternGroup,
     PatternGroupIndex,
-    PatternIndex,
-    TrackIndex
+    PatternIndex, Track, TrackIndex
 } from "./memory.js"
-import { Track } from "./track.js"
 
 export enum PlayMode {
     Track, Pattern

@@ -1,6 +1,5 @@
-import { ArrayUtils, ObservableImpl, ObservableValueImpl, Terminator } from "../../lib/common.js";
+import { ArrayUtils, ObservableImpl, ObservableValueImpl, Options, Terminator } from "../../lib/common.js";
 import { State } from "./state.js";
-import { Track } from "./track.js";
 export var BankIndex;
 (function (BankIndex) {
     BankIndex[BankIndex["I"] = 0] = "I";
@@ -386,6 +385,64 @@ class Shuffle {
         const normalized = (position - start) / duration;
         const transformed = Math.pow(normalized, exponent);
         return start + transformed * duration;
+    }
+}
+export class Track {
+    constructor() {
+        this.observable = new ObservableImpl();
+        this.sequence = [];
+        this.tempoMemory = Options.None;
+    }
+    memorizeTempo(value) {
+        console.debug(`memorizeTempo(${value})`);
+        this.tempoMemory = Options.valueOf(value);
+    }
+    recallTempo() {
+        this.tempoMemory.ifPresent(tempo => console.debug(`recallTempo(${tempo})`));
+        return this.tempoMemory;
+    }
+    addObserver(observer, notify) {
+        if (notify)
+            observer();
+        return this.observable.addObserver(observer);
+    }
+    deserialize(format) {
+        this.sequence.splice(0, this.sequence.length, ...format.sequence);
+        return this;
+    }
+    serialize() {
+        return { sequence: this.sequence };
+    }
+    writeLocation(location, index = Number.MAX_SAFE_INTEGER) {
+        if (index >= this.sequence.length) {
+            this.sequence.push(location);
+        }
+        else {
+            this.sequence[index] = location;
+        }
+        this.observable.notify();
+    }
+    get(index) {
+        console.assert(index >= 0 && index < this.sequence.length);
+        return this.sequence[index];
+    }
+    isEmpty() {
+        return this.sequence.length === 0;
+    }
+    nonEmpty() {
+        return this.sequence.length > 0;
+    }
+    clear() {
+        if (this.nonEmpty()) {
+            this.sequence.splice(0, this.size());
+            this.observable.notify();
+        }
+    }
+    size() {
+        return this.sequence.length;
+    }
+    terminate() {
+        this.observable.terminate();
     }
 }
 //# sourceMappingURL=memory.js.map

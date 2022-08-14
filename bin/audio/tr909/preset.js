@@ -1,6 +1,6 @@
 import { Options, Parameter, PrintMapping, Terminator } from "../../lib/common.js";
-import { Exp, Linear, Pow, Volume } from "../../lib/mapping.js";
-const TempoMapping = Pow.byCenter(120, 37, 290);
+import { Exp, Linear, Pow, Round as RoundMapping, Volume } from "../../lib/mapping.js";
+const TempoMapping = new RoundMapping(Pow.byCenter(120, 37, 290));
 const BassdrumTuneMapping = new Exp(0.007, 0.0294);
 const BassdrumDecayMapping = new Exp(0.012, 0.100);
 const TomDecayMapping = new Exp(0.04, 0.15);
