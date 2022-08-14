@@ -7,9 +7,8 @@ import { complete, Mode } from "../mode.js"
 import { MemoryBank } from './../../audio/tr909/memory.js'
 import { TerminableVoid, Terminator } from './../../lib/common.js'
 
-
 class TempoMemoryMode extends Mode {
-    private readonly subscriptions: Terminator = new Terminator()
+    private readonly subscriptions: Terminator = this.with(new Terminator())
 
     constructor(context: UIContext) {
         super(context)

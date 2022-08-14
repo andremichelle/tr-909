@@ -7,7 +7,7 @@ import { TerminableVoid, Terminator } from './../../lib/common.js';
 class TempoMemoryMode extends Mode {
     constructor(context) {
         super(context);
-        this.subscriptions = new Terminator();
+        this.subscriptions = this.with(new Terminator());
     }
     onFunctionKeyPress(label) {
         for (let trackIndex = 0; trackIndex < MemoryBank.NUM_TRACKS; trackIndex++) {
