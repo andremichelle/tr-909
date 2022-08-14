@@ -1087,13 +1087,27 @@ main > footer > a {
 }
 
 div.components {
-  padding: 16vmin;
+  margin: 0 auto;
+  padding: 12vmin;
   border-radius: 8px;
-  background: radial-gradient(at 50% 0, rgba(255, 255, 255, 0.25), transparent), linear-gradient(to bottom, #d0cbc5, #c7c1b9);
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   grid-auto-flow: column;
 }
-div.components > * {
+div.components > div {
+  display: flex;
+  -moz-column-gap: 20px;
+       column-gap: 20px;
+  padding: 40px;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  height: -webkit-fit-content;
+  height: -moz-fit-content;
+  height: fit-content;
+  background: radial-gradient(at 50% 0, rgba(255, 255, 255, 0.25), transparent), linear-gradient(to bottom, #d0cbc5, #c7c1b9);
+}
+div.components > div > * {
   position: relative;
 }/*# sourceMappingURL=main.css.map */

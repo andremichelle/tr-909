@@ -24,7 +24,7 @@ class Paragraph {
         } else if (words.startsWith(' ')) {
             this.text += words
         } else {
-            this.text += ' ' + words // force boundary
+            this.text += ' ' + words // force space
         }
         return this
     }
@@ -178,7 +178,9 @@ export class Lecture implements Observable<LectureEvent> {
             await new Promise(resolve => setTimeout(resolve, 20))
         }
 
-        this.voice = speechSynthesis.getVoices().find(voice => voice.lang === lang) || speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') || null
+        this.voice =
+            speechSynthesis.getVoices().find(voice => voice.lang === lang) ||
+            speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') || null // whatever the system picks now
         console.debug(`using voice '${this.voice}'`)
 
         this.optCloseParagraph()

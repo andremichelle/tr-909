@@ -49,12 +49,21 @@ main
       text-shadow: 0 1px 1px rgba(black, 0.3)
 
 div.components
-  padding: 16vmin
+  margin: 0 auto
+  padding: 12vmin
   border-radius: 8px
-  background: radial-gradient(at 50% 0, rgba(white, 0.25), transparent), linear-gradient(to bottom, darken($COLOR_CHASSIS, 4), darken($COLOR_CHASSIS, 8))
-  display: grid
+  display: flex
+  flex-direction: column
   gap: 16px
   grid-auto-flow: column
 
-  > *
-    position: relative
+  > div
+    display: flex
+    column-gap: 20px
+    padding: 40px
+    width: fit-content
+    height: fit-content
+    background: radial-gradient(at 50% 0, rgba(white, 0.25), transparent), linear-gradient(to bottom, darken($COLOR_CHASSIS, 4), darken($COLOR_CHASSIS, 8))
+
+    > *
+      position: relative
