@@ -78,6 +78,7 @@ export class Lecture implements Observable<LectureEvent> {
     private readonly observable = new ObservableImpl<LectureEvent>()
 
     private readonly processes: Process[] = []
+    private paragraph: Option<Paragraph> = Options.None
 
     private cancelling: boolean = false
     private running: Option<Terminable> = Options.None
@@ -91,13 +92,60 @@ export class Lecture implements Observable<LectureEvent> {
     }
 
     appendWords(words: string): this {
-        return this.appendParagraph(new Paragraph().appendWords(words))
+        if (this.paragraph.isEmpty()) {
+            this.paragraph = Options.valueOf(new Paragraph().appendWords(words))
+        } else {
+            this.paragraph.get().appendWords(words)
+        }
+        return this
     }
 
-    appendParagraph(paragraph: Paragraph): this {
+    appendEvent(callback: CallableFunction): this {
+        if (this.paragraph.isEmpty()) {
+            this.paragraph = Options.valueOf(new Paragraph().appendEvent(callback))
+        } else {
+            this.paragraph.get().appendEvent(callback)
+        }
+        return this
+    }
+
+    awaitInteraction(interaction: Interaction): this {
+        this.optCloseParagraph()
         return this.appendProcess({
             start: (complete: CallableFunction): Terminable => {
-                const callback = () => complete()
+                this.observable.notify({
+                    type: 'interaction',
+                    message: interaction.name()
+                })
+                return interaction.start(complete)
+            },
+        })
+    }
+
+    appendPause(seconds: number): this {
+        this.optCloseParagraph()
+        return this.appendProcess({
+            start: (complete: CallableFunction): Terminable => {
+                const id = setTimeout(complete, seconds * 1000)
+                return { terminate: () => clearTimeout(id) }
+            }
+        })
+    }
+
+    private optCloseParagraph() {
+        if (this.paragraph.nonEmpty()) {
+            this.appendParagraph(this.paragraph.get())
+            this.paragraph = Options.None
+        }
+    }
+
+    private appendParagraph(paragraph: Paragraph): this {
+        return this.appendProcess({
+            start: (complete: CallableFunction): Terminable => {
+                const callback = () => {
+                    speechSynthesis.cancel()
+                    complete()
+                }
                 const utterance = paragraph.createUtterance()
                 utterance.addEventListener('end', callback)
                 utterance.addEventListener('boundary', (event: SpeechSynthesisEvent) => this.observable.notify({
@@ -117,43 +165,13 @@ export class Lecture implements Observable<LectureEvent> {
         })
     }
 
-    appendEvent(callback: CallableFunction): this {
-        return this.appendProcess({
-            start: (complete: CallableFunction): Terminable => {
-                callback()
-                complete()
-                return TerminableVoid
-            }
-        })
-    }
-
-    awaitInteraction(interaction: Interaction): this {
-        return this.appendProcess({
-            start: (complete: CallableFunction): Terminable => {
-                this.observable.notify({
-                    type: 'interaction',
-                    message: interaction.name()
-                })
-                return interaction.start(complete)
-            },
-        })
-    }
-
-    appendPause(seconds: number): this {
-        return this.appendProcess({
-            start: (complete: CallableFunction): Terminable => {
-                const id = setTimeout(complete, seconds * 1000)
-                return { terminate: () => clearTimeout(id) }
-            }
-        })
-    }
-
     private appendProcess(process: Process): this {
         this.processes.push(process)
         return this
     }
 
     async start(): Promise<void> {
+        this.optCloseParagraph()
         this.running.ifPresent(() => this.cancel())
 
         return new Promise<void>((resolve: () => void, reject: () => void) => {
@@ -178,7 +196,6 @@ export class Lecture implements Observable<LectureEvent> {
 
     cancel(): void {
         this.cancelling = true
-
         this.running.ifPresent(terminable => terminable.terminate())
         this.running = Options.None
         this.reject.ifPresent(reject => reject())
@@ -188,5 +205,6 @@ export class Lecture implements Observable<LectureEvent> {
 
     terminate(): void {
         if (this.running.nonEmpty() || this.reject.nonEmpty()) this.cancel()
+        this.paragraph = Options.None
     }
 }

@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ObservableImpl, Options, TerminableVoid } from "./common.js";
+import { ObservableImpl, Options } from "./common.js";
 export class Paragraph {
     constructor() {
         this.events = [];
@@ -53,6 +53,7 @@ export class Lecture {
     constructor() {
         this.observable = new ObservableImpl();
         this.processes = [];
+        this.paragraph = Options.None;
         this.cancelling = false;
         this.running = Options.None;
         this.reject = Options.None;
@@ -61,12 +62,57 @@ export class Lecture {
         return this.observable.addObserver(observer);
     }
     appendWords(words) {
-        return this.appendParagraph(new Paragraph().appendWords(words));
+        if (this.paragraph.isEmpty()) {
+            this.paragraph = Options.valueOf(new Paragraph().appendWords(words));
+        }
+        else {
+            this.paragraph.get().appendWords(words);
+        }
+        return this;
+    }
+    appendEvent(callback) {
+        if (this.paragraph.isEmpty()) {
+            this.paragraph = Options.valueOf(new Paragraph().appendEvent(callback));
+        }
+        else {
+            this.paragraph.get().appendEvent(callback);
+        }
+        return this;
+    }
+    awaitInteraction(interaction) {
+        this.optCloseParagraph();
+        return this.appendProcess({
+            start: (complete) => {
+                this.observable.notify({
+                    type: 'interaction',
+                    message: interaction.name()
+                });
+                return interaction.start(complete);
+            },
+        });
+    }
+    appendPause(seconds) {
+        this.optCloseParagraph();
+        return this.appendProcess({
+            start: (complete) => {
+                const id = setTimeout(complete, seconds * 1000);
+                return { terminate: () => clearTimeout(id) };
+            }
+        });
+    }
+    optCloseParagraph() {
+        if (this.paragraph.nonEmpty()) {
+            this.appendParagraph(this.paragraph.get());
+            this.paragraph = Options.None;
+        }
     }
     appendParagraph(paragraph) {
         return this.appendProcess({
             start: (complete) => {
-                const callback = () => complete();
+                const callback = () => {
+                    speechSynthesis.cancel();
+                    complete();
+                };
                 const utterance = paragraph.createUtterance();
                 utterance.addEventListener('end', callback);
                 utterance.addEventListener('boundary', (event) => this.observable.notify({
@@ -85,40 +131,13 @@ export class Lecture {
             }
         });
     }
-    appendEvent(callback) {
-        return this.appendProcess({
-            start: (complete) => {
-                callback();
-                complete();
-                return TerminableVoid;
-            }
-        });
-    }
-    awaitInteraction(interaction) {
-        return this.appendProcess({
-            start: (complete) => {
-                this.observable.notify({
-                    type: 'interaction',
-                    message: interaction.name()
-                });
-                return interaction.start(complete);
-            },
-        });
-    }
-    appendPause(seconds) {
-        return this.appendProcess({
-            start: (complete) => {
-                const id = setTimeout(complete, seconds * 1000);
-                return { terminate: () => clearTimeout(id) };
-            }
-        });
-    }
     appendProcess(process) {
         this.processes.push(process);
         return this;
     }
     start() {
         return __awaiter(this, void 0, void 0, function* () {
+            this.optCloseParagraph();
             this.running.ifPresent(() => this.cancel());
             return new Promise((resolve, reject) => {
                 this.reject = Options.valueOf(reject);
@@ -151,6 +170,7 @@ export class Lecture {
     terminate() {
         if (this.running.nonEmpty() || this.reject.nonEmpty())
             this.cancel();
+        this.paragraph = Options.None;
     }
 }
 //# sourceMappingURL=speech.js.map
