@@ -47,6 +47,7 @@ export type LectureEvent =
     | { type: 'sentence', sentence: string }
     | { type: 'interaction', message: string }
     | { type: 'pause', seconds: number }
+    | { type: 'update-state', speaking: boolean }
 
 export class Lecture implements Observable<LectureEvent> {
     private readonly observable = new ObservableImpl<LectureEvent>()
@@ -67,7 +68,6 @@ export class Lecture implements Observable<LectureEvent> {
     }
 
     appendWords(words: string): this {
-        console.debug(`appendWords(${words})`)
         if (this.paragraph.isEmpty()) {
             this.paragraph = Options.valueOf(new Paragraph().appendWords(words))
         } else {
@@ -82,7 +82,6 @@ export class Lecture implements Observable<LectureEvent> {
     }
 
     appendEvent(callback: CallableFunction): this {
-        console.debug(`appendEvent()`)
         if (this.paragraph.isEmpty()) {
             this.paragraph = Options.valueOf(new Paragraph().appendEvent(callback))
         } else {
@@ -92,7 +91,6 @@ export class Lecture implements Observable<LectureEvent> {
     }
 
     awaitInteraction(interaction: Interaction): this {
-        console.debug(`awaitInteraction()`)
         this.optCloseParagraph()
         return this.appendProcess({
             start: (complete: CallableFunction): Terminable => {
@@ -106,7 +104,6 @@ export class Lecture implements Observable<LectureEvent> {
     }
 
     appendPause(seconds: number): this {
-        console.debug(`appendPause()`)
         this.optCloseParagraph()
         return this.appendProcess({
             start: (complete: CallableFunction): Terminable => {
@@ -121,8 +118,6 @@ export class Lecture implements Observable<LectureEvent> {
     }
 
     private optCloseParagraph() {
-        console.debug(`optCloseParagraph`)
-
         if (this.paragraph.nonEmpty()) {
             this.appendParagraph(this.paragraph.get())
             this.paragraph = Options.None
@@ -134,7 +129,6 @@ export class Lecture implements Observable<LectureEvent> {
             start: (complete: CallableFunction): Terminable => {
                 const events = paragraph.events.length > 0 ? paragraph.events.slice() : paragraph.events
                 const callback = () => {
-                    speechSynthesis.cancel()
                     while (events.length > 0) {
                         // delivery remaining events
                         events.shift()!.callback()
@@ -144,15 +138,10 @@ export class Lecture implements Observable<LectureEvent> {
                 const utterance = new SpeechSynthesisUtterance(paragraph.text)
                 utterance.voice = this.voice
                 utterance.addEventListener('boundary', (event: SpeechSynthesisEvent) => {
-                    while (events.length > 0 && event.charIndex >= events[0].charIndex) {
-                        events.shift()!.callback()
-                    }
+                    while (events.length > 0 && event.charIndex >= events[0].charIndex) { events.shift()!.callback() }
                 })
+                this.observable.notify({ type: 'sentence', sentence: utterance.text })
                 utterance.addEventListener('end', callback)
-                this.observable.notify({
-                    type: 'sentence',
-                    sentence: utterance.text
-                })
                 speechSynthesis.speak(utterance)
                 return {
                     terminate: () => {
@@ -198,9 +187,11 @@ export class Lecture implements Observable<LectureEvent> {
                         if (!this.cancelling) {
                             next()
                         }
+                        this.observable.notify({ type: 'update-state', speaking: speechSynthesis.speaking })
                     }))
                 } else {
                     this.running = Options.None
+                    this.observable.notify({ type: 'update-state', speaking: false })
                     resolve()
                 }
             }
@@ -220,5 +211,6 @@ export class Lecture implements Observable<LectureEvent> {
     terminate(): void {
         if (this.running.nonEmpty() || this.reject.nonEmpty()) this.cancel()
         this.paragraph = Options.None
+        this.observable.terminate()
     }
 }

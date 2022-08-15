@@ -102,7 +102,7 @@ export class Machine implements Serializer<MachineFormat>, Terminable {
         this.worklet.port.onmessage = event => {
             const message = event.data as ToMainMessage
             const schedule = (exec: () => void) =>
-                this.scheduleUpdates.push({ time: this.context.currentTime + this.context.outputLatency, exec })
+                this.scheduleUpdates.push({ time: this.context.currentTime + this.context.outputLatency || 0, exec })
             if (message.type === 'update-step') {
                 schedule(() => this.processorStepIndex.set(message.stepIndex))
             } else if (message.type === 'update-pattern') {

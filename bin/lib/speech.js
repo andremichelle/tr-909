@@ -44,7 +44,6 @@ export class Lecture {
         return this.observable.addObserver(observer);
     }
     appendWords(words) {
-        console.debug(`appendWords(${words})`);
         if (this.paragraph.isEmpty()) {
             this.paragraph = Options.valueOf(new Paragraph().appendWords(words));
         }
@@ -58,7 +57,6 @@ export class Lecture {
         return this;
     }
     appendEvent(callback) {
-        console.debug(`appendEvent()`);
         if (this.paragraph.isEmpty()) {
             this.paragraph = Options.valueOf(new Paragraph().appendEvent(callback));
         }
@@ -68,7 +66,6 @@ export class Lecture {
         return this;
     }
     awaitInteraction(interaction) {
-        console.debug(`awaitInteraction()`);
         this.optCloseParagraph();
         return this.appendProcess({
             start: (complete) => {
@@ -81,7 +78,6 @@ export class Lecture {
         });
     }
     appendPause(seconds) {
-        console.debug(`appendPause()`);
         this.optCloseParagraph();
         return this.appendProcess({
             start: (complete) => {
@@ -95,7 +91,6 @@ export class Lecture {
         });
     }
     optCloseParagraph() {
-        console.debug(`optCloseParagraph`);
         if (this.paragraph.nonEmpty()) {
             this.appendParagraph(this.paragraph.get());
             this.paragraph = Options.None;
@@ -106,7 +101,6 @@ export class Lecture {
             start: (complete) => {
                 const events = paragraph.events.length > 0 ? paragraph.events.slice() : paragraph.events;
                 const callback = () => {
-                    speechSynthesis.cancel();
                     while (events.length > 0) {
                         events.shift().callback();
                     }
@@ -119,11 +113,8 @@ export class Lecture {
                         events.shift().callback();
                     }
                 });
+                this.observable.notify({ type: 'sentence', sentence: utterance.text });
                 utterance.addEventListener('end', callback);
-                this.observable.notify({
-                    type: 'sentence',
-                    sentence: utterance.text
-                });
                 speechSynthesis.speak(utterance);
                 return {
                     terminate: () => {
@@ -147,7 +138,9 @@ export class Lecture {
                 }
                 yield new Promise(resolve => setTimeout(resolve, 20));
             }
-            this.voice = speechSynthesis.getVoices().find(voice => voice.lang === lang) || speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') || null;
+            this.voice =
+                speechSynthesis.getVoices().find(voice => voice.lang === lang) ||
+                    speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') || null;
             console.debug(`using voice '${this.voice}'`);
             this.optCloseParagraph();
             this.running.ifPresent(() => this.cancel());
@@ -161,10 +154,12 @@ export class Lecture {
                             if (!this.cancelling) {
                                 next();
                             }
+                            this.observable.notify({ type: 'update-state', speaking: speechSynthesis.speaking });
                         }));
                     }
                     else {
                         this.running = Options.None;
+                        this.observable.notify({ type: 'update-state', speaking: false });
                         resolve();
                     }
                 };
@@ -184,6 +179,7 @@ export class Lecture {
         if (this.running.nonEmpty() || this.reject.nonEmpty())
             this.cancel();
         this.paragraph = Options.None;
+        this.observable.terminate();
     }
 }
 //# sourceMappingURL=speech.js.map

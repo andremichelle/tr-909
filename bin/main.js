@@ -28,6 +28,7 @@ const showProgress = (() => {
 (() => __awaiter(void 0, void 0, void 0, function* () {
     console.debug("booting...");
     const context = newAudioContext();
+    context.addEventListener('statechange', event => console.log(event.type, context.state));
     console.debug(`sampleRate: ${context.sampleRate}Hz`);
     const boot = new Boot();
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()));
@@ -98,16 +99,31 @@ const showProgress = (() => {
             return;
         }
         if (lecturing.isEmpty()) {
-            const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'));
+            const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'), context);
+            lecture.addObserver(message => {
+                if (message.type === 'update-state') {
+                    if (message.speaking) {
+                        if (context.state === 'running') {
+                            context.suspend().then(() => console.log('suspend'));
+                        }
+                    }
+                    else {
+                        if (context.state !== 'running') {
+                            context.resume().then(() => console.log('resume'));
+                        }
+                    }
+                }
+            });
             lecturing = Options.valueOf(lecture);
             tutorialButton.style.opacity = "0.3";
             lecture.start().catch(() => null).then(() => {
                 tutorialButton.style.opacity = "1.0";
+                lecture.terminate();
                 lecturing = Options.None;
             });
         }
         else {
-            lecturing.get().cancel();
+            lecturing.get().terminate();
             lecturing = Options.None;
         }
     });

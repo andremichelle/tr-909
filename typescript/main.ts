@@ -24,6 +24,7 @@ const showProgress = (() => {
 
     // --- BOOT STARTS ---
     const context = newAudioContext()
+    context.addEventListener('statechange', event => console.log(event.type, context.state))
     console.debug(`sampleRate: ${context.sampleRate}Hz`)
     const boot = new Boot()
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()))
@@ -105,26 +106,46 @@ const showProgress = (() => {
     AnimationFrame.init()
 
     let lecturing: Option<Lecture> = Options.None
-
     const tutorialButton = HTML.query('a[target=tutorial]') as HTMLElement
     const subscription = Events.bind(tutorialButton, 'click', (event: Event) => {
         event.preventDefault()
-
         if (!confirm(`This will reset the machine.`)) {
             return
         }
-
         if (lecturing.isEmpty()) {
-            const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'))
+            const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'), context)
+            lecture.addObserver(message => {
+                if (message.type === 'update-state') {
+                    if (message.speaking) {
+                        if (context.state === 'running') {
+                            context.suspend().then(() => console.log('suspend'))
+                        }
+                    } else {
+                        if (context.state !== 'running') {
+                            context.resume().then(() => console.log('resume'))
+                        }
+                    }
+                }
+            })
             lecturing = Options.valueOf(lecture)
             tutorialButton.style.opacity = "0.3"
             lecture.start().catch(() => null).then(() => {
                 tutorialButton.style.opacity = "1.0"
+                lecture.terminate()
                 lecturing = Options.None
             })
         } else {
-            lecturing.get().cancel()
+            lecturing.get().terminate()
             lecturing = Options.None
         }
     })
+
+    // const output = HTML.create('code', { textContent: '...', style: 'position: absolute' })
+    // HTML.query('body').appendChild(output)
+    // const run = (contextTime: number) => {
+    //     const timestamp = context.getOutputTimestamp()
+    //     output.textContent = `${context.currentTime?.toFixed(3)}s`
+    //     requestAnimationFrame(run)
+    // }
+    // requestAnimationFrame(run)
 })()
