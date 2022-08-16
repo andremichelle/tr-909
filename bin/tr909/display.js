@@ -73,6 +73,7 @@ export class Display {
         window.addEventListener('unhandledrejection', event => this.show(new Error(event.reason)));
     }
     pushProvider(provider) {
+        console.log('push', provider.displayValue());
         const terminator = new Terminator();
         terminator.with(provider.addObserver(value => this.show(value), true));
         this.providerStack.forEach(pair => pair[1].terminate());
@@ -83,6 +84,7 @@ export class Display {
                 console.assert(index !== -1);
                 const remove = this.providerStack.splice(index, 1)[0];
                 remove[1].terminate();
+                console.log('pop', remove[0].displayValue());
                 if (this.providerStack.length === 0) {
                     this.show('none');
                 }

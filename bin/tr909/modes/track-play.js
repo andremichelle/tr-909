@@ -50,12 +50,12 @@ export default class extends Mode {
         this.tempoMemoryMode = Options.None;
         this.with(this.context.startStepRunningAnimation());
         this.with({ terminate: () => this.context.functionKeys.deactivate(ZeroBasedIndices.TrackKeys) });
-        this.with(this.context.memoryState().trackIndex.addObserver(() => this.initButtons(), false));
+        this.with(this.context.memoryState().trackIndex.addObserver(() => this.update(), false));
         this.with(this.context.display.pushProvider(new DisplayObservableValueProvider(this.context.machine.processorTrackMeasure, DisplayObservableValueProvider.PlusOne)));
         this.with(this.context.memoryState().bankGroupIndex
             .addObserver((bankGroupIndex) => {
             this.context.updateBankGroupKeys(bankGroupIndex);
-            this.initButtons();
+            this.update();
         }, true));
     }
     onFunctionKeyPress(label) {
@@ -120,7 +120,7 @@ export default class extends Mode {
     name() {
         return 'Track Play';
     }
-    initButtons() {
+    update() {
         const trackIndex = this.context.memoryState().trackIndex.get();
         const track = this.context.memoryState().activeTrack();
         if (track.isEmpty()) {

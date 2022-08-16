@@ -1,3 +1,4 @@
+import { FunctionKeyIndex } from './../keys.js'
 import { BankIndex, TrackIndex } from "../../audio/tr909/memory.js"
 import { Observer, Option, Options, Terminable } from "../../lib/common.js"
 import { UIContext } from "../context.js"
@@ -6,11 +7,6 @@ import { FunctionKeyLabel, KeyState, MainKeyIndex, MainKeyLabel, ZeroBasedIndice
 import { complete, Mode } from "../mode.js"
 import { MemoryBank } from './../../audio/tr909/memory.js'
 import { TerminableVoid, Terminator } from './../../lib/common.js'
-
-// TODO
-// You can select any track from anywhere with already pressed tempo-key.
-// We need to embed the following class into the mode to make this all work.
-// Also deleting the track's tempo memory is not implemented yet.
 
 class TempoMemoryMode extends Mode {
     private readonly subscriptions: Terminator = this.with(new Terminator())
@@ -63,13 +59,13 @@ export default class extends Mode {
 
         this.with(this.context.startStepRunningAnimation())
         this.with({ terminate: () => this.context.functionKeys.deactivate(ZeroBasedIndices.TrackKeys) })
-        this.with(this.context.memoryState().trackIndex.addObserver(() => this.initButtons(), false))
+        this.with(this.context.memoryState().trackIndex.addObserver(() => this.update(), false))
         this.with(this.context.display.pushProvider(new DisplayObservableValueProvider(
             this.context.machine.processorTrackMeasure, DisplayObservableValueProvider.PlusOne)))
         this.with(this.context.memoryState().bankGroupIndex
             .addObserver((bankGroupIndex: BankIndex) => {
                 this.context.updateBankGroupKeys(bankGroupIndex)
-                this.initButtons()
+                this.update()
             }, true))
     }
 
@@ -81,6 +77,7 @@ export default class extends Mode {
             return true
         }
         if (this.context.maySwitchTrackIndex(label)) {
+
             return true
         }
         if (this.context.maySwitchToTrackWriteMode(label)) {
@@ -129,7 +126,7 @@ export default class extends Mode {
         return true
     }
 
-    setMainKeyValue(value: number) {
+    setMainKeyValue(value: number): void {
         if (value > 0) {
             this.context.machine.processorTrackMeasure.set(Math.min(value - 1, this.context.memoryState().activeTrack().size() - 1))
         }
@@ -139,7 +136,7 @@ export default class extends Mode {
         return 'Track Play'
     }
 
-    private initButtons() {
+    private update(): void {
         const trackIndex: TrackIndex = this.context.memoryState().trackIndex.get()
         const track = this.context.memoryState().activeTrack()
         if (track.isEmpty()) {

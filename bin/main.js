@@ -28,7 +28,6 @@ const showProgress = (() => {
 (() => __awaiter(void 0, void 0, void 0, function* () {
     console.debug("booting...");
     const context = newAudioContext();
-    context.addEventListener('statechange', event => console.log(event.type, context.state));
     console.debug(`sampleRate: ${context.sampleRate}Hz`);
     const boot = new Boot();
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()));

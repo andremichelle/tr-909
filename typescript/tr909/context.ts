@@ -393,6 +393,11 @@ export class UIContext implements Terminable {
         return this.concurrentMainKeys
     }
 
+    isFunctionKeyPressed(label: FunctionKeyLabel<any>): boolean {
+        return this.activeFunctionLabel[label.keyIndex].nonEmpty()
+            && FunctionKeyLabel.ShiftKeys.includes(label) === this.isShiftKeyPressed
+    }
+
     terminate(): void {
         this.terminator.terminate()
     }
@@ -412,9 +417,7 @@ export class UIContext implements Terminable {
                 key.setPointerCapture(event.pointerId)
                 const complete = this.onFunctionKeyPress(keyIndex)
             }))
-            this.terminator.with(Events.bind(key.element, 'pointerup', () => {
-                this.onFunctionKeyRelease(keyIndex)
-            }))
+            this.terminator.with(Events.bind(key.element, 'pointerup', () => this.onFunctionKeyRelease(keyIndex)))
         })
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
             this.terminator.with(Events.bind(key.element, 'pointerdown', (event: PointerEvent) => {

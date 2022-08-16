@@ -308,6 +308,10 @@ export class UIContext {
     getConcurrentMainKeys() {
         return this.concurrentMainKeys;
     }
+    isFunctionKeyPressed(label) {
+        return this.activeFunctionLabel[label.keyIndex].nonEmpty()
+            && FunctionKeyLabel.ShiftKeys.includes(label) === this.isShiftKeyPressed;
+    }
     terminate() {
         this.terminator.terminate();
     }
@@ -324,9 +328,7 @@ export class UIContext {
                 key.setPointerCapture(event.pointerId);
                 const complete = this.onFunctionKeyPress(keyIndex);
             }));
-            this.terminator.with(Events.bind(key.element, 'pointerup', () => {
-                this.onFunctionKeyRelease(keyIndex);
-            }));
+            this.terminator.with(Events.bind(key.element, 'pointerup', () => this.onFunctionKeyRelease(keyIndex)));
         });
         this.mainKeys.forEach((key, keyIndex) => {
             this.terminator.with(Events.bind(key.element, 'pointerdown', (event) => {
