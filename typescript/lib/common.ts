@@ -12,6 +12,8 @@ export const ifDefined = <T>(value: T | undefined | null, exec: (value: T) => vo
     if (value !== undefined && value !== null) exec(value)
 }
 
+export type Subscription = Terminable
+
 export interface Terminable {
     terminate(): void
 }

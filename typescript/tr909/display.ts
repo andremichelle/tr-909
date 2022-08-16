@@ -1,4 +1,4 @@
-import { Observable, ObservableValue, ObservableValueImpl, Observer, Terminable, TerminableVoid, Terminator } from "../lib/common.js"
+import { Observable, ObservableValue, ObservableValueImpl, Observer, Subscription, Terminable, TerminableVoid, Terminator } from "../lib/common.js"
 
 enum Segment {
     TT = 1 << 0, TR = 1 << 1, BR = 1 << 2, BB = 1 << 3, BL = 1 << 4, TL = 1 << 5, CR = 1 << 6
@@ -92,7 +92,7 @@ export class Display implements Terminable {
         window.addEventListener('unhandledrejection', event => this.show(new Error(event.reason)))
     }
 
-    push(provider: DisplayValueProvider): Terminable {
+    push(provider: DisplayValueProvider): Subscription {
         console.debug(`push(${provider.debugName})`)
 
         const terminator = new Terminator()
