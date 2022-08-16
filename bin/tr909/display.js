@@ -46,8 +46,9 @@ class Digit {
     }
 }
 export class DisplayObservableValueProvider {
-    constructor(observableValue, mapping = DisplayObservableValueProvider.Identity) {
+    constructor(observableValue, debugName, mapping = DisplayObservableValueProvider.Identity) {
         this.observableValue = observableValue;
+        this.debugName = debugName;
         this.mapping = mapping;
         this.terminator = new Terminator();
     }
@@ -72,8 +73,8 @@ export class Display {
         window.addEventListener('error', event => this.show(new Error(event.message)));
         window.addEventListener('unhandledrejection', event => this.show(new Error(event.reason)));
     }
-    pushProvider(provider) {
-        console.log('push', provider.displayValue());
+    push(provider) {
+        console.debug(`push(${provider.debugName})`);
         const terminator = new Terminator();
         terminator.with(provider.addObserver(value => this.show(value), true));
         this.providerStack.forEach(pair => pair[1].terminate());
@@ -84,13 +85,14 @@ export class Display {
                 console.assert(index !== -1);
                 const remove = this.providerStack.splice(index, 1)[0];
                 remove[1].terminate();
-                console.log('pop', remove[0].displayValue());
+                console.debug(`push(${remove[0].debugName})`);
                 if (this.providerStack.length === 0) {
                     this.show('none');
                 }
                 else {
                     const last = this.providerStack[this.providerStack.length - 1];
                     last[1].with(last[0].addObserver(value => this.show(value), true));
+                    console.debug(`top(${last[0].debugName})`);
                 }
             }
         };
@@ -139,14 +141,14 @@ export class DigitInput {
             this.digits[1] = Math.floor(integer / 10) % 10;
             this.digits[2] = integer % 10;
         }, false);
-        this.userInputDisplayProvider = new DisplayObservableValueProvider(this.value);
+        this.userInputDisplayProvider = new DisplayObservableValueProvider(this.value, 'value input');
     }
     start() {
         if (!this.isUserInputting) {
             console.debug('start', this);
             this.isUserInputting = true;
             this.digits.fill(0);
-            this.userInputSubscription = this.display.pushProvider(this.userInputDisplayProvider);
+            this.userInputSubscription = this.display.push(this.userInputDisplayProvider);
         }
     }
     stop() {

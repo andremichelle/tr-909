@@ -86,7 +86,7 @@ export class UIContext implements Terminable {
         this.activeMainLabel = ArrayUtils.fill(this.mainKeys.keys.length, () => Options.None)
         this.activeFunctionLabel = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None)
 
-        this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo)
+        this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo, 'tempo')
 
         this.mode = new ObservableValueImpl<Mode>(new TrackPlayMode(this))
 
@@ -445,7 +445,7 @@ export class UIContext implements Terminable {
         if (label === FunctionKeyLabel.Shift) {
             this.isShiftKeyPressed = true
         } else if (label === FunctionKeyLabel.Tempo) {
-            this.tempoProviderSubscription = this.display.pushProvider(this.tempoDisplayProvider)
+            this.tempoProviderSubscription = this.display.push(this.tempoDisplayProvider)
         }
         return this.mode.get().onFunctionKeyPress(label)
     }

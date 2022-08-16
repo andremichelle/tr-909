@@ -44,7 +44,7 @@ export class UIContext {
         this.stepsEditMode = new ObservableValueImpl(StepsEditingMode.Step);
         this.activeMainLabel = ArrayUtils.fill(this.mainKeys.keys.length, () => Options.None);
         this.activeFunctionLabel = ArrayUtils.fill(this.functionKeys.keys.length, () => Options.None);
-        this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo);
+        this.tempoDisplayProvider = new DisplayObservableValueProvider(this.machine.preset.tempo, 'tempo');
         this.mode = new ObservableValueImpl(new TrackPlayMode(this));
         this.installKeys();
         this.installKeyboard();
@@ -356,7 +356,7 @@ export class UIContext {
             this.isShiftKeyPressed = true;
         }
         else if (label === FunctionKeyLabel.Tempo) {
-            this.tempoProviderSubscription = this.display.pushProvider(this.tempoDisplayProvider);
+            this.tempoProviderSubscription = this.display.push(this.tempoDisplayProvider);
         }
         return this.mode.get().onFunctionKeyPress(label);
     }

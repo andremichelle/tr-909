@@ -10,18 +10,7 @@ export default class extends Mode {
 
     private writeIndex: ObservableValue<number> = new ObservableValueImpl(0)
 
-    private readonly availableMeasures: DisplayValueProvider = new class implements DisplayValueProvider {
-        addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable {
-            return TerminableVoid
-        }
-
-        displayValue(): DisplayValue {
-            return 'none'
-        }
-
-        terminate(): void {
-        }
-    }()
+    private readonly availableMeasures: DisplayValueProvider
 
     constructor(context: UIContext) {
         super(context)
@@ -31,9 +20,11 @@ export default class extends Mode {
         this.with(this.context.startStepRunningAnimation())
         this.with(this.context.watchPatternLocationKeys())
         this.with(this.context.display
-            .pushProvider(new DisplayObservableValueProvider(this.writeIndex, x => x + 1)))
+            .push(new DisplayObservableValueProvider(this.writeIndex, 'write-index', DisplayObservableValueProvider.PlusOne)))
 
         this.availableMeasures = new class implements DisplayValueProvider {
+            readonly debugName: string = 'available measures'
+
             constructor(readonly memory: Memory) {
             }
 
@@ -62,7 +53,7 @@ export default class extends Mode {
             return true
         }
         if (label === FunctionKeyLabel.AvailableMeasures) {
-            this.terminableAvailableMeasureDisplay = this.context.display.pushProvider(this.availableMeasures)
+            this.terminableAvailableMeasureDisplay = this.context.display.push(this.availableMeasures)
             return true
         }
         if (label == FunctionKeyLabel.Back) {

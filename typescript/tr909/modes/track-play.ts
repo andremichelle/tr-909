@@ -20,7 +20,8 @@ class TempoMemoryMode extends Mode {
             if (label === FunctionKeyLabel.TrackPlay[trackIndex]) {
                 const track = this.context.activeBank().tracks[trackIndex]
                 track.recallTempo().ifPresent(tempo => this.context.machine.preset.tempo.set(tempo))
-                this.subscriptions.with(this.context.display.pushProvider(new class implements DisplayValueProvider {
+                this.subscriptions.with(this.context.display.push(new class implements DisplayValueProvider {
+                    readonly debugName: string = 'first-measure'
                     constructor(private readonly measure: number) { }
                     addObserver(observer: Observer<DisplayValue>, notify: boolean): Terminable {
                         if (notify) observer(this.displayValue())
@@ -60,8 +61,8 @@ export default class extends Mode {
         this.with(this.context.startStepRunningAnimation())
         this.with({ terminate: () => this.context.functionKeys.deactivate(ZeroBasedIndices.TrackKeys) })
         this.with(this.context.memoryState().trackIndex.addObserver(() => this.update(), false))
-        this.with(this.context.display.pushProvider(new DisplayObservableValueProvider(
-            this.context.machine.processorTrackMeasure, DisplayObservableValueProvider.PlusOne)))
+        this.with(this.context.display.push(new DisplayObservableValueProvider(
+            this.context.machine.processorTrackMeasure, 'processor-track-measure', DisplayObservableValueProvider.PlusOne)))
         this.with(this.context.memoryState().bankGroupIndex
             .addObserver((bankGroupIndex: BankIndex) => {
                 this.context.updateBankGroupKeys(bankGroupIndex)

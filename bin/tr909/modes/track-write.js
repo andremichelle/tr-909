@@ -7,25 +7,16 @@ export default class extends Mode {
         super(context);
         this.terminableAvailableMeasureDisplay = TerminableVoid;
         this.writeIndex = new ObservableValueImpl(0);
-        this.availableMeasures = new class {
-            addObserver(observer, notify) {
-                return TerminableVoid;
-            }
-            displayValue() {
-                return 'none';
-            }
-            terminate() {
-            }
-        }();
         this.context.updateBankGroupKeys(this.context.memoryState().bankGroupIndex.get());
         this.context.updateTrackKeys(this.context.memoryState().trackIndex.get(), true);
         this.with(this.context.startStepRunningAnimation());
         this.with(this.context.watchPatternLocationKeys());
         this.with(this.context.display
-            .pushProvider(new DisplayObservableValueProvider(this.writeIndex, x => x + 1)));
+            .push(new DisplayObservableValueProvider(this.writeIndex, 'write-index', DisplayObservableValueProvider.PlusOne)));
         this.availableMeasures = new class {
             constructor(memory) {
                 this.memory = memory;
+                this.debugName = 'available measures';
             }
             addObserver(observer, notify) {
                 if (notify) {
@@ -48,7 +39,7 @@ export default class extends Mode {
             return true;
         }
         if (label === FunctionKeyLabel.AvailableMeasures) {
-            this.terminableAvailableMeasureDisplay = this.context.display.pushProvider(this.availableMeasures);
+            this.terminableAvailableMeasureDisplay = this.context.display.push(this.availableMeasures);
             return true;
         }
         if (label == FunctionKeyLabel.Back) {
