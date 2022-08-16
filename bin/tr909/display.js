@@ -85,7 +85,7 @@ export class Display {
                 console.assert(index !== -1);
                 const remove = this.providerStack.splice(index, 1)[0];
                 remove[1].terminate();
-                console.debug(`push(${remove[0].debugName})`);
+                console.debug(`pop(${remove[0].debugName})`);
                 if (this.providerStack.length === 0) {
                     this.show('none');
                 }
