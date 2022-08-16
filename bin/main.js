@@ -93,30 +93,23 @@ const showProgress = (() => {
     AnimationFrame.init();
     let lecturing = Options.None;
     const tutorialButton = HTML.query('a[target=tutorial]');
+    const onAudioContextStateChange = () => {
+        if (context.state !== 'running') {
+            context.resume().then(() => console.debug('resume'));
+        }
+    };
     const subscription = Events.bind(tutorialButton, 'click', (event) => {
         event.preventDefault();
-        if (!confirm(`This will reset the machine.`)) {
-            return;
-        }
         if (lecturing.isEmpty()) {
+            if (!confirm(`This will reset the machine.`)) {
+                return;
+            }
             const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'), context);
-            lecture.addObserver(message => {
-                if (message.type === 'update-state') {
-                    if (message.speaking) {
-                        if (context.state === 'running') {
-                            context.suspend().then(() => console.log('suspend'));
-                        }
-                    }
-                    else {
-                        if (context.state !== 'running') {
-                            context.resume().then(() => console.log('resume'));
-                        }
-                    }
-                }
-            });
             lecturing = Options.valueOf(lecture);
             tutorialButton.style.opacity = "0.3";
+            context.addEventListener('statechange', onAudioContextStateChange);
             lecture.start().catch(() => null).then(() => {
+                context.removeEventListener('statechange', onAudioContextStateChange);
                 tutorialButton.style.opacity = "1.0";
                 lecture.terminate();
                 lecturing = Options.None;

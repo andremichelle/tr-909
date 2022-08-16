@@ -17,7 +17,9 @@ const showProgress = (() => {
         progress.classList.add("error")
     }
     return (percentage: number) => progress.style.setProperty("--percentage", percentage.toFixed(2))
-})();
+})()
+
+    ;
 
 (async () => {
     console.debug("booting...")
@@ -107,29 +109,23 @@ const showProgress = (() => {
 
     let lecturing: Option<Lecture> = Options.None
     const tutorialButton = HTML.query('a[target=tutorial]') as HTMLElement
+    const onAudioContextStateChange = () => { // For IOS Safari: AudioContext suspends for speaking.
+        if (context.state !== 'running') {
+            context.resume().then(() => console.debug('resume'))
+        }
+    }
     const subscription = Events.bind(tutorialButton, 'click', (event: Event) => {
         event.preventDefault()
-        if (!confirm(`This will reset the machine.`)) {
-            return
-        }
         if (lecturing.isEmpty()) {
+            if (!confirm(`This will reset the machine.`)) {
+                return
+            }
             const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'), context)
-            lecture.addObserver(message => {
-                if (message.type === 'update-state') {
-                    if (message.speaking) {
-                        if (context.state === 'running') {
-                            context.suspend().then(() => console.log('suspend'))
-                        }
-                    } else {
-                        if (context.state !== 'running') {
-                            context.resume().then(() => console.log('resume'))
-                        }
-                    }
-                }
-            })
             lecturing = Options.valueOf(lecture)
             tutorialButton.style.opacity = "0.3"
+            context.addEventListener('statechange', onAudioContextStateChange)
             lecture.start().catch(() => null).then(() => {
+                context.removeEventListener('statechange', onAudioContextStateChange)
                 tutorialButton.style.opacity = "1.0"
                 lecture.terminate()
                 lecturing = Options.None
