@@ -22,22 +22,24 @@ export default class extends Mode {
         return true;
     }
     onMainKeyPress(label) {
-        if (label.keyIndex === MainKeyIndex.CartridgeEnterTotalAccent) {
+        if (!label.isStepButton()) {
             return true;
         }
         const state = this.context.memoryState();
         const concurrentMainKeys = this.context.getConcurrentMainKeys();
         const patternGroup = this.context.activePatternGroup();
+        patternGroup.clearChains();
         if (concurrentMainKeys.size === 1) {
-            patternGroup.clearChains();
-            state.patternIndex.set(patternGroup.firstOfChained(label.keyIndex).location.patternIndex);
+            state.patternIndex.set(label.toStepIndex());
             return false;
         }
-        else if (concurrentMainKeys.size === 2) {
-            patternGroup.clearChains();
-            const tuple = [...concurrentMainKeys];
-            const start = Math.min(tuple[0], tuple[1]);
-            const end = Math.max(tuple[0], tuple[1]);
+        else if (concurrentMainKeys.size >= 2) {
+            const indices = [...concurrentMainKeys]
+                .filter(keyIndex => keyIndex !== MainKeyIndex.CartridgeEnterTotalAccent);
+            const first = indices[0];
+            const last = label.toStepIndex();
+            const start = Math.min(first, last);
+            const end = Math.max(first, last);
             const chained = patternGroup.getChained().slice();
             for (let index = start; index < end; index++) {
                 chained[index] = true;
