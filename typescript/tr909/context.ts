@@ -20,7 +20,8 @@ import {
     ObservableValue,
     ObservableValueImpl, Parameter, PrintMapping, Terminable,
     TerminableVoid,
-    Terminator
+    Terminator,
+    Waiting
 } from "../lib/common.js"
 import { AnimationFrame, HTML, SVG } from "../lib/dom.js"
 import { JsonBin, JsonBinResponse } from '../lib/jsonbin.js'
@@ -118,6 +119,7 @@ export class UIContext implements Terminable {
 
     async save(): Promise<void> {
         console.debug(`save()`)
+        const shutdown = UIContext.showWorkingScreen('saving')
         try {
             const response: JsonBinResponse<Format> = await JsonBin.save({
                 version: 0.1,
@@ -128,16 +130,21 @@ export class UIContext implements Terminable {
             history.pushState(null, '', `#${response.metadata.id}`)
         } catch (reason) {
             console.warn(reason)
+        } finally {
+            shutdown.terminate()
         }
     }
 
     async load(binId: string): Promise<void> {
+        const shutdown = UIContext.showWorkingScreen('loading')
         try {
             console.debug(`loadBin(binId: ${binId})`)
             const response = await JsonBin.load<Format>(binId)
             this.deserialize(response.record)
         } catch (reason) {
             console.warn(reason)
+        } finally {
+            shutdown.terminate()
         }
     }
 
@@ -629,6 +636,14 @@ export class UIContext implements Terminable {
             HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash))
             frame++
         }))
+    }
+
+    private static showWorkingScreen(info: string): Terminable {
+        const div = HTML.query('div.working')
+        const small = HTML.query('small[data-output=working-info]', div)
+        small.textContent = info
+        div.classList.remove('hidden')
+        return { terminate: () => div.classList.add('hidden') }
     }
 }
 

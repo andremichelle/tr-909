@@ -67,6 +67,7 @@ export class UIContext {
     save() {
         return __awaiter(this, void 0, void 0, function* () {
             console.debug(`save()`);
+            const shutdown = UIContext.showWorkingScreen('saving');
             try {
                 const response = yield JsonBin.save({
                     version: 0.1,
@@ -79,10 +80,14 @@ export class UIContext {
             catch (reason) {
                 console.warn(reason);
             }
+            finally {
+                shutdown.terminate();
+            }
         });
     }
     load(binId) {
         return __awaiter(this, void 0, void 0, function* () {
+            const shutdown = UIContext.showWorkingScreen('loading');
             try {
                 console.debug(`loadBin(binId: ${binId})`);
                 const response = yield JsonBin.load(binId);
@@ -90,6 +95,9 @@ export class UIContext {
             }
             catch (reason) {
                 console.warn(reason);
+            }
+            finally {
+                shutdown.terminate();
             }
         });
     }
@@ -532,6 +540,13 @@ export class UIContext {
             HTML.queryAll('.flash-enabled', this.parentNode).forEach(element => element.classList.toggle('enabled', flash));
             frame++;
         }));
+    }
+    static showWorkingScreen(info) {
+        const div = HTML.query('div.working');
+        const small = HTML.query('small[data-output=working-info]', div);
+        small.textContent = info;
+        div.classList.remove('hidden');
+        return { terminate: () => div.classList.add('hidden') };
     }
 }
 class Finger {
