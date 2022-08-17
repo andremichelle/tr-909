@@ -57,8 +57,8 @@ const showProgress = (() => {
     const size = { width: 1226 + 64 /* Padding */, height: 728 }
     const resize = () => {
         const style = document.body.style
-        style.height = `${window.innerHeight}px`
-        style.width = `${window.innerWidth}px`
+        style.minWidth = `${window.innerWidth}px`
+        style.minHeight = `${window.innerHeight}px`
         const scale = Math.min(wrapper.clientWidth / size.width, wrapper.clientHeight / size.height)
         parentNode.style.setProperty("--scale", `${scale}`)
     }
