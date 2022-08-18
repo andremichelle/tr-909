@@ -1,0 +1,67 @@
+div.keyboard-layout
+    display: flex
+    flex-direction: column
+    row-gap: 4px
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%) scale(2)
+    position: absolute
+    background-color: rgba(black, 0.3)
+    border-radius: 8px
+    padding: 8px
+
+    > div.key-row
+        display: flex
+        flex-direction: row
+        column-gap: 4px
+        position: relative
+
+        > div.key
+            border-radius: 4px
+            background-color: #303030
+            position: relative
+            height: 32px
+
+            &.group-main
+                background-color: #956c54
+
+            &.group-track
+                background-color: #816652
+
+            &.group-pattern
+                background-color: #525949
+
+            &.group-func
+                background-color: #44363c
+
+            &.group-other
+                background-color: #402238
+
+            &.group-meta
+                background-color: #786053
+
+            &.align-bottom:before
+                top: unset
+                bottom: 3px
+
+            &.align-right:before
+                left: unset
+                right: 4px
+
+            &:before
+                content: attr(data-char)
+                position: absolute
+                color: rgba(white, 0.4)
+                font-size: 6px
+                top: 2px
+                left: 4px
+
+            &:after
+                content: attr(data-func)
+                position: absolute
+                color: rgba(white, 0.9)
+                font-size: 6px
+                top: 50%
+                left: 50%
+                transform: translate(-50%,-50%)
+                white-space: pre

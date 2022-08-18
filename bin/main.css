@@ -1038,6 +1038,76 @@ svg.tap-finger {
   transform: rotate(-45deg);
 }
 
+div.keyboard-layout {
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(2);
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 8px;
+}
+div.keyboard-layout > div.key-row {
+  display: flex;
+  flex-direction: row;
+  -moz-column-gap: 4px;
+       column-gap: 4px;
+  position: relative;
+}
+div.keyboard-layout > div.key-row > div.key {
+  border-radius: 4px;
+  background-color: #303030;
+  position: relative;
+  height: 32px;
+}
+div.keyboard-layout > div.key-row > div.key.group-main {
+  background-color: #956c54;
+}
+div.keyboard-layout > div.key-row > div.key.group-track {
+  background-color: #816652;
+}
+div.keyboard-layout > div.key-row > div.key.group-pattern {
+  background-color: #525949;
+}
+div.keyboard-layout > div.key-row > div.key.group-func {
+  background-color: #44363c;
+}
+div.keyboard-layout > div.key-row > div.key.group-other {
+  background-color: #402238;
+}
+div.keyboard-layout > div.key-row > div.key.group-meta {
+  background-color: #786053;
+}
+div.keyboard-layout > div.key-row > div.key.align-bottom:before {
+  top: unset;
+  bottom: 3px;
+}
+div.keyboard-layout > div.key-row > div.key.align-right:before {
+  left: unset;
+  right: 4px;
+}
+div.keyboard-layout > div.key-row > div.key:before {
+  content: attr(data-char);
+  position: absolute;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 6px;
+  top: 2px;
+  left: 4px;
+}
+div.keyboard-layout > div.key-row > div.key:after {
+  content: attr(data-func);
+  position: absolute;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 6px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  white-space: pre;
+}
+
 main {
   flex: 1;
   display: grid;
