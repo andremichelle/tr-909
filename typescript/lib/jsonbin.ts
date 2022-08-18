@@ -38,7 +38,6 @@ export class JsonBin {
      */
     static readonly HEADERS = {
         "Content-Type": "application/json",
-        "X-Master-Key": "$2b$10$MC5td1Go/TL2aKxjIpV.euq1X3opDEC37edBjazDa1ZF/t182VyGO",
         "X-Access-Key": "$2b$10$yI422V3aQFjbOhQszzdApOSbAww.N2EUSkpiRm7FJWSo2HmUuUXd2"
     }
 

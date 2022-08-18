@@ -493,7 +493,7 @@ export class UIContext implements Terminable {
             return true
         } else if (label === MainKeyLabel.Load) {
             setTimeout(() => { // we need to delawy this or the key gets no 'pointerup' event
-                const binId = prompt('Enter a bin-id', '62f75f6ea1610e6386fbc5a5')
+                const binId = prompt('Enter a bin-id', '62fdc84ee13e6063dc808df8')
                 if (binId !== null) {
                     this.load(binId).then(() => console.debug('loaded.'))
                 }
