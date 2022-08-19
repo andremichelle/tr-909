@@ -8,7 +8,7 @@ import { AnimationFrame, HTML } from "./lib/dom.js"
 import { JsonBin } from "./lib/jsonbin.js"
 import { Lecture, LectureEvent } from "./lib/speech.js"
 import { Format, UIContext } from "./tr909/context.js"
-import { startTutorial as createLecture } from './tr909/tutorial.js'
+import { resetHighlights, startTutorial as createLecture } from './tr909/tutorial.js'
 
     ;
 
@@ -124,6 +124,7 @@ import { startTutorial as createLecture } from './tr909/tutorial.js'
             lecture.start().catch(() => null).then(() => {
                 context.removeEventListener('statechange', onAudioContextStateChange)
                 tutorialButton.classList.remove('active')
+                resetHighlights()
                 lecture.terminate()
                 lecturing = Options.None
             })

@@ -169,7 +169,8 @@ export class Lecture implements Observable<LectureEvent> {
 
         this.voice =
             speechSynthesis.getVoices().find(voice => voice.lang === lang) ||
-            speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') || null // whatever the system picks now
+            speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') ||
+            null // whatever the system picks now
         console.debug(`using voice '${this.voice}'`)
 
         this.optCloseParagraph()

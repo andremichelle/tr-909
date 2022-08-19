@@ -11,7 +11,7 @@ import PatternWrite from './modes/pattern-write.js'
 import { InstrumentMode } from './utils.js'
 
 const highlight = (element: HTMLElement): void => element.classList.add('highlight')
-const resetHighlights = (): void => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'))
+export const resetHighlights = (): void => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'))
 
 const waitForMode = (context: UIContext, modeType: Class<Mode>): Interaction => ({
     start: (complete: CallableFunction): Terminable => {

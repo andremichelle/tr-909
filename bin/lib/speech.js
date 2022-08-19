@@ -140,7 +140,8 @@ export class Lecture {
             }
             this.voice =
                 speechSynthesis.getVoices().find(voice => voice.lang === lang) ||
-                    speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') || null;
+                    speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') ||
+                    null;
             console.debug(`using voice '${this.voice}'`);
             this.optCloseParagraph();
             this.running.ifPresent(() => this.cancel());

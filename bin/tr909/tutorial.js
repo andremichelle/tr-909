@@ -7,7 +7,7 @@ import { StepsEditingMode } from './mode.js';
 import PatternWrite from './modes/pattern-write.js';
 import { InstrumentMode } from './utils.js';
 const highlight = (element) => element.classList.add('highlight');
-const resetHighlights = () => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'));
+export const resetHighlights = () => HTML.queryAll('button.highlight').forEach(element => element.classList.remove('highlight'));
 const waitForMode = (context, modeType) => ({
     start: (complete) => {
         const subscription = context.mode.addObserver((mode) => {

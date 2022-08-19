@@ -16,7 +16,7 @@ import { Events, Options, Waiting } from "./lib/common.js";
 import { AnimationFrame, HTML } from "./lib/dom.js";
 import { JsonBin } from "./lib/jsonbin.js";
 import { UIContext } from "./tr909/context.js";
-import { startTutorial as createLecture } from './tr909/tutorial.js';
+import { resetHighlights, startTutorial as createLecture } from './tr909/tutorial.js';
 (() => __awaiter(void 0, void 0, void 0, function* () {
     console.debug("booting...");
     const context = newAudioContext();
@@ -100,6 +100,7 @@ import { startTutorial as createLecture } from './tr909/tutorial.js';
             lecture.start().catch(() => null).then(() => {
                 context.removeEventListener('statechange', onAudioContextStateChange);
                 tutorialButton.classList.remove('active');
+                resetHighlights();
                 lecture.terminate();
                 lecturing = Options.None;
             });

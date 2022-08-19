@@ -46,27 +46,26 @@ main
     column-gap: 2vmin
 
     > a
-      color: $COLOR_CHASSIS
+      color: rgba(black, 0.4)
       background-repeat: no-repeat
       background-position-x: 200%
       background-position-y: center
       background-size: 16%
-      background-color: darken($COLOR_CHASSIS, 20%)
+      background-color: $COLOR_CHASSIS
       padding: 0.5vmin 1vmin
       border-radius: 0.5vmin
       font-size: 1.2vmin
       text-decoration: none
       pointer-events: all
       text-transform: uppercase
-      text-shadow: 0 0 1px rgba(black, 0.3)
-      box-shadow: 0 0 1px 0 rgba(black, 0.3) inset
+      box-shadow: 0 2px 2px -2px rgba(black, 0.6)
       transition: all 200ms ease-in
 
       &.new-window
         background-repeat: no-repeat
-        background-position-x: calc(100% - 0.5vmin)
-        background-position-y: calc(50% - 0.05vmin)
-        background-size: 1.5vmin
+        background-position-x: calc(100% - 0.7vmin)
+        background-position-y: calc(50% - 0.08vmin)
+        background-size: 1.6vmin
         background-image: url('../svg/link.svg')
         padding: 0.5vmin 2.5vmin 0.5vmin 1vmin
 
