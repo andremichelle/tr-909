@@ -10,15 +10,6 @@ import { Lecture } from "./lib/speech.js"
 import { Format, UIContext } from "./tr909/context.js"
 import { startTutorial as createLecture } from './tr909/tutorial.js'
 
-const showProgress = (() => {
-    const progress: SVGSVGElement = document.querySelector("svg.preloader")!
-    window.onunhandledrejection = window.onerror = (reason: any) => {
-        alert(`An error occurred during booting. Please try Chrome or Safari. [${reason.toString()}]`)
-        progress.classList.add("error")
-    }
-    return (percentage: number) => progress.style.setProperty("--percentage", percentage.toFixed(2))
-})()
-
     ;
 
 (async () => {
@@ -28,12 +19,12 @@ const showProgress = (() => {
     const context = newAudioContext()
     console.debug(`sampleRate: ${context.sampleRate}Hz`)
     const boot = new Boot()
-    boot.addObserver(boot => showProgress(boot.normalizedPercentage()))
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
     boot.registerProcess(LimiterWorklet.loadModule(context))
     boot.registerProcess(MeterWorklet.loadModule(context))
     boot.registerProcess(Machine.loadModule(context))
     const getResources = loadResources(boot)
+    await Waiting.forFrames(30)
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
 

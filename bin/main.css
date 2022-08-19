@@ -41,21 +41,13 @@ body {
 }
 
 svg.preloader {
-  --percentage: 0.0;
-  --radius: 7;
   top: 50%;
   left: 50%;
-  width: 64px;
-  height: 64px;
+  width: 16px;
+  height: 16px;
+  fill: #d9d5d0;
   transform: translate(-50%, -50%);
   position: absolute;
-}
-svg.preloader.error circle {
-  stroke: #C30;
-}
-svg.preloader > circle.progress {
-  stroke-dasharray: calc(var(--radius) * 6.2831853);
-  stroke-dashoffset: calc(var(--radius) * 6.2831853 * (1 - var(--percentage)));
 }
 
 html, body {
@@ -101,21 +93,13 @@ body {
 }
 
 svg.preloader {
-  --percentage: 0.0;
-  --radius: 7;
   top: 50%;
   left: 50%;
-  width: 64px;
-  height: 64px;
+  width: 16px;
+  height: 16px;
+  fill: #d9d5d0;
   transform: translate(-50%, -50%);
   position: absolute;
-}
-svg.preloader.error circle {
-  stroke: #C30;
-}
-svg.preloader > circle.progress {
-  stroke-dasharray: calc(var(--radius) * 6.2831853);
-  stroke-dashoffset: calc(var(--radius) * 6.2831853 * (1 - var(--percentage)));
 }
 
 div.instruments {

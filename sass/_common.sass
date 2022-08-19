@@ -1,3 +1,5 @@
+@import vars
+
 $color: #eaeaea
 $background-color: darken(#dad8d5, 10)
 
@@ -38,19 +40,10 @@ body
   visibility: hidden !important
 
 svg.preloader
-  --percentage: 0.0
-  --radius: 7
-
   top: 50%
   left: 50%
-  width: 64px
-  height: 64px
+  width: 16px
+  height: 16px
+  fill: $COLOR_CHASSIS
   transform: translate(-50%, -50%)
   position: absolute
-
-  &.error circle
-    stroke: #C30
-
-  > circle.progress
-    stroke-dasharray: calc(var(--radius) * 6.2831853)
-    stroke-dashoffset: calc(var(--radius) * 6.2831853 * (1.0 - var(--percentage)))

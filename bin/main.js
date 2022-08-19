@@ -17,25 +17,17 @@ import { AnimationFrame, HTML } from "./lib/dom.js";
 import { JsonBin } from "./lib/jsonbin.js";
 import { UIContext } from "./tr909/context.js";
 import { startTutorial as createLecture } from './tr909/tutorial.js';
-const showProgress = (() => {
-    const progress = document.querySelector("svg.preloader");
-    window.onunhandledrejection = window.onerror = (reason) => {
-        alert(`An error occurred during booting. Please try Chrome or Safari. [${reason.toString()}]`);
-        progress.classList.add("error");
-    };
-    return (percentage) => progress.style.setProperty("--percentage", percentage.toFixed(2));
-})();
 (() => __awaiter(void 0, void 0, void 0, function* () {
     console.debug("booting...");
     const context = newAudioContext();
     console.debug(`sampleRate: ${context.sampleRate}Hz`);
     const boot = new Boot();
-    boot.addObserver(boot => showProgress(boot.normalizedPercentage()));
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"));
     boot.registerProcess(LimiterWorklet.loadModule(context));
     boot.registerProcess(MeterWorklet.loadModule(context));
     boot.registerProcess(Machine.loadModule(context));
     const getResources = loadResources(boot);
+    yield Waiting.forFrames(30);
     yield boot.waitForCompletion();
     const main = HTML.query('main');
     const parentNode = HTML.query('div.tr-909');
