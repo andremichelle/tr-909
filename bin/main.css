@@ -1039,16 +1039,19 @@ svg.tap-finger {
 }
 
 div.keyboard-layout {
+  --scale: 2;
   display: flex;
   flex-direction: column;
   row-gap: 4px;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(2);
+  transform: translate(-50%, -50%) scale(var(--scale));
   position: absolute;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(153, 153, 153, 0.9);
   border-radius: 8px;
   padding: 8px;
+  border: 0.1px rgba(255, 255, 255, 0.3) solid;
+  box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.3);
 }
 div.keyboard-layout > div.key-row {
   display: flex;
@@ -1092,7 +1095,7 @@ div.keyboard-layout > div.key-row > div.key.align-right:before {
 div.keyboard-layout > div.key-row > div.key:before {
   content: attr(data-char);
   position: absolute;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 6px;
   top: 2px;
   left: 4px;
@@ -1141,8 +1144,8 @@ main > footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  -moz-column-gap: 1vmin;
-       column-gap: 1vmin;
+  -moz-column-gap: 2vmin;
+       column-gap: 2vmin;
 }
 main > footer > a {
   color: #d9d5d0;

@@ -25,6 +25,7 @@ import {
 } from "../lib/common.js"
 import { AnimationFrame, HTML, SVG } from "../lib/dom.js"
 import { JsonBin, JsonBinResponse } from '../lib/jsonbin.js'
+import { KeyboardLayout } from "../lib/keyboard-layout.js"
 import { MachineFormat } from './../audio/tr909/machine'
 import { Option, Options } from './../lib/common.js'
 import { DigitInput, Display, DisplayObservableValueProvider } from "./display.js"
