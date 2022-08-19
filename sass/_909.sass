@@ -41,21 +41,22 @@ div.tr-909
     box-shadow: 0 1px 1px 0 rgba(white, 0.6) inset
 
   > div.tutorial-advance-button
-    top: 32px
-    right: 48px
+    top: 10%
+    left: 50%
     position: absolute
     display: flex
     align-items: center
     flex-direction: column
     color: $COLOR_HIGHLIGHT
+    transform: translate(-50%, 0)
     animation: fading 250ms ease-in infinite alternate
+    pointer-events: all
+    cursor: pointer
 
     > svg
       fill: $COLOR_HIGHLIGHT
       width: 32px
       height: 32px
-      pointer-events: fill
-      cursor: pointer
 
     > p
       margin: 8px 0 0 0

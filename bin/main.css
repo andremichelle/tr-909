@@ -644,22 +644,23 @@ div.tr-909:before, div.tr-909:after {
   box-shadow: 0 1px 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
 div.tr-909 > div.tutorial-advance-button {
-  top: 32px;
-  right: 48px;
+  top: 10%;
+  left: 50%;
   position: absolute;
   display: flex;
   align-items: center;
   flex-direction: column;
   color: #7d41d9;
+  transform: translate(-50%, 0);
   -webkit-animation: fading 250ms ease-in infinite alternate;
           animation: fading 250ms ease-in infinite alternate;
+  pointer-events: all;
+  cursor: pointer;
 }
 div.tr-909 > div.tutorial-advance-button > svg {
   fill: #7d41d9;
   width: 32px;
   height: 32px;
-  pointer-events: fill;
-  cursor: pointer;
 }
 div.tr-909 > div.tutorial-advance-button > p {
   margin: 8px 0 0 0;
@@ -1098,8 +1099,15 @@ div.keyboard-layout > div.key-row > div.key:after {
 main {
   flex: 1;
   display: grid;
-  grid-template: 4vmin 1fr 10vmin/1fr;
+  grid-template: 6vmin 1fr 10vmin/1fr;
   position: relative;
+}
+main > div.top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.4);
 }
 main > div.wrapper {
   display: flex;
@@ -1133,14 +1141,36 @@ main > footer {
 }
 main > footer > a {
   color: #d9d5d0;
+  background-repeat: no-repeat;
+  background-position-x: 200%;
+  background-position-y: center;
+  background-size: 16%;
   background-color: #aba398;
-  padding: 0.5vmin;
+  padding: 0.5vmin 1vmin;
   border-radius: 0.5vmin;
   font-size: 1.2vmin;
   text-decoration: none;
   pointer-events: all;
   text-transform: uppercase;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.3) inset;
+  transition: all 200ms ease-in;
+}
+main > footer > a.new-window {
+  background-repeat: no-repeat;
+  background-position-x: calc(100% - 0.5vmin);
+  background-position-y: calc(50% - 0.05vmin);
+  background-size: 1.5vmin;
+  background-image: url("../svg/link.svg");
+  padding: 0.5vmin 2.5vmin 0.5vmin 1vmin;
+}
+main > footer > a.active {
+  background-repeat: no-repeat;
+  background-position-x: calc(100% - 0.5vmin);
+  background-position-y: center;
+  background-size: 1.5vmin;
+  background-image: url("../svg/close.svg");
+  padding: 0.5vmin 2.5vmin 0.5vmin 1vmin;
 }
 
 div.working {

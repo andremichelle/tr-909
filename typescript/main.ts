@@ -6,7 +6,7 @@ import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js"
 import { Events, Option, Options, Waiting } from "./lib/common.js"
 import { AnimationFrame, HTML } from "./lib/dom.js"
 import { JsonBin } from "./lib/jsonbin.js"
-import { Lecture } from "./lib/speech.js"
+import { Lecture, LectureEvent } from "./lib/speech.js"
 import { Format, UIContext } from "./tr909/context.js"
 import { startTutorial as createLecture } from './tr909/tutorial.js'
 
@@ -107,16 +107,23 @@ import { startTutorial as createLecture } from './tr909/tutorial.js'
     const subscription = Events.bind(tutorialButton, 'click', (event: Event) => {
         event.preventDefault()
         if (lecturing.isEmpty()) {
-            if (!confirm(`This will reset the machine.`)) {
-                return
-            }
             const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'), context)
+            const header = HTML.query('[data-element=header]')
             lecturing = Options.valueOf(lecture)
-            tutorialButton.style.opacity = "0.3"
+            // lecture.addObserver((event: LectureEvent) => {
+            //     if (event.type === 'sentence') {
+            //         header.textContent = event.sentence
+            //     } else if (event.type === 'pause') {
+            //         header.textContent = ''
+            //     } else if (event.type === 'interaction') {
+            //         header.textContent = event.message
+            //     }
+            // })
+            tutorialButton.classList.add('active')
             context.addEventListener('statechange', onAudioContextStateChange)
             lecture.start().catch(() => null).then(() => {
                 context.removeEventListener('statechange', onAudioContextStateChange)
-                tutorialButton.style.opacity = "1.0"
+                tutorialButton.classList.remove('active')
                 lecture.terminate()
                 lecturing = Options.None
             })

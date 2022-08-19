@@ -92,16 +92,14 @@ import { startTutorial as createLecture } from './tr909/tutorial.js';
     const subscription = Events.bind(tutorialButton, 'click', (event) => {
         event.preventDefault();
         if (lecturing.isEmpty()) {
-            if (!confirm(`This will reset the machine.`)) {
-                return;
-            }
             const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'), context);
+            const header = HTML.query('[data-element=header]');
             lecturing = Options.valueOf(lecture);
-            tutorialButton.style.opacity = "0.3";
+            tutorialButton.classList.add('active');
             context.addEventListener('statechange', onAudioContextStateChange);
             lecture.start().catch(() => null).then(() => {
                 context.removeEventListener('statechange', onAudioContextStateChange);
-                tutorialButton.style.opacity = "1.0";
+                tutorialButton.classList.remove('active');
                 lecture.terminate();
                 lecturing = Options.None;
             });

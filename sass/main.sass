@@ -6,8 +6,15 @@
 main
   flex: 1
   display: grid
-  grid-template: 4vmin 1fr 10vmin / 1fr
+  grid-template: 6vmin 1fr 10vmin / 1fr
   position: relative
+
+  > div.top
+    display: flex
+    align-items: center
+    justify-content: center
+    color: black
+    text-shadow: 0 0 1px rgba(white, 0.4)
 
   > div.wrapper
     display: flex
@@ -40,14 +47,36 @@ main
 
     > a
       color: $COLOR_CHASSIS
+      background-repeat: no-repeat
+      background-position-x: 200%
+      background-position-y: center
+      background-size: 16%
       background-color: darken($COLOR_CHASSIS, 20%)
-      padding: 0.5vmin
+      padding: 0.5vmin 1vmin
       border-radius: 0.5vmin
       font-size: 1.2vmin
       text-decoration: none
       pointer-events: all
       text-transform: uppercase
-      text-shadow: 0 1px 1px rgba(black, 0.3)
+      text-shadow: 0 0 1px rgba(black, 0.3)
+      box-shadow: 0 0 1px 0 rgba(black, 0.3) inset
+      transition: all 200ms ease-in
+
+      &.new-window
+        background-repeat: no-repeat
+        background-position-x: calc(100% - 0.5vmin)
+        background-position-y: calc(50% - 0.05vmin)
+        background-size: 1.5vmin
+        background-image: url('../svg/link.svg')
+        padding: 0.5vmin 2.5vmin 0.5vmin 1vmin
+
+      &.active
+        background-repeat: no-repeat
+        background-position-x: calc(100% - 0.5vmin)
+        background-position-y: center
+        background-size: 1.5vmin
+        background-image: url('../svg/close.svg')
+        padding: 0.5vmin 2.5vmin 0.5vmin 1vmin
 
 div.working
   display: flex
