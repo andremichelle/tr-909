@@ -78,11 +78,12 @@ export const FunctionKeyShortcuts = new Map([
     ['KeyD', FunctionKeyIndex.ShuffleFlam],
     ['KeyF', FunctionKeyIndex.Clear],
     ['KeyG', FunctionKeyIndex.InstrumentSelect],
-    ['KeyJ', FunctionKeyIndex.TempoStep],
-    ['KeyK', FunctionKeyIndex.BackTap],
-    ['KeyL', FunctionKeyIndex.ForwardBankI],
-    ['Semicolon', FunctionKeyIndex.AvailableMeasuresBankII],
-    ['Quote', FunctionKeyIndex.CycleGuideLastMeasure],
+    ['KeyH', FunctionKeyIndex.TempoStep],
+    ['KeyJ', FunctionKeyIndex.BackTap],
+    ['KeyK', FunctionKeyIndex.ForwardBankI],
+    ['KeyL', FunctionKeyIndex.AvailableMeasuresBankII],
+    ['Semicolon', FunctionKeyIndex.CycleGuideLastMeasure],
+    ['Quote', FunctionKeyIndex.TapeSyncTempoMode],
 ]);
 console.assert(!Array.from(FunctionKeyShortcuts.keys()).some(key => MainKeyShortcuts.has(key)));
 export class ZeroBasedIndices {

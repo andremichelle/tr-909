@@ -1,5 +1,5 @@
-import { elseIfUndefined } from './common.js'
-import { HTML } from './dom.js'
+import { elseIfUndefined } from '../lib/common.js'
+import { HTML } from '../lib/dom.js'
 
 export interface Key {
     width: number
@@ -37,12 +37,12 @@ export class KeyboardLayout {
             { width: 32, char: 'D', func: 'Shuffle\n/Flam', class: 'group-func' },
             { width: 32, char: 'F', func: 'Clear', class: 'group-func' },
             { width: 32, char: 'G', func: 'Instrument\nSelect', class: 'group-func' },
-            { width: 32, char: 'H' },
-            { width: 32, char: 'J', func: 'Tempo\nStep', class: 'group-other' },
-            { width: 32, char: 'K', func: 'Back\nTap', class: 'group-other' },
-            { width: 32, char: 'L', func: 'Fwd\nBank 1', class: 'group-other' },
-            { width: 32, char: ';', func: 'Available\nBank 2', class: 'group-other' },
-            { width: 32, char: '\'', func: 'Cycle\nGuide', class: 'group-other' },
+            { width: 32, char: 'H', func: 'Tempo\nStep', class: 'group-other' },
+            { width: 32, char: 'J', func: 'Back\nTap', class: 'group-other' },
+            { width: 32, char: 'K', func: 'Fwd\nBank 1', class: 'group-other' },
+            { width: 32, char: 'L', func: 'Available\nBank 2', class: 'group-other' },
+            { width: 32, char: ';', func: 'Cycle\nGuide', class: 'group-other' },
+            { width: 32, char: '\'', func: 'Tape\nSync', class: 'group-other' },
             { width: 59, char: 'return', class: 'align-bottom align-right group-meta', func: 'Enter' }
         ],
         [

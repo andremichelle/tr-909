@@ -1,5 +1,5 @@
 import { HTML } from './lib/dom.js';
-import { KeyboardLayout } from './lib/keyboard-layout.js';
+import { KeyboardLayout } from './tr909/keyboard-layout.js';
 const body = HTML.query('body');
 const root = new KeyboardLayout(KeyboardLayout.QWERTY).root;
 body.appendChild(root);
