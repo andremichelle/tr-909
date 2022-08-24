@@ -7,7 +7,6 @@ export class Machine {
     constructor(context, resources) {
         this.context = context;
         this.terminator = new Terminator();
-        this.scheduleUpdates = [];
         this.bundledUpdates = [];
         this.running = true;
         this.processorStepIndex = new ObservableValueImpl(0);
@@ -72,22 +71,19 @@ export class Machine {
         }, false));
         this.worklet.port.onmessage = event => {
             const message = event.data;
-            const schedule = (exec) => this.scheduleUpdates.push({ time: this.context.currentTime + this.context.outputLatency || 0, exec });
             if (message.type === 'update-step') {
-                schedule(() => this.processorStepIndex.set(message.stepIndex));
+                this.processorStepIndex.set(message.stepIndex);
             }
             else if (message.type === 'update-pattern') {
                 const state = this.memory.state;
                 state.patternIndicesChangeNotification.notify(state.activeBank().patternByLocation(message.location));
             }
             else if (message.type === "update-track-measure") {
-                schedule(() => this.processorTrackMeasure.set(message.measure));
+                this.processorTrackMeasure.set(message.measure);
             }
             else if (message.type === "track-complete") {
-                schedule(() => {
-                    this.transport.stop();
-                    this.processorTrackMeasure.set(0);
-                });
+                this.transport.stop();
+                this.processorTrackMeasure.set(0);
             }
         };
         this.startScheduler();
@@ -123,11 +119,6 @@ export class Machine {
     }
     startScheduler() {
         const schedule = () => {
-            if (this.scheduleUpdates.length > 0) {
-                if (this.context.currentTime >= this.scheduleUpdates[0].time) {
-                    this.scheduleUpdates.shift().exec();
-                }
-            }
             while (this.bundledUpdates.length > 0) {
                 const update = this.bundledUpdates.pop();
                 const bankIndex = update.bankIndex;
@@ -138,7 +129,7 @@ export class Machine {
                 });
             }
             if (this.running) {
-                setTimeout(schedule, 20);
+                setTimeout(schedule, 1);
             }
         };
         schedule();

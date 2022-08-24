@@ -91,8 +91,8 @@ export class Boot {
     }
 }
 export const newAudioContext = (options = {
-    sampleRate: 48000,
-    latencyHint: "interactive"
+    sampleRate: 44100,
+    latencyHint: 'interactive'
 }) => {
     const context = new AudioContext(options);
     if (context.state !== "running") {
@@ -101,6 +101,7 @@ export const newAudioContext = (options = {
             if (context.state !== "running") {
                 try {
                     yield context.resume();
+                    console.debug(`sampleRate: ${context.sampleRate}Hz, baseLatency: ${context.baseLatency}, outputLatency: ${context.outputLatency}`);
                 }
                 catch (e) {
                     return;
@@ -111,6 +112,9 @@ export const newAudioContext = (options = {
         });
         window.addEventListener("pointerdown", resume, eventOptions);
         window.addEventListener("keydown", resume, eventOptions);
+    }
+    else {
+        console.debug(`sampleRate: ${context.sampleRate}Hz, baseLatency: ${context.baseLatency}, outputLatency: ${context.outputLatency}`);
     }
     return context;
 };

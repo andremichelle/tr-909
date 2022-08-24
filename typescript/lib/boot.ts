@@ -98,8 +98,8 @@ export class Boot implements Observable<Boot> {
 }
 
 export const newAudioContext = (options: AudioContextOptions = {
-    sampleRate: 48000,
-    latencyHint: "interactive"
+    sampleRate: 44100,
+    latencyHint: 'interactive'
 }): AudioContext => {
     const context = new AudioContext(options)
     if (context.state !== "running") {
@@ -108,6 +108,7 @@ export const newAudioContext = (options: AudioContextOptions = {
             if (context.state !== "running") {
                 try {
                     await context.resume()
+                    console.debug(`sampleRate: ${context.sampleRate}Hz, baseLatency: ${context.baseLatency}, outputLatency: ${context.outputLatency}`)
                 } catch (e) {
                     return
                 }
@@ -117,6 +118,8 @@ export const newAudioContext = (options: AudioContextOptions = {
         }
         window.addEventListener("pointerdown", resume, eventOptions)
         window.addEventListener("keydown", resume, eventOptions)
+    } else {
+        console.debug(`sampleRate: ${context.sampleRate}Hz, baseLatency: ${context.baseLatency}, outputLatency: ${context.outputLatency}`)
     }
     return context
 }

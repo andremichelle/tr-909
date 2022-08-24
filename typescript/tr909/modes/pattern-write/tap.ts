@@ -4,6 +4,7 @@ import { UIContext } from "../../context.js"
 import { FunctionKeyLabel, MainKeyIndex, MainKeyLabel } from "../../keys.js"
 import { complete, Mode } from "../../mode.js"
 import { Utils } from "../../utils.js"
+import { barsToSeconds } from './../../../audio/common.js'
 
 export interface TapInputEditor {
     clearTapMode(): void
@@ -45,8 +46,10 @@ export class TapInputMode extends Mode {
             const step = playInstrument.step
             machine.play(channelIndex, step)
             if (machine.transport.isPlaying()) {
-                this.context.memoryState().activePattern()
-                    .setStep(channelIndex, machine.processorStepIndex.get(), step ? Step.Full : Step.Weak)
+                const stepIndex = machine.processorStepIndex.get()
+                const pattern = this.context.memoryState().activePattern()
+                const stepTime = barsToSeconds(pattern.scaleRatio(), this.context.machine.preset.tempo.get()) / 1000.0
+                setInterval(() => pattern.setStep(channelIndex, stepIndex, step), stepTime)
             }
             return true
         }

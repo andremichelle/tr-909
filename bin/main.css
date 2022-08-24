@@ -29,6 +29,8 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   -webkit-tap-highlight-color: transparent;
+}
+*::not(button) {
   pointer-events: none;
 }
 
@@ -48,6 +50,11 @@ svg.preloader {
   fill: #d9d5d0;
   transform: translate(-50%, -50%);
   position: absolute;
+}
+
+dialog {
+  border-radius: 16px;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 html, body {
@@ -81,6 +88,8 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   -webkit-tap-highlight-color: transparent;
+}
+*::not(button) {
   pointer-events: none;
 }
 
@@ -100,6 +109,11 @@ svg.preloader {
   fill: #d9d5d0;
   transform: translate(-50%, -50%);
   position: absolute;
+}
+
+dialog {
+  border-radius: 16px;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 div.instruments {
@@ -1154,6 +1168,9 @@ main > footer > a {
   text-transform: uppercase;
   box-shadow: 0 2px 2px -2px rgba(0, 0, 0, 0.6);
   transition: all 200ms ease-in;
+}
+main > footer > a:hover {
+  background-color: #e4e2de;
 }
 main > footer > a.new-window {
   background-repeat: no-repeat;

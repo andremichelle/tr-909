@@ -6,18 +6,15 @@ import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js"
 import { Events, Option, Options, Waiting } from "./lib/common.js"
 import { AnimationFrame, HTML } from "./lib/dom.js"
 import { JsonBin } from "./lib/jsonbin.js"
-import { Lecture, LectureEvent } from "./lib/speech.js"
+import { Lecture } from "./lib/speech.js"
 import { Format, UIContext } from "./tr909/context.js"
 import { resetHighlights, startTutorial as createLecture } from './tr909/tutorial.js'
-
-    ;
 
 (async () => {
     console.debug("booting...")
 
     // --- BOOT STARTS ---
     const context = newAudioContext()
-    console.debug(`sampleRate: ${context.sampleRate}Hz`)
     const boot = new Boot()
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
     boot.registerProcess(LimiterWorklet.loadModule(context))
@@ -110,15 +107,6 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
             const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'), context)
             const header = HTML.query('[data-element=header]')
             lecturing = Options.valueOf(lecture)
-            // lecture.addObserver((event: LectureEvent) => {
-            //     if (event.type === 'sentence') {
-            //         header.textContent = event.sentence
-            //     } else if (event.type === 'pause') {
-            //         header.textContent = ''
-            //     } else if (event.type === 'interaction') {
-            //         header.textContent = event.message
-            //     }
-            // })
             tutorialButton.classList.add('active')
             context.addEventListener('statechange', onAudioContextStateChange)
             lecture.start().catch(() => null).then(() => {
@@ -133,13 +121,4 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
             lecturing = Options.None
         }
     })
-
-    // const output = HTML.create('code', { textContent: '...', style: 'position: absolute' })
-    // HTML.query('body').appendChild(output)
-    // const run = (contextTime: number) => {
-    //     const timestamp = context.getOutputTimestamp()
-    //     output.textContent = `${context.currentTime?.toFixed(3)}s`
-    //     requestAnimationFrame(run)
-    // }
-    // requestAnimationFrame(run)
 })()

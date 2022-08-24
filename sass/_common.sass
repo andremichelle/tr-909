@@ -31,7 +31,8 @@ body
   -moz-user-select: none
   -ms-user-select: none
   -webkit-tap-highlight-color: transparent
-  pointer-events: none
+  &::not(button)
+    pointer-events: none
 
 .hidden
   display: none !important
@@ -47,3 +48,7 @@ svg.preloader
   fill: $COLOR_CHASSIS
   transform: translate(-50%, -50%)
   position: absolute
+
+dialog
+  border-radius: 16px
+  background-color: rgba(black, 0.8)

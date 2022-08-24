@@ -25,7 +25,6 @@ export class Machine implements Serializer<MachineFormat>, Terminable {
     }
 
     private readonly terminator: Terminator = new Terminator()
-    private readonly scheduleUpdates: { time: number, exec: () => void }[] = []
     private readonly bundledUpdates: { bankIndex: BankIndex, location: PatternLocation }[] = []
 
     private running: boolean = true
@@ -101,20 +100,16 @@ export class Machine implements Serializer<MachineFormat>, Terminable {
         }, false))
         this.worklet.port.onmessage = event => {
             const message = event.data as ToMainMessage
-            const schedule = (exec: () => void) =>
-                this.scheduleUpdates.push({ time: this.context.currentTime + this.context.outputLatency || 0, exec })
             if (message.type === 'update-step') {
-                schedule(() => this.processorStepIndex.set(message.stepIndex))
+                this.processorStepIndex.set(message.stepIndex)
             } else if (message.type === 'update-pattern') {
                 const state = this.memory.state
                 state.patternIndicesChangeNotification.notify(state.activeBank().patternByLocation(message.location))
             } else if (message.type === "update-track-measure") {
-                schedule(() => this.processorTrackMeasure.set(message.measure))
+                this.processorTrackMeasure.set(message.measure)
             } else if (message.type === "track-complete") {
-                schedule(() => {
-                    this.transport.stop()
-                    this.processorTrackMeasure.set(0)
-                })
+                this.transport.stop()
+                this.processorTrackMeasure.set(0)
             }
         }
         this.startScheduler()
@@ -154,11 +149,6 @@ export class Machine implements Serializer<MachineFormat>, Terminable {
 
     private startScheduler() {
         const schedule = () => {
-            if (this.scheduleUpdates.length > 0) {
-                if (this.context.currentTime >= this.scheduleUpdates[0].time) {
-                    this.scheduleUpdates.shift()!.exec()
-                }
-            }
             while (this.bundledUpdates.length > 0) {
                 const update = this.bundledUpdates.pop()!
                 const bankIndex = update.bankIndex
@@ -169,7 +159,7 @@ export class Machine implements Serializer<MachineFormat>, Terminable {
                 } as ToWorkletMessage)
             }
             if (this.running) {
-                setTimeout(schedule, 20)
+                setTimeout(schedule, 1)
             }
         }
         schedule()

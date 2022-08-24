@@ -1,7 +1,7 @@
-import { Step } from "../../../audio/tr909/memory.js";
 import { FunctionKeyLabel, MainKeyIndex } from "../../keys.js";
 import { Mode } from "../../mode.js";
 import { Utils } from "../../utils.js";
+import { barsToSeconds } from './../../../audio/common.js';
 export class TapInputMode extends Mode {
     constructor(context, editor) {
         super(context);
@@ -36,8 +36,10 @@ export class TapInputMode extends Mode {
             const step = playInstrument.step;
             machine.play(channelIndex, step);
             if (machine.transport.isPlaying()) {
-                this.context.memoryState().activePattern()
-                    .setStep(channelIndex, machine.processorStepIndex.get(), step ? Step.Full : Step.Weak);
+                const stepIndex = machine.processorStepIndex.get();
+                const pattern = this.context.memoryState().activePattern();
+                const stepTime = barsToSeconds(pattern.scaleRatio(), this.context.machine.preset.tempo.get()) / 1000.0;
+                setInterval(() => pattern.setStep(channelIndex, stepIndex, step), stepTime);
             }
             return true;
         }

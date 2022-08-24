@@ -124,7 +124,15 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements StepS
                 this.schedulePlay(channelIndex, frameIndexDelayed, step, totalAccent)
             }
         }
-        this.port.postMessage({ type: "update-step", stepIndex: stepIndex } as ToMainMessage)
+        if (!this.tapMode) {
+            this.port.postMessage({ type: "update-step", stepIndex: stepIndex } as ToMainMessage)
+        }
+    }
+
+    onRoundStep(stepIndex: number): void {
+        if (this.tapMode) {
+            this.port.postMessage({ type: "update-step", stepIndex: stepIndex } as ToMainMessage)
+        }
     }
 
     schedulePlay(channelIndex: ChannelIndex, frameIndex: number, step: Step, totalAccent: boolean): void {

@@ -6,6 +6,8 @@ export interface StepSequencerEnvironment {
 
     onPatternStep(pattern: Pattern, stepIndex: number, position: number): void
 
+    onRoundStep(stepIndex: number): void
+
     nextPattern(): void
 }
 
@@ -32,6 +34,7 @@ export class StepSequencer {
         if (pattern === null) {
             return
         }
+
         const p0 = this.position
         const p1 = p0 + increment
         const duration = pattern.duration()
@@ -59,15 +62,34 @@ export class StepSequencer {
 
     private sequenceSection(pattern: Pattern, p0: number, p1: number): void {
         const scale = pattern.scaleRatio()
-        const searchStart = pattern.shuffleInverse(p0)
-        const searchLimit = pattern.shuffleInverse(p1)
-        let searchIndex = Math.floor(searchStart / scale)
-        let searchPosition = searchIndex * scale
-        while (searchPosition < searchLimit) {
-            if (searchPosition >= searchStart) {
-                this.environment.onPatternStep(pattern, searchIndex, pattern.shuffleTransform(searchPosition) - p0)
+        const lastStep = pattern.lastStep.get()
+        {
+            const searchStart = pattern.shuffleInverse(p0)
+            const searchLimit = pattern.shuffleInverse(p1)
+            let searchIndex = Math.floor(searchStart / scale)
+            let searchPosition = searchIndex * scale
+            while (searchPosition < searchLimit) {
+                if (searchPosition >= searchStart) {
+                    this.environment.onPatternStep(pattern, searchIndex, pattern.shuffleTransform(searchPosition) - p0)
+                }
+                searchPosition = ++searchIndex * scale
             }
-            searchPosition = ++searchIndex * scale
+        }
+        {
+            // this is for tapping mode
+            const shift = -scale * 0.5
+            p0 -= shift
+            p1 -= shift
+            const searchStart = pattern.shuffleInverse(p0)
+            const searchLimit = pattern.shuffleInverse(p1)
+            let searchIndex = Math.floor(searchStart / scale)
+            let searchPosition = searchIndex * scale
+            while (searchPosition < searchLimit) {
+                if (searchPosition >= searchStart) {
+                    this.environment.onRoundStep((searchIndex + lastStep) % lastStep)
+                }
+                searchPosition = ++searchIndex * scale
+            }
         }
     }
 }

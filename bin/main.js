@@ -20,7 +20,6 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
 (() => __awaiter(void 0, void 0, void 0, function* () {
     console.debug("booting...");
     const context = newAudioContext();
-    console.debug(`sampleRate: ${context.sampleRate}Hz`);
     const boot = new Boot();
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"));
     boot.registerProcess(LimiterWorklet.loadModule(context));

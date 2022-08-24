@@ -113,7 +113,14 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                 this.schedulePlay(channelIndex, frameIndexDelayed, step, totalAccent);
             }
         }
-        this.port.postMessage({ type: "update-step", stepIndex: stepIndex });
+        if (!this.tapMode) {
+            this.port.postMessage({ type: "update-step", stepIndex: stepIndex });
+        }
+    }
+    onRoundStep(stepIndex) {
+        if (this.tapMode) {
+            this.port.postMessage({ type: "update-step", stepIndex: stepIndex });
+        }
     }
     schedulePlay(channelIndex, frameIndex, step, totalAccent) {
         this.channels[channelIndex].schedulePlay(frameIndex, step, totalAccent);

@@ -43,15 +43,33 @@ export class StepSequencer {
     }
     sequenceSection(pattern, p0, p1) {
         const scale = pattern.scaleRatio();
-        const searchStart = pattern.shuffleInverse(p0);
-        const searchLimit = pattern.shuffleInverse(p1);
-        let searchIndex = Math.floor(searchStart / scale);
-        let searchPosition = searchIndex * scale;
-        while (searchPosition < searchLimit) {
-            if (searchPosition >= searchStart) {
-                this.environment.onPatternStep(pattern, searchIndex, pattern.shuffleTransform(searchPosition) - p0);
+        const lastStep = pattern.lastStep.get();
+        {
+            const searchStart = pattern.shuffleInverse(p0);
+            const searchLimit = pattern.shuffleInverse(p1);
+            let searchIndex = Math.floor(searchStart / scale);
+            let searchPosition = searchIndex * scale;
+            while (searchPosition < searchLimit) {
+                if (searchPosition >= searchStart) {
+                    this.environment.onPatternStep(pattern, searchIndex, pattern.shuffleTransform(searchPosition) - p0);
+                }
+                searchPosition = ++searchIndex * scale;
             }
-            searchPosition = ++searchIndex * scale;
+        }
+        {
+            const shift = -scale * 0.5;
+            p0 -= shift;
+            p1 -= shift;
+            const searchStart = pattern.shuffleInverse(p0);
+            const searchLimit = pattern.shuffleInverse(p1);
+            let searchIndex = Math.floor(searchStart / scale);
+            let searchPosition = searchIndex * scale;
+            while (searchPosition < searchLimit) {
+                if (searchPosition >= searchStart) {
+                    this.environment.onRoundStep((searchIndex + lastStep) % lastStep);
+                }
+                searchPosition = ++searchIndex * scale;
+            }
         }
     }
 }

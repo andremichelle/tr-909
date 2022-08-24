@@ -1,15 +1,5 @@
 import { elseIfUndefined, Observable, ObservableImpl, Observer, Option, Options, Terminable, TerminableVoid } from "./common.js"
 
-/**
- * Since the web-speech-api does not really understand SSML (which would support breaks and markers), 
- * we have to workaround to embed events between words and actions, the user has to perform between sentences.
- * The boundary event is a great help, but if you pause the speech, it glitches and sounds broken. 
- * Hence we use speaking only between user-interactions (processes).
- * 
- * I had a version where for each word you got an event, 
- * but Safari does not send all necessary information. Bummer!
- */
-
 class Paragraph {
     readonly events: { charIndex: number, callback: CallableFunction }[] = []
 

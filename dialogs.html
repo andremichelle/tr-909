@@ -1,0 +1,30 @@
+<html>
+
+<head>
+    <link rel="preload" href="./fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin>
+    <link href="./bin/main.css" rel="stylesheet" />
+</head>
+
+<body>
+    <dialog data-type="load">
+        <form method="dialog">
+            <header>
+                <p>Load a Format from JsonBin.io</p>
+            </header>
+            <article>
+                <label>BIN-ID</label>
+                <input type="text" />
+            </article>
+            <footer>
+                <menu>
+                    <button autofocus type="reset" onclick="this.closest('dialog').close('cancel')">Cancel</button>
+                    <button type="submit" value="confirm">Confirm</button>
+                </menu>
+            </footer>
+        </form>
+    </dialog>
+    <button onclick="document.querySelector('dialog[data-type=load]').showModal()">Test
+        Dialog</button>
+</body>
+
+</html>

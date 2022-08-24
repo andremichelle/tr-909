@@ -22,7 +22,6 @@ const waitForMode = (context: UIContext, modeType: Class<Mode>): Interaction => 
             }
         }, false)
         return subscription
-
     }, name: () => 'Waiting for you.',
 })
 const waitForTransportState = (transport: Transport, expected: boolean): Interaction => ({
