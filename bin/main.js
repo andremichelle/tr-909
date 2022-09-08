@@ -31,6 +31,8 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     const getResources = loadResources(boot);
     yield Waiting.forFrames(30);
     yield boot.waitForCompletion();
+    window.removeEventListener('error', onError);
+    window.removeEventListener('unhandledrejection', onError);
     const main = HTML.query('main');
     const parentNode = HTML.query('div.tr-909');
     const wrapper = HTML.query('div.wrapper');

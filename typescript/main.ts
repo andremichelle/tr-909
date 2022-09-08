@@ -14,10 +14,10 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     console.debug("booting...")
 
     const onError = () => alert(new Error('Failed to boot. Please use Chrome or Safari.'))
-    window.addEventListener('error', onError)
-    window.addEventListener('unhandledrejection', onError)
 
     // --- BOOT STARTS ---
+    window.addEventListener('error', onError)
+    window.addEventListener('unhandledrejection', onError)
     const context = newAudioContext()
     const boot = new Boot()
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
@@ -27,7 +27,10 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     const getResources = loadResources(boot)
     await Waiting.forFrames(30)
     await boot.waitForCompletion()
+    window.removeEventListener('error', onError)
+    window.removeEventListener('unhandledrejection', onError)
     // --- BOOT ENDS ---
+
 
     const main: HTMLElement = HTML.query('main')
     const parentNode: HTMLElement = HTML.query('div.tr-909')
