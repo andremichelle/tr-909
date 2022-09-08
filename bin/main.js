@@ -24,13 +24,13 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     window.addEventListener('unhandledrejection', onError);
     const context = newAudioContext();
     const boot = new Boot();
-    boot.addAwait('css', () => preloadImagesOfCssFile("./bin/main.css"));
-    boot.addAwait('limiter', () => LimiterWorklet.loadModule(context));
-    boot.addAwait('meter', () => MeterWorklet.loadModule(context));
-    boot.addAwait('machine', () => Machine.loadModule(context));
+    boot.await('css', preloadImagesOfCssFile("./bin/main.css"));
+    boot.await('limiter', LimiterWorklet.loadModule(context));
+    boot.await('meter', MeterWorklet.loadModule(context));
+    boot.await('machine', Machine.loadModule(context));
     const getResources = loadResources(boot);
     yield Waiting.forFrames(30);
-    yield boot.await();
+    yield boot.awaitCompletion();
     window.removeEventListener('error', onError);
     window.removeEventListener('unhandledrejection', onError);
     const main = HTML.query('main');

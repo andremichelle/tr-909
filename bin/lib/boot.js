@@ -63,30 +63,33 @@ export class Dependency {
 }
 export class Boot {
     constructor() {
-        this.components = new Map();
+        this.dependencies = new Map();
         this.available = new Set();
         this.promise = Options.None;
     }
     add(key, factory) {
         return this.addAwait(key, () => Promise.resolve(factory()));
     }
+    await(key, promise) {
+        return this.addAwait(key, () => promise);
+    }
     addAwait(key, factory) {
         console.assert(this.promise.isEmpty());
-        console.assert(!this.components.has(key));
+        console.assert(!this.dependencies.has(key));
         const dependency = new Dependency(factory);
-        this.components.set(key, dependency);
+        this.dependencies.set(key, dependency);
         return dependency;
     }
     resolve(key) {
-        return this.components.get(key).get();
+        return this.dependencies.get(key).get();
     }
     normalizedPercentage() {
-        return 0 === this.components.size ? 1.0 : this.available.size / this.components.size;
+        return 0 === this.dependencies.size ? 1.0 : this.available.size / this.dependencies.size;
     }
     percentage() {
         return Math.round(this.normalizedPercentage() * 100.0);
     }
-    await() {
+    awaitCompletion() {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.promise.nonEmpty()) {
                 return this.promise.get();
@@ -95,7 +98,7 @@ export class Boot {
                 console.time('Boot complete');
                 const check = () => {
                     let complete = true;
-                    this.components.forEach((dependency, key) => {
+                    this.dependencies.forEach((dependency, key) => {
                         if (this.available.has(key)) {
                             return;
                         }

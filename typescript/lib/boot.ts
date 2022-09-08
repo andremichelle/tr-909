@@ -66,7 +66,7 @@ export class Dependency<T> {
 }
 
 export class Boot {
-    private readonly components: Map<Key<any>, Dependency<any>> = new Map<Key<any>, Dependency<any>>()
+    private readonly dependencies: Map<Key<any>, Dependency<any>> = new Map<Key<any>, Dependency<any>>()
     private readonly available: Set<Key<any>> = new Set<Key<any>>()
 
     private promise: Option<Promise<void>> = Options.None
@@ -75,27 +75,31 @@ export class Boot {
         return this.addAwait(key, () => Promise.resolve(factory()))
     }
 
+    await<T>(key: Key<T>, promise: Promise<T>): Dependency<T> {
+        return this.addAwait(key, () => promise)
+    }
+
     addAwait<T>(key: Key<T>, factory: Factory<Promise<T>>): Dependency<T> {
         console.assert(this.promise.isEmpty())
-        console.assert(!this.components.has(key))
+        console.assert(!this.dependencies.has(key))
         const dependency = new Dependency<T>(factory)
-        this.components.set(key, dependency)
+        this.dependencies.set(key, dependency)
         return dependency
     }
 
     resolve<T>(key: Key<T>): T {
-        return this.components.get(key)!.get()
+        return this.dependencies.get(key)!.get()
     }
 
     normalizedPercentage() {
-        return 0 === this.components.size ? 1.0 : this.available.size / this.components.size
+        return 0 === this.dependencies.size ? 1.0 : this.available.size / this.dependencies.size
     }
 
     percentage() {
         return Math.round(this.normalizedPercentage() * 100.0)
     }
 
-    async await(): Promise<void> {
+    async awaitCompletion(): Promise<void> {
         if (this.promise.nonEmpty()) {
             return this.promise.get()
         }
@@ -103,7 +107,7 @@ export class Boot {
             console.time('Boot complete')
             const check = () => {
                 let complete = true
-                this.components.forEach(<T extends Object>(dependency: Dependency<T>, key: Key<T>): void => {
+                this.dependencies.forEach(<T extends Object>(dependency: Dependency<T>, key: Key<T>): void => {
                     if (this.available.has(key)) {
                         return
                     }
