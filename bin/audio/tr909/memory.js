@@ -69,6 +69,9 @@ export class Memory {
     clear() {
         this.banks.forEach(bank => bank.clear());
     }
+    hasAnyData() {
+        return this.banks.some(bank => bank.patternGroups.some(groups => groups.patterns.some(pattern => pattern.hasAnyData())));
+    }
     serialize() {
         return {
             state: this.state.serialize(),
@@ -189,6 +192,9 @@ export class Pattern {
         this.terminator.with(this.lastStep.addObserver(this.listener, false));
         this.terminator.with(this.flamIndex.addObserver(this.listener, false));
         this.terminator.with(this.shuffleIndex.addObserver(this.listener, false));
+    }
+    hasAnyData() {
+        return this.steps.some(step => step.some(step => step !== Step.None));
     }
     testA() {
         this.observable.mute();

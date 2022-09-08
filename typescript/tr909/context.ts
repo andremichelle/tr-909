@@ -119,6 +119,10 @@ export class UIContext implements Terminable {
     }
 
     async save(): Promise<void> {
+        if (!this.machine.hasAnyData()) {
+            setTimeout(() => alert('Nothing to save!'), 250)
+            return
+        }
         console.debug(`save()`)
         const shutdown = UIContext.showWorkingScreen('saving')
         try {
@@ -144,6 +148,7 @@ export class UIContext implements Terminable {
             this.deserialize(response.record)
         } catch (reason) {
             console.warn(reason)
+            setTimeout(() => alert(reason), 250)
         } finally {
             shutdown.terminate()
         }

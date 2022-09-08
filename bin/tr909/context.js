@@ -66,6 +66,10 @@ export class UIContext {
     }
     save() {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!this.machine.hasAnyData()) {
+                setTimeout(() => alert('Nothing to save!'), 250);
+                return;
+            }
             console.debug(`save()`);
             const shutdown = UIContext.showWorkingScreen('saving');
             try {
@@ -95,6 +99,7 @@ export class UIContext {
             }
             catch (reason) {
                 console.warn(reason);
+                setTimeout(() => alert(reason), 250);
             }
             finally {
                 shutdown.terminate();

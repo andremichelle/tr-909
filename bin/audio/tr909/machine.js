@@ -91,6 +91,9 @@ export class Machine {
     static loadModule(context) {
         return context.audioWorklet.addModule("bin/audio/tr909/dsp/processor.js");
     }
+    hasAnyData() {
+        return this.memory.hasAnyData();
+    }
     serialize() {
         return {
             preset: this.preset.serialize(),

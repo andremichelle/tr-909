@@ -65,6 +65,10 @@ export class Memory implements Serializer<MemoryFormat> {
         this.banks.forEach(bank => bank.clear())
     }
 
+    hasAnyData(): boolean {
+        return this.banks.some(bank => bank.patternGroups.some(groups => groups.patterns.some(pattern => pattern.hasAnyData())))
+    }
+
     serialize(): MemoryFormat {
         return {
             state: this.state.serialize(),
@@ -252,6 +256,10 @@ export class Pattern implements Observable<void>, Serializer<PatternFormat> {
         this.terminator.with(this.lastStep.addObserver(this.listener, false))
         this.terminator.with(this.flamIndex.addObserver(this.listener, false))
         this.terminator.with(this.shuffleIndex.addObserver(this.listener, false))
+    }
+
+    hasAnyData(): boolean {
+        return this.steps.some(step => step.some(step => step !== Step.None))
     }
 
     testA() {

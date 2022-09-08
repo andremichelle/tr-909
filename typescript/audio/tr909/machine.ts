@@ -115,6 +115,10 @@ export class Machine implements Serializer<MachineFormat>, Terminable {
         this.startScheduler()
     }
 
+    hasAnyData(): boolean {
+        return this.memory.hasAnyData()
+    }
+
     serialize(): MachineFormat {
         return {
             preset: this.preset.serialize(),
