@@ -13,6 +13,10 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
 (async () => {
     console.debug("booting...")
 
+    const onError = () => alert(new Error('Failed to boot. Please use Chrome or Safari.'))
+    window.addEventListener('error', onError)
+    window.addEventListener('unhandledrejection', onError)
+
     // --- BOOT STARTS ---
     const context = newAudioContext()
     const boot = new Boot()
