@@ -41,7 +41,7 @@ export class Dependency<T> {
         return this
     }
 
-    canLoad(available: Set<Key<any>>): boolean {
+    canLoad(available: Set<Key>): boolean {
         return this.dependencies.every(type => available.has(type))
     }
 
@@ -66,8 +66,8 @@ export class Dependency<T> {
 }
 
 export class Boot {
-    private readonly dependencies: Map<Key<any>, Dependency<any>> = new Map<Key<any>, Dependency<any>>()
-    private readonly available: Set<Key<any>> = new Set<Key<any>>()
+    private readonly dependencies: Map<Key, Dependency<any>> = new Map<Key, Dependency<any>>()
+    private readonly available: Set<Key> = new Set<Key>()
 
     private promise: Option<Promise<void>> = Options.None
 

@@ -19,9 +19,9 @@ import { UIContext } from "./tr909/context.js";
 import { resetHighlights, startTutorial as createLecture } from './tr909/tutorial.js';
 (() => __awaiter(void 0, void 0, void 0, function* () {
     console.debug("booting...");
-    const onError = () => alert(new Error('Failed to boot. Please use Chrome or Safari.'));
-    window.addEventListener('error', onError);
-    window.addEventListener('unhandledrejection', onError);
+    const onBootError = () => alert(new Error('Failed to boot. Please use Chrome or Safari.'));
+    window.addEventListener('error', onBootError);
+    window.addEventListener('unhandledrejection', onBootError);
     const context = newAudioContext();
     const boot = new Boot();
     boot.await('css', preloadImagesOfCssFile("./bin/main.css"));
@@ -29,11 +29,10 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     boot.await('meter', MeterWorklet.loadModule(context));
     boot.await('machine', Machine.loadModule(context));
     const getResources = loadResources(boot);
-    yield Waiting.forFrames(30);
+    yield Waiting.forFrames(12);
     yield boot.awaitCompletion();
-    window.removeEventListener('error', onError);
-    window.removeEventListener('unhandledrejection', onError);
-    const main = HTML.query('main');
+    window.removeEventListener('error', onBootError);
+    window.removeEventListener('unhandledrejection', onBootError);
     const parentNode = HTML.query('div.tr-909');
     const wrapper = HTML.query('div.wrapper');
     let format = null;
@@ -68,22 +67,6 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     if (format !== null) {
         ui.deserialize(format);
     }
-    if (location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1')) {
-        if (false) {
-            console.log("INSTALLED TEST DATA");
-            const memory = machine.memory;
-            const memoryBank = memory.banks[0];
-            memoryBank.patternByIndices(0, 0).testA();
-            memoryBank.patternByIndices(0, 1).testB();
-            memoryBank.patternByIndices(0, 2).testC();
-            memoryBank.patternByIndices(0, 3).testD();
-            const track = memoryBank.tracks[1];
-            track.writeLocation({ patternGroupIndex: 0, patternIndex: 0 });
-            track.writeLocation({ patternGroupIndex: 0, patternIndex: 1 });
-            track.writeLocation({ patternGroupIndex: 0, patternIndex: 0 });
-            track.writeLocation({ patternGroupIndex: 0, patternIndex: 1 });
-        }
-    }
     AnimationFrame.init();
     let lecturing = Options.None;
     const tutorialButton = HTML.query('a[target=tutorial]');
@@ -92,11 +75,10 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
             context.resume().then(() => console.debug('resume'));
         }
     };
-    const subscription = Events.bind(tutorialButton, 'click', (event) => {
+    Events.bind(tutorialButton, 'click', (event) => {
         event.preventDefault();
         if (lecturing.isEmpty()) {
             const lecture = createLecture(ui, HTML.query('[data-action=tutorial-advance-button]'), context);
-            const header = HTML.query('[data-element=header]');
             lecturing = Options.valueOf(lecture);
             tutorialButton.classList.add('active');
             context.addEventListener('statechange', onAudioContextStateChange);
