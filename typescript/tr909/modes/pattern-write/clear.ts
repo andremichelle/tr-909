@@ -6,6 +6,7 @@ import { InstrumentMode, Utils } from '../../utils.js'
 export class ClearPatternMode extends Mode {
     constructor(context: UIContext, private readonly back: () => void) {
         super(context)
+
     }
 
     onFunctionKeyRelease(label: FunctionKeyLabel<any>): void {

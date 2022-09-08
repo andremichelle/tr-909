@@ -49,7 +49,7 @@ export class TapInputMode extends Mode {
                 const stepIndex = machine.processorStepIndex.get()
                 const pattern = this.context.memoryState().activePattern()
                 const stepTime = barsToSeconds(pattern.scaleRatio(), this.context.machine.preset.tempo.get()) / 1000.0
-                setInterval(() => pattern.setStep(channelIndex, stepIndex, step), stepTime)
+                setTimeout(() => pattern.setStep(channelIndex, stepIndex, step), stepTime)
             }
             return true
         }
