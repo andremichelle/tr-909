@@ -1,6 +1,6 @@
 export const ResourceSampleRate = 44100.0;
 export const loadResources = (boot) => {
-    const load = (path) => boot.registerProcess(fetch(path)
+    const load = (path) => boot.addAwait(path, () => fetch(path)
         .then(x => x.arrayBuffer())
         .then(x => new Float32Array(x)));
     const dependencies = {

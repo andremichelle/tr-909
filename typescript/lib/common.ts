@@ -59,7 +59,7 @@ export interface Option<T> {
 }
 
 export class Options {
-    static valueOf<T>(value: T): Option<T> {
+    static valueOf<T>(value?: T): Option<T> {
         return null === value || undefined === value ? Options.None : new Options.Some(value)
     }
 

@@ -19,7 +19,7 @@ type MakeDependencies<T, S> = { [K in keyof T]: T[K] extends S ? Dependency<T[K]
 
 export const loadResources = (boot: Boot): () => Resources<Float32Array> => {
     const load = (path: string): Dependency<Float32Array> =>
-        boot.registerProcess(fetch(path)
+        boot.addAwait(path, () => fetch(path)
             .then(x => x.arrayBuffer())
             .then(x => new Float32Array(x)))
     const dependencies: MakeDependencies<Resources<Float32Array>, Float32Array> = {

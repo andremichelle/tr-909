@@ -1,6 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
-import { Observable, ObservableImpl, Observer, Terminable } from "./common.js"
+import { Option, Options } from "./common.js"
 
 export const preloadImagesOfCssFile = async (pathToCss: string): Promise<void> => {
     const href = location.href
@@ -25,75 +25,109 @@ export const preloadImagesOfCssFile = async (pathToCss: string): Promise<void> =
     return Promise.all(urls.map(url => fetch(url.href))).then(() => Promise.resolve())
 }
 
-export interface Dependency<T> {
-    get: () => T
+export type Key<T = void> = (new (...args: any[]) => T) | string
+export type Factory<T> = () => T
+
+export class Dependency<T> {
+    private readonly dependencies: Key[] = []
+
+    private result: Option<T> = Options.None
+    private promise: Option<Promise<T>> = Options.None
+
+    constructor(private readonly factory: Factory<Promise<T>>) { }
+
+    require(...keys: Key[]): this {
+        keys.forEach(type => this.dependencies.push(type))
+        return this
+    }
+
+    canLoad(available: Set<Key<any>>): boolean {
+        return this.dependencies.every(type => available.has(type))
+    }
+
+    load(): Promise<T> {
+        if (this.promise.isEmpty()) {
+            this.promise = Options.valueOf(this.factory()
+                .then(value => {
+                    this.result = Options.valueOf(value)
+                    return value
+                }))
+        }
+        return this.promise.get()
+    }
+
+    idle(): boolean {
+        return this.promise.isEmpty()
+    }
+
+    get(): T {
+        return this.result.get()
+    }
 }
 
-export class Boot implements Observable<Boot> {
-    private readonly observable = new ObservableImpl<Boot>()
+export class Boot {
+    private readonly components: Map<Key<any>, Dependency<any>> = new Map<Key<any>, Dependency<any>>()
+    private readonly available: Set<Key<any>> = new Set<Key<any>>()
 
-    private finishedTasks: number = 0 | 0
-    private totalTasks: number = 0 | 0
-    private completed: boolean = false
+    private promise: Option<Promise<void>> = Options.None
 
-    addObserver(observer: Observer<Boot>): Terminable {
-        return this.observable.addObserver(observer)
+    add<T>(key: Key<T>, factory: Factory<T>): Dependency<T> {
+        return this.addAwait(key, () => Promise.resolve(factory()))
     }
 
-    terminate(): void {
-        this.observable.terminate()
+    addAwait<T>(key: Key<T>, factory: Factory<Promise<T>>): Dependency<T> {
+        console.assert(this.promise.isEmpty())
+        console.assert(!this.components.has(key))
+        const dependency = new Dependency<T>(factory)
+        this.components.set(key, dependency)
+        return dependency
     }
 
-    registerProcess<T>(promise: Promise<T>): Dependency<T> {
-        this.totalTasks++
-        let result: T | null = null
-        promise.then((value: T) => {
-            result = value
-            this.finishedTasks++
-            if (this.isCompleted()) this.completed = true
-            this.observable.notify(this)
-        })
-        return {
-            get: () => {
-                if (result === null) {
-                    throw new Error("Dependency has not been resolved.")
-                }
-                return result
-            }
-        }
-    }
-
-    registerFont(name: string, url: string): Dependency<FontFace> {
-        return this.registerProcess(document.fonts.ready
-            // @ts-ignore
-            .then((faceSet: FontFaceSet) => new FontFace(name, url)
-                .load()
-                .then(fontFace => faceSet.add(fontFace))))
-    }
-
-    isCompleted(): boolean {
-        return this.finishedTasks === this.totalTasks
+    resolve<T>(key: Key<T>): T {
+        return this.components.get(key)!.get()
     }
 
     normalizedPercentage() {
-        return 0 === this.totalTasks ? 1.0 : this.finishedTasks / this.totalTasks
+        return 0 === this.components.size ? 1.0 : this.available.size / this.components.size
     }
 
     percentage() {
         return Math.round(this.normalizedPercentage() * 100.0)
     }
 
-    waitForCompletion(): Promise<void> {
-        return this.isCompleted() ? Promise.resolve() : new Promise<void>((resolve: (value: void) => void) => {
-            this.observable.addObserver(boot => {
-                if (boot.isCompleted()) {
-                    requestAnimationFrame(() => {
-                        resolve()
-                        boot.terminate()
-                    })
+    async await(): Promise<void> {
+        if (this.promise.nonEmpty()) {
+            return this.promise.get()
+        }
+        this.promise = Options.valueOf(new Promise<void>((resolve, reject) => {
+            console.time('Boot complete')
+            const check = () => {
+                let complete = true
+                this.components.forEach(<T extends Object>(dependency: Dependency<T>, key: Key<T>): void => {
+                    if (this.available.has(key)) {
+                        return
+                    }
+                    if (dependency.idle() && dependency.canLoad(this.available)) {
+                        const label = `Boot(${typeof (key) === 'string' ? key : key.name})`
+                        console.time(label)
+                        dependency.load()
+                            .catch(reason => reject(reason))
+                            .then(() => {
+                                this.available.add(key)
+                                console.timeEnd(label)
+                                setTimeout(check, 1)
+                            })
+                    }
+                    complete = false
+                })
+                if (complete) {
+                    console.timeEnd('Boot complete')
+                    resolve()
                 }
-            })
-        })
+            }
+            check()
+        }))
+        return this.promise.get()
     }
 }
 

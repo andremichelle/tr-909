@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ObservableImpl } from "./common.js";
+import { Options } from "./common.js";
 export const preloadImagesOfCssFile = (pathToCss) => __awaiter(void 0, void 0, void 0, function* () {
     const href = location.href;
     const base = href.substring(0, href.lastIndexOf("/")) + "/bin/";
@@ -30,63 +30,96 @@ export const preloadImagesOfCssFile = (pathToCss) => __awaiter(void 0, void 0, v
     console.debug(`preloadImagesOfCssFile... base: ${base} (${urls.length})`);
     return Promise.all(urls.map(url => fetch(url.href))).then(() => Promise.resolve());
 });
+export class Dependency {
+    constructor(factory) {
+        this.factory = factory;
+        this.dependencies = [];
+        this.result = Options.None;
+        this.promise = Options.None;
+    }
+    require(...keys) {
+        keys.forEach(type => this.dependencies.push(type));
+        return this;
+    }
+    canLoad(available) {
+        return this.dependencies.every(type => available.has(type));
+    }
+    load() {
+        if (this.promise.isEmpty()) {
+            this.promise = Options.valueOf(this.factory()
+                .then(value => {
+                this.result = Options.valueOf(value);
+                return value;
+            }));
+        }
+        return this.promise.get();
+    }
+    idle() {
+        return this.promise.isEmpty();
+    }
+    get() {
+        return this.result.get();
+    }
+}
 export class Boot {
     constructor() {
-        this.observable = new ObservableImpl();
-        this.finishedTasks = 0 | 0;
-        this.totalTasks = 0 | 0;
-        this.completed = false;
+        this.components = new Map();
+        this.available = new Set();
+        this.promise = Options.None;
     }
-    addObserver(observer) {
-        return this.observable.addObserver(observer);
+    add(key, factory) {
+        return this.addAwait(key, () => Promise.resolve(factory()));
     }
-    terminate() {
-        this.observable.terminate();
+    addAwait(key, factory) {
+        console.assert(this.promise.isEmpty());
+        console.assert(!this.components.has(key));
+        const dependency = new Dependency(factory);
+        this.components.set(key, dependency);
+        return dependency;
     }
-    registerProcess(promise) {
-        this.totalTasks++;
-        let result = null;
-        promise.then((value) => {
-            result = value;
-            this.finishedTasks++;
-            if (this.isCompleted())
-                this.completed = true;
-            this.observable.notify(this);
-        });
-        return {
-            get: () => {
-                if (result === null) {
-                    throw new Error("Dependency has not been resolved.");
-                }
-                return result;
-            }
-        };
-    }
-    registerFont(name, url) {
-        return this.registerProcess(document.fonts.ready
-            .then((faceSet) => new FontFace(name, url)
-            .load()
-            .then(fontFace => faceSet.add(fontFace))));
-    }
-    isCompleted() {
-        return this.finishedTasks === this.totalTasks;
+    resolve(key) {
+        return this.components.get(key).get();
     }
     normalizedPercentage() {
-        return 0 === this.totalTasks ? 1.0 : this.finishedTasks / this.totalTasks;
+        return 0 === this.components.size ? 1.0 : this.available.size / this.components.size;
     }
     percentage() {
         return Math.round(this.normalizedPercentage() * 100.0);
     }
-    waitForCompletion() {
-        return this.isCompleted() ? Promise.resolve() : new Promise((resolve) => {
-            this.observable.addObserver(boot => {
-                if (boot.isCompleted()) {
-                    requestAnimationFrame(() => {
-                        resolve();
-                        boot.terminate();
+    await() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.promise.nonEmpty()) {
+                return this.promise.get();
+            }
+            this.promise = Options.valueOf(new Promise((resolve, reject) => {
+                console.time('Boot complete');
+                const check = () => {
+                    let complete = true;
+                    this.components.forEach((dependency, key) => {
+                        if (this.available.has(key)) {
+                            return;
+                        }
+                        if (dependency.idle() && dependency.canLoad(this.available)) {
+                            const label = `Boot(${typeof (key) === 'string' ? key : key.name})`;
+                            console.time(label);
+                            dependency.load()
+                                .catch(reason => reject(reason))
+                                .then(() => {
+                                this.available.add(key);
+                                console.timeEnd(label);
+                                setTimeout(check, 1);
+                            });
+                        }
+                        complete = false;
                     });
-                }
-            });
+                    if (complete) {
+                        console.timeEnd('Boot complete');
+                        resolve();
+                    }
+                };
+                check();
+            }));
+            return this.promise.get();
         });
     }
 }

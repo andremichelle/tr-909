@@ -20,17 +20,16 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     window.addEventListener('unhandledrejection', onError)
     const context = newAudioContext()
     const boot = new Boot()
-    boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
-    boot.registerProcess(LimiterWorklet.loadModule(context))
-    boot.registerProcess(MeterWorklet.loadModule(context))
-    boot.registerProcess(Machine.loadModule(context))
+    boot.addAwait('css', () => preloadImagesOfCssFile("./bin/main.css"))
+    boot.addAwait('limiter', () => LimiterWorklet.loadModule(context))
+    boot.addAwait('meter', () => MeterWorklet.loadModule(context))
+    boot.addAwait('machine', () => Machine.loadModule(context))
     const getResources = loadResources(boot)
     await Waiting.forFrames(30)
-    await boot.waitForCompletion()
+    await boot.await()
     window.removeEventListener('error', onError)
     window.removeEventListener('unhandledrejection', onError)
     // --- BOOT ENDS ---
-
 
     const main: HTMLElement = HTML.query('main')
     const parentNode: HTMLElement = HTML.query('div.tr-909')
@@ -63,7 +62,6 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     HTML.queryAll("svg.preloader", body).forEach(element => element.remove())
     await Waiting.forFrames(20)
     HTML.queryAll("main", body).forEach(element => element.classList.remove("invisible"))
-    console.debug("boot complete.")
 
     const machine = new Machine(context, getResources())
     const ui: UIContext = new UIContext(machine, parentNode)
