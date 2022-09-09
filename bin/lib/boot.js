@@ -98,6 +98,7 @@ export class Boot {
             }
             this.promise = Options.valueOf(new Promise((resolve, reject) => {
                 console.time('Boot(Total)');
+                let timeoutId;
                 const check = () => {
                     let complete = true;
                     this.dependencies.forEach((dependency, key) => {
@@ -112,6 +113,8 @@ export class Boot {
                                 .then(() => {
                                 this.available.add(key);
                                 console.timeEnd(label);
+                                clearTimeout(timeoutId);
+                                timeoutId = setTimeout(check, 1);
                             });
                         }
                         complete = false;
@@ -119,9 +122,6 @@ export class Boot {
                     if (complete) {
                         console.timeEnd('Boot(Total)');
                         resolve();
-                    }
-                    else {
-                        setTimeout(check, 1);
                     }
                 };
                 check();
