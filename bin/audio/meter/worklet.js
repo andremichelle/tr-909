@@ -1,6 +1,15 @@
 import { ArrayUtils } from "../../lib/common.js";
 import { AnimationFrame } from "../../lib/dom.js";
 import { dbToGain, gainToDb } from "../common.js";
+export class MeterWorkletFactory {
+    static load(context) {
+        return context.audioWorklet.addModule("bin/audio/meter/processor.js")
+            .then(() => new MeterWorkletFactory());
+    }
+    create(...args) {
+        return new MeterWorklet(...args);
+    }
+}
 export class MeterWorklet extends AudioWorkletNode {
     constructor(context, numLines, channelCount) {
         super(context, "meter-processor", {
@@ -34,9 +43,6 @@ export class MeterWorklet extends AudioWorkletNode {
                 }
             }
         };
-    }
-    static loadModule(context) {
-        return context.audioWorklet.addModule("bin/audio/meter/processor.js");
     }
 }
 MeterWorklet.PEAK_HOLD_DURATION = 1000.0;

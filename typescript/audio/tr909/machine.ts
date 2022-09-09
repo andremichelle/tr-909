@@ -1,6 +1,6 @@
 import { ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator } from "../../lib/common.js"
 import { barsToSeconds, dbToGain, Transport } from "../common.js"
-import { MeterWorklet } from "../meter/worklet.js"
+import { MeterWorklet, MeterWorkletFactory } from "../meter/worklet.js"
 import { Serializer } from './../../lib/common'
 import {
     BankIndex,
@@ -19,11 +19,18 @@ export interface MachineFormat {
     memory: MemoryFormat
 }
 
-export class Machine implements Serializer<MachineFormat>, Terminable {
-    static loadModule(context: AudioContext): Promise<void> {
-        return context.audioWorklet.addModule("bin/audio/tr909/dsp/processor.js")
+export class MachineFactory {
+    static async load(context: AudioContext): Promise<MachineFactory> {
+        await context.audioWorklet.addModule("bin/audio/tr909/dsp/processor.js")
+        return new MachineFactory()
     }
 
+    create(...args: ConstructorParameters<typeof Machine>): Machine {
+        return new Machine(...args)
+    }
+}
+
+export class Machine implements Serializer<MachineFormat>, Terminable {
     private readonly terminator: Terminator = new Terminator()
     private readonly bundledUpdates: { bankIndex: BankIndex, location: PatternLocation }[] = []
 
@@ -39,7 +46,7 @@ export class Machine implements Serializer<MachineFormat>, Terminable {
     readonly processorStepIndex = new ObservableValueImpl<number>(0)
     readonly processorTrackMeasure = new ObservableValueImpl<number>(0)
 
-    constructor(readonly context: AudioContext, resources: Resources<Float32Array>) {
+    constructor(readonly context: AudioContext, resources: Resources<Float32Array>, meterWorkletFactory: MeterWorkletFactory) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {
             numberOfInputs: 1,
             numberOfOutputs: ChannelIndex.End,
@@ -53,7 +60,7 @@ export class Machine implements Serializer<MachineFormat>, Terminable {
         this.memory = new Memory()
         this.transport = new Transport()
         this.transport.addObserver(message => this.worklet.port.postMessage(message), false)
-        this.meterWorklet = new MeterWorklet(context, 10, 1)
+        this.meterWorklet = meterWorkletFactory.create(context, 10, 1)
         this.master = context.createGain()
         for (let index = 0; index < ChannelIndex.End; index++) {
             this.worklet.connect(this.meterWorklet, index, index).connect(this.master, index, 0)

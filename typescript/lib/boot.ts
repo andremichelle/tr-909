@@ -25,23 +25,29 @@ export const preloadImagesOfCssFile = async (pathToCss: string): Promise<void> =
     return Promise.all(urls.map(url => fetch(url.href))).then(() => Promise.resolve())
 }
 
-export type Key<T = void> = (new (...args: any[]) => T) | string
+export type UniqueKey<T = void> = (new (...args: any[]) => T) | string | number
 export type Factory<T> = () => T
 
-export class Dependency<T> {
-    private readonly dependencies: Key[] = []
+export interface Dependency<T> {
+    require(...keys: UniqueKey[]): this
+
+    get(): T
+}
+
+class DependencyImpl<T> implements Dependency<T> {
+    private readonly dependencies: UniqueKey[] = []
 
     private result: Option<T> = Options.None
     private promise: Option<Promise<T>> = Options.None
 
     constructor(private readonly factory: Factory<Promise<T>>) { }
 
-    require(...keys: Key[]): this {
+    require(...keys: UniqueKey[]): this {
         keys.forEach(type => this.dependencies.push(type))
         return this
     }
 
-    canLoad(available: Set<Key>): boolean {
+    loadable(available: Set<UniqueKey>): boolean {
         return this.dependencies.every(type => available.has(type))
     }
 
@@ -66,28 +72,28 @@ export class Dependency<T> {
 }
 
 export class Boot {
-    private readonly dependencies: Map<Key, Dependency<any>> = new Map<Key, Dependency<any>>()
-    private readonly available: Set<Key> = new Set<Key>()
+    private readonly dependencies: Map<UniqueKey, DependencyImpl<any>> = new Map<UniqueKey, DependencyImpl<any>>()
+    private readonly available: Set<UniqueKey> = new Set<UniqueKey>()
 
     private promise: Option<Promise<void>> = Options.None
 
-    add<T>(key: Key<T>, factory: Factory<T>): Dependency<T> {
+    add<T>(key: UniqueKey<T>, factory: Factory<T>): Dependency<T> {
         return this.addAwait(key, () => Promise.resolve(factory()))
     }
 
-    await<T>(key: Key<T>, promise: Promise<T>): Dependency<T> {
+    await<T>(key: UniqueKey<T>, promise: Promise<T>): Dependency<T> {
         return this.addAwait(key, () => promise)
     }
 
-    addAwait<T>(key: Key<T>, factory: Factory<Promise<T>>): Dependency<T> {
+    addAwait<T>(key: UniqueKey<T>, factory: Factory<Promise<T>>): Dependency<T> {
         console.assert(this.promise.isEmpty())
         console.assert(!this.dependencies.has(key))
-        const dependency = new Dependency<T>(factory)
+        const dependency = new DependencyImpl<T>(factory)
         this.dependencies.set(key, dependency)
         return dependency
     }
 
-    resolve<T>(key: Key<T>): T {
+    resolve<T>(key: UniqueKey<T>): T {
         return this.dependencies.get(key)!.get()
     }
 
@@ -104,15 +110,14 @@ export class Boot {
             return this.promise.get()
         }
         this.promise = Options.valueOf(new Promise<void>((resolve, reject) => {
-            console.time('Boot complete')
             const check = () => {
                 let complete = true
-                this.dependencies.forEach(<T extends Object>(dependency: Dependency<T>, key: Key<T>): void => {
+                this.dependencies.forEach(<T extends Object>(dependency: DependencyImpl<T>, key: UniqueKey<T>): void => {
                     if (this.available.has(key)) {
                         return
                     }
-                    if (dependency.idle() && dependency.canLoad(this.available)) {
-                        const label = `Boot(${typeof (key) === 'string' ? key : key.name})`
+                    if (dependency.idle() && dependency.loadable(this.available)) {
+                        const label = `Boot(${typeof (key) === 'string' || typeof (key) === 'number' ? key : key.name})`
                         console.time(label)
                         dependency.load()
                             .catch(reason => reject(reason))
@@ -125,7 +130,6 @@ export class Boot {
                     complete = false
                 })
                 if (complete) {
-                    console.timeEnd('Boot complete')
                     resolve()
                 }
             }

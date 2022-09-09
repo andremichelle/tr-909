@@ -30,7 +30,7 @@ export const preloadImagesOfCssFile = (pathToCss) => __awaiter(void 0, void 0, v
     console.debug(`preloadImagesOfCssFile... base: ${base} (${urls.length})`);
     return Promise.all(urls.map(url => fetch(url.href))).then(() => Promise.resolve());
 });
-export class Dependency {
+class DependencyImpl {
     constructor(factory) {
         this.factory = factory;
         this.dependencies = [];
@@ -41,7 +41,7 @@ export class Dependency {
         keys.forEach(type => this.dependencies.push(type));
         return this;
     }
-    canLoad(available) {
+    loadable(available) {
         return this.dependencies.every(type => available.has(type));
     }
     load() {
@@ -76,7 +76,7 @@ export class Boot {
     addAwait(key, factory) {
         console.assert(this.promise.isEmpty());
         console.assert(!this.dependencies.has(key));
-        const dependency = new Dependency(factory);
+        const dependency = new DependencyImpl(factory);
         this.dependencies.set(key, dependency);
         return dependency;
     }
@@ -95,15 +95,14 @@ export class Boot {
                 return this.promise.get();
             }
             this.promise = Options.valueOf(new Promise((resolve, reject) => {
-                console.time('Boot complete');
                 const check = () => {
                     let complete = true;
                     this.dependencies.forEach((dependency, key) => {
                         if (this.available.has(key)) {
                             return;
                         }
-                        if (dependency.idle() && dependency.canLoad(this.available)) {
-                            const label = `Boot(${typeof (key) === 'string' ? key : key.name})`;
+                        if (dependency.idle() && dependency.loadable(this.available)) {
+                            const label = `Boot(${typeof (key) === 'string' || typeof (key) === 'number' ? key : key.name})`;
                             console.time(label);
                             dependency.load()
                                 .catch(reason => reject(reason))
@@ -116,7 +115,6 @@ export class Boot {
                         complete = false;
                     });
                     if (complete) {
-                        console.timeEnd('Boot complete');
                         resolve();
                     }
                 };

@@ -5,11 +5,18 @@ import { AnimationFrame } from "../../lib/dom.js"
 import { dbToGain, gainToDb } from "../common.js"
 import { UpdateMeterMessage } from "./message.js"
 
-export class MeterWorklet extends AudioWorkletNode {
-    static loadModule(context: AudioContext): Promise<void> {
+export class MeterWorkletFactory {
+    static load(context: AudioContext): Promise<MeterWorkletFactory> {
         return context.audioWorklet.addModule("bin/audio/meter/processor.js")
+            .then(() => new MeterWorkletFactory())
     }
 
+    create(...args: ConstructorParameters<typeof MeterWorklet>): MeterWorklet {
+        return new MeterWorklet(...args)
+    }
+}
+
+export class MeterWorklet extends AudioWorkletNode {
     static readonly PEAK_HOLD_DURATION: number = 1000.0
     static readonly CLIP_HOLD_DURATION: number = 2000.0
 

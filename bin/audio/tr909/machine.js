@@ -1,10 +1,29 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { ArrayUtils, ObservableValueImpl, Terminator } from "../../lib/common.js";
 import { barsToSeconds, dbToGain, Transport } from "../common.js";
-import { MeterWorklet } from "../meter/worklet.js";
 import { ChannelIndex, Memory } from "./memory.js";
 import { Preset } from "./preset.js";
+export class MachineFactory {
+    static load(context) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield context.audioWorklet.addModule("bin/audio/tr909/dsp/processor.js");
+            return new MachineFactory();
+        });
+    }
+    create(...args) {
+        return new Machine(...args);
+    }
+}
 export class Machine {
-    constructor(context, resources) {
+    constructor(context, resources, meterWorkletFactory) {
         this.context = context;
         this.terminator = new Terminator();
         this.bundledUpdates = [];
@@ -24,7 +43,7 @@ export class Machine {
         this.memory = new Memory();
         this.transport = new Transport();
         this.transport.addObserver(message => this.worklet.port.postMessage(message), false);
-        this.meterWorklet = new MeterWorklet(context, 10, 1);
+        this.meterWorklet = meterWorkletFactory.create(context, 10, 1);
         this.master = context.createGain();
         for (let index = 0; index < ChannelIndex.End; index++) {
             this.worklet.connect(this.meterWorklet, index, index).connect(this.master, index, 0);
@@ -87,9 +106,6 @@ export class Machine {
             }
         };
         this.startScheduler();
-    }
-    static loadModule(context) {
-        return context.audioWorklet.addModule("bin/audio/tr909/dsp/processor.js");
     }
     hasAnyData() {
         return this.memory.hasAnyData();

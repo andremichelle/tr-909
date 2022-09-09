@@ -4,12 +4,12 @@ import {
     ObservableImpl,
     ObservableValueImpl,
     Observer,
+    Option,
     Options,
     Serializer,
     Terminable,
     Terminator
 } from "../../lib/common.js"
-import { Option } from './../../../bin/lib/common.d'
 import { State, StateFormat } from "./state.js"
 
 export enum BankIndex { I, II }

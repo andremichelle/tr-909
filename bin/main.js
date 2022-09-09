@@ -7,10 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { LimiterWorklet } from "./audio/limiter/worklet.js";
-import { MeterWorklet } from "./audio/meter/worklet.js";
-import { Machine } from "./audio/tr909/machine.js";
-import { loadResources } from "./audio/tr909/resources.js";
+import { MeterWorkletFactory } from "./audio/meter/worklet.js";
+import { MachineFactory, Machine } from "./audio/tr909/machine.js";
+import { AudioFiles } from "./audio/tr909/resources.js";
 import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js";
 import { Events, Options, Waiting } from "./lib/common.js";
 import { AnimationFrame, HTML } from "./lib/dom.js";
@@ -25,14 +24,17 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     const context = newAudioContext();
     const boot = new Boot();
     boot.await('css', preloadImagesOfCssFile("./bin/main.css"));
-    boot.await('limiter', LimiterWorklet.loadModule(context));
-    boot.await('meter', MeterWorklet.loadModule(context));
-    boot.await('machine', Machine.loadModule(context));
-    const getResources = loadResources(boot);
+    boot.add(Machine, () => boot.resolve(MachineFactory)
+        .create(context, boot.resolve(AudioFiles).resources, boot.resolve(MeterWorkletFactory)))
+        .require(MachineFactory, AudioFiles, MeterWorkletFactory);
+    boot.await(MachineFactory, MachineFactory.load(context));
+    boot.await(MeterWorkletFactory, MeterWorkletFactory.load(context));
+    boot.await(AudioFiles, AudioFiles.load());
     yield Waiting.forFrames(12);
     yield boot.awaitCompletion();
     window.removeEventListener('error', onBootError);
     window.removeEventListener('unhandledrejection', onBootError);
+    const machine = boot.resolve(Machine);
     const parentNode = HTML.query('div.tr-909');
     const wrapper = HTML.query('div.wrapper');
     let format = null;
@@ -61,7 +63,6 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     HTML.queryAll("svg.preloader", body).forEach(element => element.remove());
     yield Waiting.forFrames(20);
     HTML.queryAll("main", body).forEach(element => element.classList.remove("invisible"));
-    const machine = new Machine(context, getResources());
     const ui = new UIContext(machine, parentNode);
     machine.master.connect(context.destination);
     if (format !== null) {

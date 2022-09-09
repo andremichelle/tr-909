@@ -1,6 +1,5 @@
-import { Boot, Dependency } from "../../lib/boot.js"
+export const AudioFilesSampleRate = 44100.0
 
-export const ResourceSampleRate = 44100.0
 export type Resources<T> = {
     bassdrum: { attack: T, cycle: T },
     snaredrum: { tone: T, noise: T },
@@ -15,49 +14,50 @@ export type Resources<T> = {
     ride: T
 }
 
-type MakeDependencies<T, S> = { [K in keyof T]: T[K] extends S ? Dependency<T[K]> : MakeDependencies<T[K], S> }
-
-export const loadResources = (boot: Boot): () => Resources<Float32Array> => {
-    const load = (path: string): Dependency<Float32Array> =>
-        boot.addAwait(path, () => fetch(path)
+export class AudioFiles {
+    static async load(): Promise<AudioFiles> {
+        const load = (path: string): Promise<Float32Array> => fetch(path)
             .then(x => x.arrayBuffer())
-            .then(x => new Float32Array(x)))
-    const dependencies: MakeDependencies<Resources<Float32Array>, Float32Array> = {
-        bassdrum: {
-            attack: load('./resources/bassdrum-attack.raw'),
-            cycle: load('./resources/bassdrum-cycle.raw')
-        },
-        snaredrum: {
-            tone: load('./resources/snare-tone.raw'),
-            noise: load('./resources/snare-noise.raw'),
-        },
-        tomLow: load('./resources/tom-low.raw'),
-        tomMid: load('./resources/tom-mid.raw'),
-        tomHi: load('./resources/tom-hi.raw'),
-        rim: load('./resources/rim.raw'),
-        clap: load('./resources/clap.raw'),
-        closedHihat: load('./resources/closed-hihat.raw'),
-        openedHihat: load('./resources/opened-hihat.raw'),
-        crash: load('./resources/crash.raw'),
-        ride: load('./resources/ride.raw')
+            .then(x => new Float32Array(x))
+        const promises: Resources<Promise<Float32Array>> = {
+            bassdrum: {
+                attack: load('./resources/bassdrum-attack.raw'),
+                cycle: load('./resources/bassdrum-cycle.raw')
+            },
+            snaredrum: {
+                tone: load('./resources/snare-tone.raw'),
+                noise: load('./resources/snare-noise.raw'),
+            },
+            tomLow: load('./resources/tom-low.raw'),
+            tomMid: load('./resources/tom-mid.raw'),
+            tomHi: load('./resources/tom-hi.raw'),
+            rim: load('./resources/rim.raw'),
+            clap: load('./resources/clap.raw'),
+            closedHihat: load('./resources/closed-hihat.raw'),
+            openedHihat: load('./resources/opened-hihat.raw'),
+            crash: load('./resources/crash.raw'),
+            ride: load('./resources/ride.raw')
+        }
+        return new AudioFiles({
+            bassdrum: {
+                attack: await promises.bassdrum.attack,
+                cycle: await promises.bassdrum.cycle
+            },
+            snaredrum: {
+                tone: await promises.snaredrum.tone,
+                noise: await promises.snaredrum.noise
+            },
+            tomLow: await promises.tomLow,
+            tomMid: await promises.tomMid,
+            tomHi: await promises.tomHi,
+            rim: await promises.rim,
+            clap: await promises.clap,
+            closedHihat: await promises.closedHihat,
+            openedHihat: await promises.openedHihat,
+            crash: await promises.crash,
+            ride: await promises.ride
+        })
     }
-    return (): Resources<Float32Array> => ({
-        bassdrum: {
-            attack: dependencies.bassdrum.attack.get(),
-            cycle: dependencies.bassdrum.cycle.get()
-        },
-        snaredrum: {
-            tone: dependencies.snaredrum.tone.get(),
-            noise: dependencies.snaredrum.noise.get()
-        },
-        tomLow: dependencies.tomLow.get(),
-        tomMid: dependencies.tomMid.get(),
-        tomHi: dependencies.tomHi.get(),
-        rim: dependencies.rim.get(),
-        clap: dependencies.clap.get(),
-        closedHihat: dependencies.closedHihat.get(),
-        openedHihat: dependencies.openedHihat.get(),
-        crash: dependencies.crash.get(),
-        ride: dependencies.ride.get()
-    })
+
+    constructor(readonly resources: Resources<Float32Array>) { }
 }

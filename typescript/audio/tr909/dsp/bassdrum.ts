@@ -1,6 +1,6 @@
 import { dbToGain, decibel, Interpolator } from "../../common.js"
 import { BassdrumPreset } from "../preset.js"
-import { Resources, ResourceSampleRate } from "../resources.js"
+import { Resources, AudioFilesSampleRate } from "../resources.js"
 import { isRunning, SilentGain, Voice } from "./voice.js"
 
 export class BassdrumVoice extends Voice {
@@ -36,7 +36,7 @@ export class BassdrumVoice extends Voice {
         this.terminator.with(preset.tune.addObserver(value =>
             this.freqCoefficient = Math.exp(-1.0 / (sampleRate * value)), true))
         this.attackGain = dbToGain(preset.attack.get() + preset.level.get() + level)
-        this.attackRate = ResourceSampleRate / sampleRate
+        this.attackRate = AudioFilesSampleRate / sampleRate
     }
 
     stop(): void {

@@ -1,6 +1,6 @@
 import { dbToGain, decibel, Interpolator } from "../../common.js"
 import { SnaredrumPreset } from "../preset.js"
-import { ResourceSampleRate } from "../resources.js"
+import { AudioFilesSampleRate } from "../resources.js"
 import { isRunning, SilentGain, Voice } from "./voice.js"
 
 export class SnaredrumVoice extends Voice {
@@ -21,8 +21,8 @@ export class SnaredrumVoice extends Voice {
 
         this.tune = resources.tone
         this.noise = resources.noise
-        this.tuneRate = ResourceSampleRate * this.sampleRateInv * Math.pow(2.0, preset.tune.get())
-        this.noiseRate = ResourceSampleRate * this.sampleRateInv
+        this.tuneRate = AudioFilesSampleRate * this.sampleRateInv * Math.pow(2.0, preset.tune.get())
+        this.noiseRate = AudioFilesSampleRate * this.sampleRateInv
         this.noiseGain = dbToGain(preset.snappy.get())
         this.gainInterpolator = new Interpolator(sampleRate)
         this.terminator.with(preset.level.addObserver(value =>

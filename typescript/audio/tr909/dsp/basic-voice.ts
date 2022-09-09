@@ -1,6 +1,6 @@
 import { dbToGain, decibel, Interpolator } from "../../common.js"
 import { CrashOrRidePreset, HihatPreset, RimOrClapPreset, TomPreset } from "../preset.js"
-import { ResourceSampleRate } from "../resources.js"
+import { AudioFilesSampleRate } from "../resources.js"
 import { isRunning, Voice } from "./voice.js"
 
 export class BasicTuneDecayVoice extends Voice {
@@ -24,14 +24,14 @@ export class BasicTuneDecayVoice extends Voice {
         this.gainInterpolator = new Interpolator(sampleRate)
         this.position = 0.0
         this.frame = 0 | 0
-        this.rate = ResourceSampleRate / sampleRate
+        this.rate = AudioFilesSampleRate / sampleRate
         this.envelope = 1.0
         this.envelopeCoefficient = 1.0
         this.terminator.with(preset.level.addObserver(value =>
             this.gainInterpolator.set(dbToGain(value + level), true), true))
         if ('tune' in preset) {
             this.terminator.with(preset.tune.addObserver(value =>
-                this.rate = ResourceSampleRate / sampleRate * Math.pow(2.0, value), true))
+                this.rate = AudioFilesSampleRate / sampleRate * Math.pow(2.0, value), true))
         }
         if ('decay' in preset) {
             this.terminator.with(preset.decay.addObserver(value =>
