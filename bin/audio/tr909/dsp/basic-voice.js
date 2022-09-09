@@ -1,5 +1,5 @@
 import { dbToGain, Interpolator } from "../../common.js";
-import { AudioFilesSampleRate } from "../resources.js";
+import { ResourceSampleRate } from "../resources.js";
 import { Voice } from "./voice.js";
 export class BasicTuneDecayVoice extends Voice {
     constructor(array, preset, sampleRate, releaseStartTime, level) {
@@ -9,12 +9,12 @@ export class BasicTuneDecayVoice extends Voice {
         this.gainInterpolator = new Interpolator(sampleRate);
         this.position = 0.0;
         this.frame = 0 | 0;
-        this.rate = AudioFilesSampleRate / sampleRate;
+        this.rate = ResourceSampleRate / sampleRate;
         this.envelope = 1.0;
         this.envelopeCoefficient = 1.0;
         this.terminator.with(preset.level.addObserver(value => this.gainInterpolator.set(dbToGain(value + level), true), true));
         if ('tune' in preset) {
-            this.terminator.with(preset.tune.addObserver(value => this.rate = AudioFilesSampleRate / sampleRate * Math.pow(2.0, value), true));
+            this.terminator.with(preset.tune.addObserver(value => this.rate = ResourceSampleRate / sampleRate * Math.pow(2.0, value), true));
         }
         if ('decay' in preset) {
             this.terminator.with(preset.decay.addObserver(value => this.envelopeCoefficient = Math.exp(-1.0 / (sampleRate * value)), true));

@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-export const AudioFilesSampleRate = 44100.0;
+export const ResourceSampleRate = 44100.0;
 export class AudioFiles {
     constructor(resources) {
         this.resources = resources;

@@ -1,5 +1,5 @@
 import { dbToGain, Interpolator } from "../../common.js";
-import { AudioFilesSampleRate } from "../resources.js";
+import { ResourceSampleRate } from "../resources.js";
 import { SilentGain, Voice } from "./voice.js";
 export class BassdrumVoice extends Voice {
     constructor(resources, preset, sampleRate, level) {
@@ -19,7 +19,7 @@ export class BassdrumVoice extends Voice {
         this.terminator.with(preset.decay.addObserver(value => this.gainCoefficient = Math.exp(-1.0 / (sampleRate * value)), true));
         this.terminator.with(preset.tune.addObserver(value => this.freqCoefficient = Math.exp(-1.0 / (sampleRate * value)), true));
         this.attackGain = dbToGain(preset.attack.get() + preset.level.get() + level);
-        this.attackRate = AudioFilesSampleRate / sampleRate;
+        this.attackRate = ResourceSampleRate / sampleRate;
     }
     stop() {
         this.gainInterpolator.set(0.0, true);

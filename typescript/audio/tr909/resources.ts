@@ -1,4 +1,4 @@
-export const AudioFilesSampleRate = 44100.0
+export const ResourceSampleRate = 44100.0
 
 export type Resources<T> = {
     bassdrum: { attack: T, cycle: T },
