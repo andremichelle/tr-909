@@ -20,8 +20,8 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     const context = newAudioContext()
     const boot = new Boot()
     boot.await('css', preloadImagesOfCssFile("./bin/main.css"))
-    boot.add(Machine, () => boot.resolve(MachineFactory)
-        .create(context, boot.resolve(AudioFiles).resources, boot.resolve(MeterWorkletFactory)))
+    boot.add(Machine, () => boot.get(MachineFactory)
+        .create(context, boot.get(AudioFiles).resources, boot.get(MeterWorkletFactory)))
         .require(MachineFactory, AudioFiles, MeterWorkletFactory)
     boot.await(MachineFactory, MachineFactory.load(context))
     boot.await(MeterWorkletFactory, MeterWorkletFactory.load(context))
@@ -32,7 +32,7 @@ import { resetHighlights, startTutorial as createLecture } from './tr909/tutoria
     window.removeEventListener('unhandledrejection', onBootError)
     // --- BOOT ENDS ---
 
-    const machine = boot.resolve(Machine)
+    const machine = boot.get(Machine)
     const parentNode: HTMLElement = HTML.query('div.tr-909')
     const wrapper: HTMLElement = HTML.query('div.wrapper')
 

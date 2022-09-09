@@ -78,23 +78,24 @@ export class Boot {
     private promise: Option<Promise<void>> = Options.None
 
     add<T>(key: UniqueKey<T>, factory: Factory<T>): Dependency<T> {
-        return this.addAwait(key, () => Promise.resolve(factory()))
+        return this.await(key, () => Promise.resolve(factory()))
     }
 
-    await<T>(key: UniqueKey<T>, promise: Promise<T>): Dependency<T> {
-        return this.addAwait(key, () => promise)
-    }
-
-    addAwait<T>(key: UniqueKey<T>, factory: Factory<Promise<T>>): Dependency<T> {
+    await<T>(key: UniqueKey<T>, construct: Promise<T> | Factory<Promise<T>>): Dependency<T> {
         console.assert(this.promise.isEmpty())
         console.assert(!this.dependencies.has(key))
+        const factory = construct instanceof Promise<T> ? () => construct : construct
         const dependency = new DependencyImpl<T>(factory)
         this.dependencies.set(key, dependency)
         return dependency
     }
 
-    resolve<T>(key: UniqueKey<T>): T {
-        return this.dependencies.get(key)!.get()
+    get<T>(key: UniqueKey<T>): T {
+        const dependency = this.dependencies.get(key)
+        if (dependency === undefined) {
+            throw new Error(`No dependency found for key: ${key}`)
+        }
+        return dependency.get()
     }
 
     normalizedPercentage() {
@@ -110,6 +111,7 @@ export class Boot {
             return this.promise.get()
         }
         this.promise = Options.valueOf(new Promise<void>((resolve, reject) => {
+            console.time('Boot(Total)')
             const check = () => {
                 let complete = true
                 this.dependencies.forEach(<T extends Object>(dependency: DependencyImpl<T>, key: UniqueKey<T>): void => {
@@ -124,13 +126,15 @@ export class Boot {
                             .then(() => {
                                 this.available.add(key)
                                 console.timeEnd(label)
-                                setTimeout(check, 1)
                             })
                     }
                     complete = false
                 })
                 if (complete) {
+                    console.timeEnd('Boot(Total)')
                     resolve()
+                } else {
+                    setTimeout(check, 1)
                 }
             }
             check()

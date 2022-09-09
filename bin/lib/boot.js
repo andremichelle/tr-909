@@ -68,20 +68,22 @@ export class Boot {
         this.promise = Options.None;
     }
     add(key, factory) {
-        return this.addAwait(key, () => Promise.resolve(factory()));
+        return this.await(key, () => Promise.resolve(factory()));
     }
-    await(key, promise) {
-        return this.addAwait(key, () => promise);
-    }
-    addAwait(key, factory) {
+    await(key, construct) {
         console.assert(this.promise.isEmpty());
         console.assert(!this.dependencies.has(key));
+        const factory = construct instanceof (Promise) ? () => construct : construct;
         const dependency = new DependencyImpl(factory);
         this.dependencies.set(key, dependency);
         return dependency;
     }
-    resolve(key) {
-        return this.dependencies.get(key).get();
+    get(key) {
+        const dependency = this.dependencies.get(key);
+        if (dependency === undefined) {
+            throw new Error(`No dependency found for key: ${key}`);
+        }
+        return dependency.get();
     }
     normalizedPercentage() {
         return 0 === this.dependencies.size ? 1.0 : this.available.size / this.dependencies.size;
@@ -95,6 +97,7 @@ export class Boot {
                 return this.promise.get();
             }
             this.promise = Options.valueOf(new Promise((resolve, reject) => {
+                console.time('Boot(Total)');
                 const check = () => {
                     let complete = true;
                     this.dependencies.forEach((dependency, key) => {
@@ -109,13 +112,16 @@ export class Boot {
                                 .then(() => {
                                 this.available.add(key);
                                 console.timeEnd(label);
-                                setTimeout(check, 1);
                             });
                         }
                         complete = false;
                     });
                     if (complete) {
+                        console.timeEnd('Boot(Total)');
                         resolve();
+                    }
+                    else {
+                        setTimeout(check, 1);
                     }
                 };
                 check();
