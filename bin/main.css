@@ -1195,27 +1195,43 @@ div.hero {
   width: 32vw;
   transform: translate(-50%, -50%);
   position: absolute;
-  border-radius: 8px;
-  border: 1px rgba(0, 0, 0, 0.2) solid;
-  background-color: rgba(217, 213, 208, 0.96);
+  -webkit-backdrop-filter: blur(1px);
+          backdrop-filter: blur(1px);
   display: flex;
   flex-direction: column;
   font-size: 0.8vw;
-  gap: 1vw;
+  font-weight: 500;
   padding: 3vw 3vw 1.5vw 3vw;
-  color: #43484a;
-  box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.6), 0 32px 16px 0 rgba(0, 0, 0, 0.3);
+  color: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  gap: 1vw;
+  border: 1px rgba(255, 255, 255, 0.3) solid;
+  background-color: rgba(210, 205, 200, 0.9);
+  box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.3), 0 32px 16px 0 rgba(0, 0, 0, 0.1), 0 0 4px 0 rgba(255, 255, 255, 0.3) inset;
 }
-div.hero > h1, div.hero h2 {
+div.hero > div {
+  display: flex;
+  flex-direction: column;
+}
+div.hero > div > h1, div.hero > div h2 {
   text-transform: Uppercase;
 }
-div.hero > h1, div.hero h2, div.hero p {
+div.hero > div > h1, div.hero > div h2, div.hero > div p {
   margin: 0;
   padding: 0;
 }
-div.hero > h2 {
+div.hero > div > h1 {
+  letter-spacing: -0.02em;
+}
+div.hero > div > h2 {
   font-size: 1vw;
   font-weight: bold;
+  letter-spacing: 0.028em;
+}
+div.hero > p {
+  margin: 0;
+  padding: 0;
+  text-align: justify;
 }
 div.hero a {
   color: #43484a;
@@ -1223,6 +1239,7 @@ div.hero a {
   font-weight: bold;
 }
 div.hero > button {
+  margin: 0.5vw 0 0 0;
   align-self: center;
   width: -webkit-min-content;
   width: -moz-min-content;

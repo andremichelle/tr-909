@@ -30,6 +30,21 @@ export const preloadImagesOfCssFile = (pathToCss) => __awaiter(void 0, void 0, v
     console.debug(`preloadImagesOfCssFile... base: ${base} (${urls.length})`);
     return Promise.all(urls.map(url => fetch(url.href))).then(() => Promise.resolve());
 });
+class A {
+    constructor() {
+        this.foo = 'foo';
+    }
+}
+class B {
+    constructor() {
+        this.bar = 'bar';
+    }
+}
+export const map = (...args) => {
+    return (...args) => console.log(args);
+};
+const call = map(A, B);
+call(new A(), new B());
 class DependencyImpl {
     constructor(factory) {
         this.factory = factory;

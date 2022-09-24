@@ -1,3 +1,4 @@
+import { Parameter } from './common'
 // noinspection JSUnusedGlobalSymbols
 
 import { Option, Options } from "./common.js"
@@ -25,8 +26,29 @@ export const preloadImagesOfCssFile = async (pathToCss: string): Promise<void> =
     return Promise.all(urls.map(url => fetch(url.href))).then(() => Promise.resolve())
 }
 
-export type UniqueKey<T = void> = (new (...args: any[]) => T) | string | number
+export type Type<T> = (new (...args: any[]) => T)
+export type UniqueKey<T = void> = Type<T> | string | number
 export type Factory<T> = () => T
+
+
+class A {
+    foo: string = 'foo'
+}
+
+class B {
+    bar: string = 'bar'
+}
+
+
+declare function PromiseAll<T extends any[]>(values: [...T]): Promise<{[P in keyof T]: T[P] extends Promise<infer I> ? I : T[P]}> 
+
+
+export const map = <T extends any[]>(...args: T) => {
+    return <U extends InstanceType<T>>(...args: U) => console.log(args)
+}
+
+const call = map(A, B)
+call(new A(), new B())
 
 export interface Dependency<T> {
     require(...keys: UniqueKey[]): this

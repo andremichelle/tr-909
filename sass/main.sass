@@ -8,27 +8,22 @@ main
   display: grid
   grid-template: 6vmin 1fr 10vmin / 1fr
   position: relative
-
   > div.top
     display: flex
     align-items: center
     justify-content: center
     color: black
     text-shadow: 0 0 1px rgba(white, 0.4)
-
   > div.wrapper
     display: flex
     position: relative
-
     > div.tr-909
       top: 50%
       left: 50%
       transform: translate(-50%, -50%) scale(var(--scale))
       position: absolute
-
   > div.top
     position: relative
-
     > canvas.meter
       padding: 3px 0
       border-radius: 3px
@@ -38,13 +33,11 @@ main
       left: 50%
       top: 50%
       transform: translate(-50%, -50%)
-
   > footer
     display: flex
     align-items: center
     justify-content: center
     column-gap: 2vmin
-
     > a
       color: rgba(black, 0.4)
       background-repeat: no-repeat
@@ -60,10 +53,8 @@ main
       text-transform: uppercase
       box-shadow: 0 2px 2px -2px rgba(black, 0.6)
       transition: all 200ms ease-in
-
       &:hover
         background-color: lighten($COLOR_CHASSIS, 5%)
-
       &.new-window
         background-repeat: no-repeat
         background-position-x: calc(100% - 0.7vmin)
@@ -71,7 +62,6 @@ main
         background-size: 1.6vmin
         background-image: url('../svg/link.svg')
         padding: 0.5vmin 2.5vmin 0.5vmin 1vmin
-
       &.active
         background-repeat: no-repeat
         background-position-x: calc(100% - 0.5vmin)
@@ -79,41 +69,48 @@ main
         background-size: 1.5vmin
         background-image: url('../svg/close.svg')
         padding: 0.5vmin 2.5vmin 0.5vmin 1vmin
-
 div.hero
   top: 50%
   left: 50%
   width: 32vw
   transform: translate(-50%, -50%)
   position: absolute
-  border-radius: 8px
-  border: 1px rgba(black, 0.2) solid
-  background-color: rgba($COLOR_CHASSIS, 0.96)
+  backdrop-filter: blur(1px)
   display: flex
   flex-direction: column
   font-size: 0.8vw
-  gap: 1vw
+  font-weight: 500
   padding: 3vw 3vw 1.5vw 3vw
-  color: $COLOR_DARK
-  box-shadow: 0 8px 8px 0 rgba(black, 0.6), 0 32px 16px 0 rgba(black, 0.3)
-
-  > h1, h2
-    text-transform: Uppercase
-
-  > h1, h2, p
+  color: rgba(black, 0.6)
+  border-radius: 8px
+  gap: 1vw
+  border: 1px rgba(white, 0.3) solid
+  background-color: rgba(darken($COLOR_CHASSIS, 3%), 0.9)
+  box-shadow: 0 8px 8px 0 rgba(black, 0.3), 0 32px 16px 0 rgba(black, 0.1), 0 0 4px 0 rgba(white, 0.3) inset
+  > div
+    display: flex
+    flex-direction: column
+    > h1, h2
+      text-transform: Uppercase
+    > h1, h2, p
+      margin: 0
+      padding: 0
+    > h1
+      letter-spacing: -0.02em
+    > h2
+      font-size: 1vw
+      font-weight: bold
+      letter-spacing: 0.028em
+  > p
     margin: 0
     padding: 0
-
-  > h2
-    font-size: 1vw
-    font-weight: bold
-
+    text-align: justify
   a
     color: $COLOR_DARK
     text-decoration: none
     font-weight: bold
-
   > button
+    margin: 0.5vw 0 0 0
     align-self: center
     width: min-content
     font-size: 0.6vw
@@ -125,7 +122,6 @@ div.hero
     background-color: $COLOR_DARK
     appearance: none
     cursor: pointer
-
 div.working
   display: flex
   align-items: center
@@ -136,12 +132,10 @@ div.working
   position: absolute
   background-color: rgba(black, 0.5)
   pointer-events: all
-
   > small
     margin: 0
     padding: 0
     letter-spacing: 0.3em
-
 div.components
   margin: 0 auto
   padding: 12vmin
@@ -150,7 +144,6 @@ div.components
   flex-direction: column
   gap: 16px
   grid-auto-flow: column
-
   > div
     display: flex
     column-gap: 20px
@@ -158,6 +151,5 @@ div.components
     width: fit-content
     height: fit-content
     background: radial-gradient(at 50% 0, rgba(white, 0.25), transparent), linear-gradient(to bottom, darken($COLOR_CHASSIS, 4), darken($COLOR_CHASSIS, 8))
-
     > *
       position: relative
