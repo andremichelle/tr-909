@@ -13,7 +13,7 @@ export class Random {
         return this.uniform() < 0.5;
     }
 }
-export class JsRandom extends Random {
+class JsRandom extends Random {
     constructor() {
         super();
     }
@@ -22,6 +22,7 @@ export class JsRandom extends Random {
     }
 }
 JsRandom.Instance = new JsRandom();
+export { JsRandom };
 export class Mulberry32 extends Random {
     constructor(seed = 0x12345678) {
         super();

@@ -1,6 +1,6 @@
 import { elseIfUndefined } from '../lib/common.js';
 import { HTML } from '../lib/dom.js';
-export class KeyboardLayout {
+class KeyboardLayout {
     constructor(layout) {
         this.root = HTML.create('div', { class: 'keyboard-layout' });
         this.elements = layout.map(keys => {
@@ -71,4 +71,5 @@ KeyboardLayout.QWERTY = [
         { width: 32, char: '' }
     ]
 ];
+export { KeyboardLayout };
 //# sourceMappingURL=keyboard-layout.js.map

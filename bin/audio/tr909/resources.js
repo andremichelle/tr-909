@@ -9,9 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 export const ResourceSampleRate = 44100.0;
 export class AudioFiles {
-    constructor(resources) {
-        this.resources = resources;
-    }
     static load() {
         return __awaiter(this, void 0, void 0, function* () {
             const load = (path) => fetch(path)
@@ -56,6 +53,9 @@ export class AudioFiles {
                 ride: yield promises.ride
             });
         });
+    }
+    constructor(resources) {
+        this.resources = resources;
     }
 }
 //# sourceMappingURL=resources.js.map

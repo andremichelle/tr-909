@@ -44,7 +44,7 @@ declare function PromiseAll<T extends any[]>(values: [...T]): Promise<{[P in key
 
 
 export const map = <T extends any[]>(...args: T) => {
-    return <U extends InstanceType<T>>(...args: U) => console.log(args)
+    return <U extends InstanceType<any>>(...args: any) => console.log(args)
 }
 
 const call = map(A, B)
@@ -106,7 +106,7 @@ export class Boot {
     await<T>(key: UniqueKey<T>, construct: Promise<T> | Factory<Promise<T>>): Dependency<T> {
         console.assert(this.promise.isEmpty())
         console.assert(!this.dependencies.has(key))
-        const factory = construct instanceof Promise<T> ? () => construct : construct
+        const factory = construct instanceof Promise ? () => construct : construct
         const dependency = new DependencyImpl<T>(factory)
         this.dependencies.set(key, dependency)
         return dependency

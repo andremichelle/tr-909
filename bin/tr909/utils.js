@@ -1,7 +1,7 @@
 import { ChannelIndex, Step } from "../audio/tr909/memory.js";
 import { elseIfUndefined } from "../lib/common.js";
 import { KeyState, MainKeyIndex } from "./keys.js";
-export class InstrumentMode {
+class InstrumentMode {
     constructor(channelIndex, extra, name) {
         this.channelIndex = channelIndex;
         this.extra = extra;
@@ -26,7 +26,8 @@ InstrumentMode.HihatOpened = new InstrumentMode(ChannelIndex.Hihat, true, 'Hihat
 InstrumentMode.Crash = new InstrumentMode(ChannelIndex.Crash, false, 'Crash');
 InstrumentMode.Ride = new InstrumentMode(ChannelIndex.Ride, false, 'Ride');
 InstrumentMode.TotalAccent = new InstrumentMode(undefined, false, 'Total Accent');
-export class Utils {
+export { InstrumentMode };
+class Utils {
     static keyIndexToPlayInstrument(keyIndex, other) {
         if (keyIndex === MainKeyIndex.Step1) {
             return { channelIndex: ChannelIndex.Bassdrum, step: Step.Full };
@@ -297,4 +298,5 @@ Utils.buttonIndicesToInstrumentMode = (() => {
     return (keyIndices) => elseIfUndefined(checks.map(check => check(keyIndices))
         .find(mode => mode != InstrumentMode.None), InstrumentMode.None);
 })();
+export { Utils };
 //# sourceMappingURL=utils.js.map

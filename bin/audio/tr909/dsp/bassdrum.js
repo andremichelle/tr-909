@@ -1,7 +1,7 @@
 import { dbToGain, Interpolator } from "../../common.js";
 import { ResourceSampleRate } from "../resources.js";
 import { SilentGain, Voice } from "./voice.js";
-export class BassdrumVoice extends Voice {
+class BassdrumVoice extends Voice {
     constructor(resources, preset, sampleRate, level) {
         super(sampleRate);
         this.gainEnvelope = 1.0;
@@ -53,4 +53,5 @@ export class BassdrumVoice extends Voice {
 BassdrumVoice.ReleaseStartTime = 0.060;
 BassdrumVoice.FreqStart = 274.0;
 BassdrumVoice.FreqEnd = 53.0;
+export { BassdrumVoice };
 //# sourceMappingURL=bassdrum.js.map

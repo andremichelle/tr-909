@@ -7,8 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-export class JsonBin {
-    constructor() { }
+class JsonBin {
     static save(body) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = yield fetch('https://api.jsonbin.io/v3/b', {
@@ -38,9 +37,11 @@ export class JsonBin {
             return result;
         });
     }
+    constructor() { }
 }
 JsonBin.HEADERS = {
     "Content-Type": "application/json",
     "X-Access-Key": "$2b$10$yI422V3aQFjbOhQszzdApOSbAww.N2EUSkpiRm7FJWSo2HmUuUXd2"
 };
+export { JsonBin };
 //# sourceMappingURL=jsonbin.js.map

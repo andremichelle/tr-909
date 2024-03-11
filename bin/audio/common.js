@@ -25,7 +25,7 @@ export class RMS {
         return 0.0 >= this.sum ? 0.0 : Math.sqrt(this.sum * this.inv);
     }
 }
-export class Interpolator {
+class Interpolator {
     constructor(sampleRate) {
         this.value = NaN;
         this.target = NaN;
@@ -63,6 +63,7 @@ export class Interpolator {
     }
 }
 Interpolator.DefaultSeconds = 0.007;
+export { Interpolator };
 import { ObservableImpl } from "../lib/common.js";
 export class Transport {
     constructor() {

@@ -7,7 +7,7 @@ export class Range {
         return Math.min(this.max, Math.max(this.min, value));
     }
 }
-export class Linear {
+class Linear {
     constructor(min, max) {
         this.min = min;
         this.max = max;
@@ -26,7 +26,8 @@ export class Linear {
 Linear.Identity = new Linear(0.0, 1.0);
 Linear.Bipolar = new Linear(-1.0, 1.0);
 Linear.Percent = new Linear(0.0, 100.0);
-export class LinearInteger {
+export { Linear };
+class LinearInteger {
     constructor(min, max) {
         this.max = max | 0;
         this.min = min | 0;
@@ -43,6 +44,7 @@ export class LinearInteger {
     }
 }
 LinearInteger.Percent = new Linear(0, 100);
+export { LinearInteger };
 export class Exp {
     constructor(min, max) {
         this.max = max;
@@ -76,13 +78,13 @@ export class Round {
     }
 }
 export class Pow {
+    static byCenter(center, min, max) {
+        return new Pow(min, max, Math.log((max - min) / (center - min)) / Math.log(2.0));
+    }
     constructor(min, max, exp) {
         this.min = min;
         this.max = max;
         this.exp = exp;
-    }
-    static byCenter(center, min, max) {
-        return new Pow(min, max, Math.log((max - min) / (center - min)) / Math.log(2.0));
     }
     x(y) {
         return Math.pow((y - this.min) / (this.max - this.min), 1.0 / this.exp);
@@ -94,7 +96,7 @@ export class Pow {
         return Math.min(this.max, Math.max(this.min, y));
     }
 }
-export class BooleanMapping {
+class BooleanMapping {
     x(y) {
         return y ? 1.0 : 0.0;
     }
@@ -106,7 +108,8 @@ export class BooleanMapping {
     }
 }
 BooleanMapping.Instance = new BooleanMapping();
-export class Volume {
+export { BooleanMapping };
+class Volume {
     constructor(min, mid, max) {
         this.min = min;
         this.mid = mid;
@@ -144,4 +147,5 @@ export class Volume {
     }
 }
 Volume.Default = new Volume(-72.0, -12.0, 0.0);
+export { Volume };
 //# sourceMappingURL=mapping.js.map

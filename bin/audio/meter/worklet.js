@@ -10,7 +10,7 @@ export class MeterWorkletFactory {
         return new MeterWorklet(...args);
     }
 }
-export class MeterWorklet extends AudioWorkletNode {
+class MeterWorklet extends AudioWorkletNode {
     constructor(context, numLines, channelCount) {
         super(context, "meter-processor", {
             numberOfInputs: numLines,
@@ -47,6 +47,7 @@ export class MeterWorklet extends AudioWorkletNode {
 }
 MeterWorklet.PEAK_HOLD_DURATION = 1000.0;
 MeterWorklet.CLIP_HOLD_DURATION = 2000.0;
+export { MeterWorklet };
 export class StereoMeterWorklet extends MeterWorklet {
     constructor(context) {
         super(context, 1, 2);

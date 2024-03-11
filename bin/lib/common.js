@@ -37,7 +37,7 @@ export class Terminator {
         }
     }
 }
-export class Options {
+class Options {
     static valueOf(value) {
         return null === value || undefined === value ? Options.None : new Options.Some(value);
     }
@@ -77,6 +77,7 @@ Options.None = new class {
         return 'Options.None';
     }
 };
+export { Options };
 export class ObservableImpl {
     constructor() {
         this.observers = [];
@@ -176,13 +177,7 @@ export class Parameter {
         this.observable.terminate();
     }
 }
-export class PrintMapping {
-    constructor(parser, printer, preUnit = "", postUnit = "") {
-        this.parser = parser;
-        this.printer = printer;
-        this.preUnit = preUnit;
-        this.postUnit = postUnit;
-    }
+class PrintMapping {
     static createBoolean(trueValue, falseValue) {
         return new PrintMapping(text => {
             return trueValue.toLowerCase() === text.toLowerCase();
@@ -225,6 +220,12 @@ export class PrintMapping {
             return value.toFixed(numPrecision);
         }, "", postUnit);
     }
+    constructor(parser, printer, preUnit = "", postUnit = "") {
+        this.parser = parser;
+        this.printer = printer;
+        this.preUnit = preUnit;
+        this.postUnit = postUnit;
+    }
     parse(text) {
         return this.parser(text.replace(this.preUnit, "").replace(this.postUnit, ""));
     }
@@ -252,7 +253,8 @@ PrintMapping.RGB = new PrintMapping(text => {
         return null;
     }
 }, value => value.toString(16).padStart(6, "0").toUpperCase(), "#", "");
-export class NumericStepper {
+export { PrintMapping };
+class NumericStepper {
     constructor(step = 1) {
         this.step = step;
     }
@@ -265,9 +267,8 @@ export class NumericStepper {
 }
 NumericStepper.Integer = new NumericStepper(1);
 NumericStepper.Hundredth = new NumericStepper(0.01);
-export class ArrayUtils {
-    constructor() {
-    }
+export { NumericStepper };
+class ArrayUtils {
     static fill(n, factory) {
         const array = [];
         for (let i = 0; i < n; i++) {
@@ -282,6 +283,8 @@ export class ArrayUtils {
             array[i] = array[randomIndex];
             array[randomIndex] = element;
         }
+    }
+    constructor() {
     }
 }
 ArrayUtils.binarySearch = (array, length, key) => {
@@ -305,6 +308,7 @@ ArrayUtils.binarySearch = (array, length, key) => {
     }
     return high;
 };
+export { ArrayUtils };
 export class Settings {
     constructor() {
         this.terminator = new Terminator();
@@ -372,7 +376,7 @@ export class Waiting {
         }));
     }
 }
-export class Events {
+class Events {
     static toPromise(target, type) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise(resolve => target
@@ -409,4 +413,5 @@ export class Events {
     }
 }
 Events.preventDefault = (event) => event.preventDefault();
+export { Events };
 //# sourceMappingURL=common.js.map

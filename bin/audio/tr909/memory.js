@@ -58,7 +58,7 @@ export var ChannelIndex;
     ChannelIndex[ChannelIndex["Ride"] = 9] = "Ride";
     ChannelIndex[ChannelIndex["End"] = 10] = "End";
 })(ChannelIndex || (ChannelIndex = {}));
-export class Memory {
+class Memory {
     constructor() {
         this.banks = [new MemoryBank(), new MemoryBank()];
         this.state = new State(this);
@@ -88,7 +88,8 @@ export class Memory {
     }
 }
 Memory.MAX_MEASURES = 896;
-export class MemoryBank {
+export { Memory };
+class MemoryBank {
     constructor() {
         this.tracks = ArrayUtils.fill(MemoryBank.NUM_TRACKS, () => new Track());
         this.patternGroups = ArrayUtils.fill(MemoryBank.NUM_PATTERN_GROUPS, (index) => new PatternGroup(index));
@@ -115,7 +116,8 @@ export class MemoryBank {
 }
 MemoryBank.NUM_TRACKS = 4;
 MemoryBank.NUM_PATTERN_GROUPS = 3;
-export class PatternGroup {
+export { MemoryBank };
+class PatternGroup {
     constructor(patternGroupIndex) {
         this.terminator = new Terminator();
         this.observable = this.terminator.with(new ObservableImpl());
@@ -175,7 +177,8 @@ export class PatternGroup {
     }
 }
 PatternGroup.NUM_PATTERNS = 16;
-export class Pattern {
+export { PatternGroup };
+class Pattern {
     constructor(location) {
         this.location = location;
         this.terminator = new Terminator();
@@ -341,7 +344,11 @@ export class Pattern {
 Pattern.ShuffleDelays = ArrayUtils.fill(7, index => index / 32);
 Pattern.FlamDelays = ArrayUtils.fill(8, index => 10 + index * 4);
 Pattern.ScaleRatios = [3.0 / 16.0, 3.0 / 32.0, 1.0 / 32.0, 1.0 / 16.0];
+export { Pattern };
 class Shuffle {
+    static computeExponent(shuffleIndex) {
+        return Math.log(0.5) / Math.log(0.5 + Pattern.ShuffleDelays[shuffleIndex.get()]);
+    }
     constructor(shuffleIndex, scale) {
         this.terminator = new Terminator();
         this.enabled = false;
@@ -372,9 +379,6 @@ class Shuffle {
         };
         this.terminator.with(shuffleIndex.addObserver(update, false));
         this.terminator.with(scale.addObserver(update, false));
-    }
-    static computeExponent(shuffleIndex) {
-        return Math.log(0.5) / Math.log(0.5 + Pattern.ShuffleDelays[shuffleIndex.get()]);
     }
     inverse(position) {
         return this.enabled ? this.map(position, this.exponent) : position;

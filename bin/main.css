@@ -192,9 +192,7 @@ button.default {
   min-width: 21px;
   border-radius: 2px;
   text-align: center;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   padding: 0;
   border: none;
   outline: none;
@@ -216,17 +214,13 @@ label.checkbox {
   border: none;
   outline: none;
   white-space: nowrap;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   margin: 0;
   padding: 0;
   position: relative;
 }
 label.checkbox input[type=checkbox] {
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   display: none;
 }
 label.checkbox.slider {
@@ -291,9 +285,6 @@ input[type=text] {
 input[type=text]:focus {
   box-shadow: 0 0 0 1px rgba(39, 107, 174, 0.6) inset;
 }
-input[type=text]::-moz-selection {
-  background-color: #276bae;
-}
 input[type=text]::selection {
   background-color: #276bae;
 }
@@ -307,9 +298,7 @@ select {
   padding: 0;
   font-size: 11px;
   background-color: rgba(0, 0, 0, 0.3);
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
 }
 
 div.two-columns {
@@ -317,11 +306,8 @@ div.two-columns {
   align-items: center;
   grid-template-columns: minmax(80px, 1fr) 84px;
   row-gap: 3px;
-  -moz-column-gap: 4px;
-       column-gap: 4px;
+  column-gap: 4px;
   line-height: 21px;
-  height: -webkit-min-content;
-  height: -moz-min-content;
   height: min-content;
 }
 div.two-columns > * {
@@ -347,8 +333,7 @@ div.two-columns label.bold {
 div.two-columns fieldset.stepper {
   display: grid;
   grid-template-columns: 21px 40px 21px;
-  -moz-column-gap: 1px;
-       column-gap: 1px;
+  column-gap: 1px;
   font-size: 11px;
   outline: none;
   border: none;
@@ -363,9 +348,7 @@ div.two-columns fieldset.stepper > button {
   width: 21px;
   height: 21px;
   text-align: center;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   border-radius: 0;
   padding: 0;
   border: none;
@@ -376,15 +359,6 @@ div.two-columns fieldset.stepper > button:hover {
 }
 div.two-columns fieldset.stepper > button:active {
   color: white;
-}
-
-@-webkit-keyframes rotate {
-  from {
-    transform: rotate(-150deg) translate(0, -20px);
-  }
-  to {
-    transform: rotate(150deg) translate(0, -20px);
-  }
 }
 
 @keyframes rotate {
@@ -503,9 +477,7 @@ button.switch, button.trigger {
   padding: 0;
   border: none;
   outline: none;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   width: 48px;
   height: 48px;
   border-radius: 1px;
@@ -563,9 +535,7 @@ button.translucent-button {
   padding: 0;
   border: none;
   outline: none;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   width: 20px;
   height: 20px;
   display: flex;
@@ -609,15 +579,6 @@ button.translucent-button.enabled:after {
   visibility: visible;
 }
 
-@-webkit-keyframes fading {
-  0% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
 @keyframes fading {
   0% {
     opacity: 0.7;
@@ -630,9 +591,7 @@ div.tr-909 {
   width: 1226px;
   height: 728px;
   position: relative;
-  -ms-interpolation-mode: nearest-neighbor;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: pixelated;
+  image-rendering: pixelated;
   background: radial-gradient(at 50% 0, rgba(255, 255, 255, 0.25), transparent), linear-gradient(to bottom, #d0cbc5, #c7c1b9);
   overflow: hidden;
   border-radius: 3px;
@@ -666,8 +625,7 @@ div.tr-909 > div.tutorial-advance-button {
   flex-direction: column;
   color: #7d41d9;
   transform: translate(-50%, 0);
-  -webkit-animation: fading 250ms ease-in infinite alternate;
-          animation: fading 250ms ease-in infinite alternate;
+  animation: fading 250ms ease-in infinite alternate;
   pointer-events: all;
   cursor: pointer;
 }
@@ -719,8 +677,7 @@ div.tr-909 > div.action-button-group {
   display: grid;
   grid-template: 24px 20px 16px 16px/repeat(4, 20px);
   position: absolute;
-  -moz-column-gap: 11px;
-       column-gap: 11px;
+  column-gap: 11px;
 }
 div.tr-909 > div.action-button-group.six {
   grid-template: 24px 20px 16px 16px/repeat(6, 20px);
@@ -799,8 +756,6 @@ div.tr-909 > div.pattern-functions > span {
   font-size: 7px;
   line-height: 1em;
   text-align: center;
-  height: -webkit-min-content;
-  height: -moz-min-content;
   height: min-content;
   color: #43484a;
   border-radius: 1px;
@@ -835,8 +790,7 @@ div.tr-909 > div.main-button-group > hr {
 div.tr-909 > div.main-button-group > div.two {
   display: grid;
   grid-template-columns: repeat(2, 48px);
-  -moz-column-gap: 8px;
-       column-gap: 8px;
+  column-gap: 8px;
   height: 48px;
 }
 div.tr-909 > div.main-button-group > div.two > * {
@@ -855,9 +809,7 @@ div.tr-909 > div.func-label-group > div.func {
   padding: 0;
   border: none;
   outline: none;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: none;
   height: 14px;
   font-size: 8px;
@@ -990,14 +942,27 @@ svg.tap-finger {
   height: 1.54em;
   top: 3.23em;
   right: -3.23em;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
   box-sizing: content-box;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
   transform: rotate(45deg);
 }
 .github-fork-ribbon:before {
   content: "";
   padding: 0.38em 0;
   background-color: #d97e41;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0, 0, 0, 0)), to(rgba(0, 0, 0, 0.15)));
+  background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+  background-image: -moz-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+  background-image: -ms-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+  background-image: -o-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
   background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+  -webkit-box-shadow: 0 0.15em 0.23em 0 rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0 0.15em 0.23em 0 rgba(0, 0, 0, 0.5);
   box-shadow: 0 0.15em 0.23em 0 rgba(0, 0, 0, 0.5);
   pointer-events: auto;
 }
@@ -1034,6 +999,10 @@ svg.tap-finger {
   bottom: 3.23em;
 }
 .github-fork-ribbon.left-top:before, .github-fork-ribbon .github-fork-ribbon.left-top:after, .github-fork-ribbon .github-fork-ribbon.right-bottom:before, .github-fork-ribbon .github-fork-ribbon.right-bottom:after {
+  -webkit-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
   transform: rotate(-45deg);
 }
 
@@ -1055,8 +1024,7 @@ div.keyboard-layout {
 div.keyboard-layout > div.key-row {
   display: flex;
   flex-direction: row;
-  -moz-column-gap: 4px;
-       column-gap: 4px;
+  column-gap: 4px;
   position: relative;
 }
 div.keyboard-layout > div.key-row > div.key {
@@ -1150,8 +1118,7 @@ main > footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  -moz-column-gap: 2vmin;
-       column-gap: 2vmin;
+  column-gap: 2vmin;
 }
 main > footer > a {
   color: rgba(0, 0, 0, 0.4);
@@ -1195,8 +1162,7 @@ div.hero {
   width: 32vw;
   transform: translate(-50%, -50%);
   position: absolute;
-  -webkit-backdrop-filter: blur(1px);
-          backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
   display: flex;
   flex-direction: column;
   font-size: 0.8vw;
@@ -1241,8 +1207,6 @@ div.hero a {
 div.hero > button {
   margin: 0.5vw 0 0 0;
   align-self: center;
-  width: -webkit-min-content;
-  width: -moz-min-content;
   width: min-content;
   font-size: 0.6vw;
   outline: none;
@@ -1251,9 +1215,7 @@ div.hero > button {
   color: white;
   padding: 0.3vw 0.5vw;
   background-color: #43484a;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   cursor: pointer;
 }
 
@@ -1285,17 +1247,14 @@ div.components {
 }
 div.components > div {
   display: flex;
-  -moz-column-gap: 20px;
-       column-gap: 20px;
+  column-gap: 20px;
   padding: 40px;
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
   width: fit-content;
-  height: -webkit-fit-content;
-  height: -moz-fit-content;
   height: fit-content;
   background: radial-gradient(at 50% 0, rgba(255, 255, 255, 0.25), transparent), linear-gradient(to bottom, #d0cbc5, #c7c1b9);
 }
 div.components > div > * {
   position: relative;
-}/*# sourceMappingURL=main.css.map */
+}
+
+/*# sourceMappingURL=main.css.map */

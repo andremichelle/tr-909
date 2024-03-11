@@ -1,6 +1,9 @@
 import { Parameter, PrintMapping, Terminator } from "../../lib/common.js";
 import { Linear } from "../../lib/mapping.js";
-export class LimiterWorklet extends AudioWorkletNode {
+class LimiterWorklet extends AudioWorkletNode {
+    static loadModule(context) {
+        return context.audioWorklet.addModule("bin/audio/limiter/processor.js");
+    }
     constructor(context) {
         super(context, "limiter-processor", {
             numberOfInputs: 1,
@@ -16,9 +19,6 @@ export class LimiterWorklet extends AudioWorkletNode {
         this.parameterLookAhead.addObserver(seconds => this.port.postMessage({ type: "set-lookahead", seconds: seconds }), true);
         this.parameterThreshold.addObserver(db => this.port.postMessage({ type: "set-threshold", db: db }), true);
     }
-    static loadModule(context) {
-        return context.audioWorklet.addModule("bin/audio/limiter/processor.js");
-    }
     terminate() {
         this.terminator.terminate();
     }
@@ -27,4 +27,5 @@ LimiterWorklet.LOOKAHEAD_MAPPING = new Linear(0.000, 0.100);
 LimiterWorklet.LOOKAHEAD_PRINT = PrintMapping.float(3, "", "s");
 LimiterWorklet.THRESHOLD_MAPPING = new Linear(-72.0, 0.0);
 LimiterWorklet.THRESHOLD_PRINT = PrintMapping.float(1, "", "db");
+export { LimiterWorklet };
 //# sourceMappingURL=worklet.js.map

@@ -41,7 +41,7 @@ export class HTML {
         return Array.from(parent.querySelectorAll(selectors));
     }
 }
-export class AnimationFrame {
+class AnimationFrame {
     static add(exec) {
         if (AnimationFrame.list.length === 0) {
             AnimationFrame.start();
@@ -85,6 +85,7 @@ export class AnimationFrame {
     }
 }
 AnimationFrame.list = [];
+export { AnimationFrame };
 export class SVG {
     static create(tagName, attributes) {
         const element = document.createElementNS("http://www.w3.org/2000/svg", tagName);

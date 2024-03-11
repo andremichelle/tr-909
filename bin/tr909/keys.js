@@ -86,7 +86,7 @@ export const FunctionKeyShortcuts = new Map([
     ['Quote', FunctionKeyIndex.TapeSyncTempoMode],
 ]);
 console.assert(!Array.from(FunctionKeyShortcuts.keys()).some(key => MainKeyShortcuts.has(key)));
-export class ZeroBasedIndices {
+class ZeroBasedIndices {
 }
 ZeroBasedIndices.BankGroupKeys = [
     FunctionKeyIndex.ForwardBankI, FunctionKeyIndex.AvailableMeasuresBankII
@@ -106,14 +106,15 @@ ZeroBasedIndices.StepKeys = [
     MainKeyIndex.Step9, MainKeyIndex.Step10, MainKeyIndex.Step11, MainKeyIndex.Step12,
     MainKeyIndex.Step13, MainKeyIndex.Step14, MainKeyIndex.Step15, MainKeyIndex.Step16
 ];
-export class MainKeyLabel {
+export { ZeroBasedIndices };
+class MainKeyLabel {
+    static create(keyIndex, value, shift) {
+        return new MainKeyLabel(keyIndex, value, shift);
+    }
     constructor(keyIndex, value, shift) {
         this.keyIndex = keyIndex;
         this.value = value;
         this.shift = shift;
-    }
-    static create(keyIndex, value, shift) {
-        return new MainKeyLabel(keyIndex, value, shift);
     }
     toNormal() {
         return this.shift ? MainKeyLabel.NormalKeys[this.keyIndex] : this;
@@ -187,14 +188,15 @@ MainKeyLabel.ShiftKeys = [
     MainKeyLabel.Delete, MainKeyLabel.Save, MainKeyLabel.Verify, MainKeyLabel.Load,
     MainKeyLabel.Enter
 ];
-export class FunctionKeyLabel {
+export { MainKeyLabel };
+class FunctionKeyLabel {
+    static create(keyIndex, value, multiTap = false) {
+        return new FunctionKeyLabel(keyIndex, value, multiTap);
+    }
     constructor(keyIndex, value, multiTap) {
         this.keyIndex = keyIndex;
         this.value = value;
         this.multiTap = multiTap;
-    }
-    static create(keyIndex, value, multiTap = false) {
-        return new FunctionKeyLabel(keyIndex, value, multiTap);
     }
 }
 FunctionKeyLabel.TrackPlay = [
@@ -279,6 +281,7 @@ FunctionKeyLabel.ShiftKeys = [
     FunctionKeyLabel.ShiftClear,
     FunctionKeyLabel.ShiftInstrumentSelect
 ];
+export { FunctionKeyLabel };
 export var KeyState;
 (function (KeyState) {
     KeyState[KeyState["Off"] = 0] = "Off";

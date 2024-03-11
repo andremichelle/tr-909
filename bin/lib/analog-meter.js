@@ -11,11 +11,11 @@ export class AnalogMeterBuilder {
     }
 }
 export class AnalogMeter {
-    constructor(svg) {
-        this.svg = svg;
-    }
     static builder(width, height) {
         return new AnalogMeterBuilder(width, height);
+    }
+    constructor(svg) {
+        this.svg = svg;
     }
 }
 //# sourceMappingURL=analog-meter.js.map

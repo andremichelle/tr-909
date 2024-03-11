@@ -88,7 +88,7 @@ export class Boot {
     await(key, construct) {
         console.assert(this.promise.isEmpty());
         console.assert(!this.dependencies.has(key));
-        const factory = construct instanceof (Promise) ? () => construct : construct;
+        const factory = construct instanceof Promise ? () => construct : construct;
         const dependency = new DependencyImpl(factory);
         this.dependencies.set(key, dependency);
         return dependency;

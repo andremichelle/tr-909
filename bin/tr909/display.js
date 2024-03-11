@@ -45,7 +45,7 @@ class Digit {
         }
     }
 }
-export class DisplayObservableValueProvider {
+class DisplayObservableValueProvider {
     constructor(observableValue, debugName, mapping = DisplayObservableValueProvider.Identity) {
         this.observableValue = observableValue;
         this.debugName = debugName;
@@ -65,6 +65,7 @@ export class DisplayObservableValueProvider {
 }
 DisplayObservableValueProvider.Identity = (x) => x;
 DisplayObservableValueProvider.PlusOne = (x) => x + 1;
+export { DisplayObservableValueProvider };
 export class Display {
     constructor(svg) {
         this.providerStack = [];
