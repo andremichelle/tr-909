@@ -1,0 +1,52 @@
+@use "sass:color"
+@use "@/ui/vars" as *
+
+component
+  margin: 0
+  padding: 0
+  border: none
+  outline: none
+  appearance: none
+  width: 20px
+  height: 20px
+  display: flex
+  border-radius: 1px
+  background-color: #444
+  background-position: 0 0
+  background-repeat: no-repeat
+  background-image: url("@/ui/assets/translucent-button-normal.svg")
+  box-shadow: 0 0 1px 1px rgba(black, 0.6) inset, 0 0.5px 2px 0 rgba(white, 0.8), 0 0 1px 1px rgba(white, 0.4) inset
+  color: color.adjust($COLOR_LED, $lightness: 10%)
+  position: relative
+  touch-action: none
+
+  &.highlight
+    outline: $WIDTH_HIGHLIGHT $COLOR_HIGHLIGHT solid
+
+  &:after
+    content: ""
+    top: 0
+    left: 0
+    width: 20px
+    height: 20px
+    position: absolute
+    visibility: hidden
+    background-image: url("@/ui/assets/translucent-button-active.svg")
+
+  // enlarged hit area
+  &:before
+    content: ""
+    top: -5px
+    left: -5px
+    width: 31px
+    height: 42px
+    position: absolute
+
+  &.pressed
+    box-shadow: 0 0 16px 0 rgba(black, 0.2) inset, 0 0.5px 2px 0 rgba(white, 0.8)
+
+  &.light-blink:after
+    opacity: 0.5
+
+  &.light-on:after, .blink-phase &.light-blink:after, .flash-phase &.light-flash:after
+    visibility: visible

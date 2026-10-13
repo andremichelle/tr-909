@@ -1,0 +1,53 @@
+@use "sass:color"
+@use "@/ui/vars" as *
+
+component
+  flex: 1
+  display: grid
+  grid-template: 6vmin 1fr 10vmin / 1fr
+  position: relative
+
+  > .wrapper
+    display: flex
+    position: relative
+
+    > *
+      top: 50%
+      left: 50%
+      transform: translate(-50%, -50%) scale(var(--scale))
+      position: absolute
+
+  > footer
+    display: flex
+    align-items: center
+    justify-content: center
+    column-gap: 2vmin
+
+    > a
+      color: rgba(black, 0.4)
+      background-color: $COLOR_CHASSIS
+      padding: 0.5vmin 1vmin
+      border-radius: 0.5vmin
+      font-size: 1.2vmin
+      text-decoration: none
+      text-transform: uppercase
+      box-shadow: 0 2px 2px -2px rgba(black, 0.6)
+      transition: all 200ms ease-in
+      background-repeat: no-repeat
+
+      &:hover
+        background-color: color.adjust($COLOR_CHASSIS, $lightness: 5%)
+
+      &.new-window
+        background-position-x: calc(100% - 0.7vmin)
+        background-position-y: calc(50% - 0.08vmin)
+        background-size: 1.6vmin
+        background-image: url("@/ui/assets/link.svg")
+        padding: 0.5vmin 2.5vmin 0.5vmin 1vmin
+
+      &.active
+        background-position-x: calc(100% - 0.5vmin)
+        background-position-y: center
+        background-size: 1.5vmin
+        background-image: url("@/ui/assets/close.svg")
+        padding: 0.5vmin 2.5vmin 0.5vmin 1vmin

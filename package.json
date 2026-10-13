@@ -1,0 +1,26 @@
+{
+  "name": "tr-909",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=23"
+  },
+  "scripts": {
+    "dev": "vite --clearScreen false",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@opendaw/lib-dom": "^0.0.91",
+    "@opendaw/lib-jsx": "^0.0.93",
+    "@opendaw/lib-std": "^0.0.86"
+  },
+  "devDependencies": {
+    "sass": "^1.88.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.0.2"
+  }
+}

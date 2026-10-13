@@ -1,0 +1,34 @@
+@use "sass:color"
+@use "@/ui/vars" as *
+
+html, body
+  margin: 0
+  padding: 0
+  overflow: hidden
+  position: relative
+  font-family: "Roboto Bold", sans-serif
+  touch-action: manipulation
+  color: #eaeaea
+  background-color: color.adjust(#dad8d5, $lightness: -10%)
+
+html
+  width: 100%
+  height: 100%
+
+body
+  display: flex
+  flex-direction: column
+  width: 100%
+  height: 100%
+
+*
+  user-select: none
+  -webkit-user-select: none
+  -webkit-touch-callout: none
+  -webkit-tap-highlight-color: transparent
+
+.hidden
+  display: none !important
+
+.invisible
+  visibility: hidden !important

@@ -1,0 +1,44 @@
+@use "@/ui/vars" as *
+
+component
+  &.functions
+    display: grid
+    grid-template-columns: repeat(16, 57px)
+    align-items: end
+    justify-items: center
+    background-color: $COLOR_DARK
+
+    > div
+      height: 14px
+      font-size: 8px
+      font-weight: 600
+      line-height: 15px
+      color: $COLOR_CHASSIS
+
+  &.triggers
+    display: grid
+    grid-template-columns: repeat(8, 114px)
+    height: 16px
+
+    > div
+      font-size: 7px
+      margin: 0 4px
+      padding: 0
+      overflow: hidden
+      display: flex
+      justify-content: space-around
+      font-weight: bold
+      background: url("@/ui/assets/trigger-background.svg") no-repeat
+
+      &.bend
+        background: url("@/ui/assets/trigger-background-bend.svg") no-repeat
+
+      &.light
+        font-size: 6px
+        font-weight: bolder
+
+      > span
+        line-height: 18px
+        text-align: center
+        color: $COLOR_DARK
+        white-space: nowrap

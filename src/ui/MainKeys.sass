@@ -1,0 +1,27 @@
+@use "@/ui/vars" as *
+
+component
+  display: grid
+  grid-template-columns: repeat(8, 104px 10px)
+  justify-items: center
+
+  > hr
+    margin: 0
+    padding: 0
+    width: 1px
+    top: -12px
+    height: 66px
+    border: none
+    background-color: $COLOR_DARK
+    position: relative
+    border-radius: 1px
+
+  > .two
+    display: grid
+    grid-template-columns: repeat(2, 48px)
+    column-gap: 8px
+    height: 48px
+    position: relative
+
+    > *
+      position: relative

@@ -1,0 +1,50 @@
+@use "@/ui/vars" as *
+
+component
+  padding: 12px 0 0 13px
+  display: grid
+  width: 95px
+  height: 160px
+  grid-template-columns: repeat(2, 40px)
+  grid-template-rows: repeat(3, 20px 22px)
+  justify-items: center
+  border-left: 2px $COLOR_DARK solid
+  border-bottom: 2px $COLOR_DARK solid
+
+  &:before
+    content: ""
+    width: 104px
+    height: 2px
+    top: 0
+    left: 0
+    background-color: $COLOR_DARK
+    position: absolute
+    border-radius: 0 1px 1px 0
+
+  &:after
+    content: ""
+    width: 2px
+    height: 108px
+    bottom: 0
+    right: 0
+    background-color: $COLOR_DARK
+    position: absolute
+    border-radius: 1px 1px 0 0
+
+  > *
+    position: relative
+
+  > span
+    margin: 2px 0 0 0
+    padding: 2px
+    font-size: 7px
+    line-height: 1em
+    text-align: center
+    height: min-content
+    color: $COLOR_DARK
+    border-radius: 1px
+    font-weight: bold
+    white-space: nowrap
+
+    &.shift
+      background-color: $COLOR_ORANGE

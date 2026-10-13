@@ -1,0 +1,36 @@
+@use "@/ui/vars" as *
+
+component
+  display: flex
+  align-items: center
+  justify-content: center
+  box-sizing: border-box
+
+  > *
+    position: relative
+
+  &:before
+    content: attr(data-label)
+    font-size: 8px
+    font-weight: bold
+    line-height: 7px
+    top: -6px
+    left: 50%
+    text-align: center
+    transform: translate(-50%, -100%)
+    position: absolute
+    color: $COLOR_DARK
+    white-space: pre-wrap
+
+  &:after
+    content: attr(data-below)
+    font-size: 7px
+    font-weight: bold
+    line-height: 7px
+    bottom: -22px
+    left: 50%
+    text-align: center
+    transform: translate(-50%, -100%)
+    position: absolute
+    color: $COLOR_DARK
+    white-space: nowrap

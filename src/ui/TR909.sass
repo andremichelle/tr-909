@@ -1,0 +1,104 @@
+@use "sass:color"
+@use "@/ui/vars" as *
+
+@keyframes fading
+  0%
+    opacity: 0.7
+  100%
+    opacity: 1.0
+
+component
+  --scale: 1
+  width: 1226px
+  height: 728px
+  position: relative
+  image-rendering: pixelated
+  background: radial-gradient(at 50% 0, rgba(white, 0.25), transparent), linear-gradient(to bottom, color.adjust($COLOR_CHASSIS, $lightness: -4%), color.adjust($COLOR_CHASSIS, $lightness: -8%))
+  overflow: hidden
+  border-radius: 3px
+  box-shadow: 0 8px 8px 0 rgba(black, 0.6), 0 24px 16px 4px rgba(black, 0.4), 0 2px 1px 0 rgba(white, 0.6) inset
+
+  > *
+    position: absolute
+
+  &:before, &:after
+    content: ""
+    top: 0
+    width: 24px
+    height: 100%
+    background-color: #939188
+    position: absolute
+    border-right: 1px #646462 solid
+    box-shadow: 0 1px 1px 0 rgba(white, 0.6) inset
+
+  &:after
+    right: 0
+    transform: scale(-1, 1)
+
+  > .logo
+    background-repeat: no-repeat
+
+    &.roland
+      top: 36px
+      left: 88px
+      width: 204px
+      height: 30px
+      background-image: url("@/ui/assets/roland.svg")
+
+    &.tr-909
+      top: 190px
+      left: 88px
+      width: 270px
+      height: 35px
+      background-size: contain
+      background-image: url("@/ui/assets/tr-909.svg")
+
+    &.rhythm-composer
+      top: 210px
+      left: 790px
+      width: 332px
+      height: 15px
+      background-image: url("@/ui/assets/rhythm-composer.svg")
+
+  > .tutorial-advance
+    top: 10%
+    left: 50%
+    display: flex
+    align-items: center
+    flex-direction: column
+    color: $COLOR_HIGHLIGHT
+    transform: translate(-50%, 0)
+    animation: fading 250ms ease-in infinite alternate
+    cursor: pointer
+    z-index: 2
+
+    > svg
+      fill: $COLOR_HIGHLIGHT
+      width: 32px
+      height: 32px
+
+    > p
+      margin: 8px 0 0 0
+      padding: 0
+      font-size: 12px
+
+  > hr
+    margin: 0
+    padding: 0
+    border: none
+    background-color: $COLOR_DARK
+    border-radius: 1px
+
+    &.main-border
+      height: 1px
+
+    &.bottom-right
+      width: 2px
+      height: 172px
+
+  > footer
+    width: 100%
+    height: 32px
+    background: linear-gradient(to bottom, transparent, rgba(white, 0.08) 16%, rgba(black, 0.3) 32%)
+    bottom: 0
+    z-index: 1

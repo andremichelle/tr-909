@@ -21,10 +21,11 @@ Logo SVGs (Roland, TR-909 & Rhythm Composer) by [Isaac Cotec](https://subaqueous
 [TR-909](https://andremichelle.github.io/tr-909/) Tested in Chrome & Safari, but does not work in [Firefox](https://github.com/andremichelle/tr-909/issues/4) yet
 
 ### Build
-Make sure to have sass installed and run
+Built with [Vite](https://vite.dev), Sass and the openDAW UI libraries (`@opendaw/lib-std`, `lib-dom`, `lib-jsx`).
 
-    sass sass/main.sass:bin/main.css --watch
+    npm install
+    npm run dev      # http://localhost:8080
+    npm run build    # type-check and bundle into dist/
 
-Make sure to have typescript installed and run
-
-    tsc -p ./typescript/tsconfig.json --watch
+### License
+Copyright (c) 2022 André Michelle. Licensed under the [GNU Affero General Public License v3.0 or later](LICENSE).
